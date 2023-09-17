@@ -129,7 +129,7 @@ main:
 ;		mov	<eyeRotationX, #0
 ;		mov	<eyeRotationY, #0
 ;		mov	<eyeRotationZ, #0
-;		mov	<eyeRotationSelect, #$12
+;		mov	<eyeRotationSelect, #ROT_FIRST_Z+ROT_SECOND_X+ROT_THIRD_Y
 ;
 ;		movw	<translationX, #0
 ;		movw	<translationY, #0

@@ -879,10 +879,10 @@ rmb		.macro
 ;----------------------------
 MODEL_DATA	.macro
 ;
-				.dw	\1
-				.db	\2
-				.dw	\3
-				.db	\4
+				.dw	\1	;POLYGON_DATA ADDRESS
+				.db	\2	;POLYGON_DATA COUNTS(1-32)
+				.dw	\3	;VERTEX_DATA ADDRESS
+				.db	\4	;VERTEX_DATA COUNTS(1-42)
 		.endm
 
 
@@ -911,14 +911,14 @@ POLYGON_DATA	.macro
 ;----------------------------
 VERTEX_DATA	.macro
 ;
-				.dw	\1, \2, \3
+				.dw	\1, \2, \3	;X, Y, Z
 		.endm
 
 
 ;----------------------------
 MATRIX_AREA	.macro
 ;
-				.ds	9*2
+				.ds	9*2	;3*3 matrix
 		.endm
 
 

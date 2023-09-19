@@ -2394,7 +2394,7 @@ vertexRotationX:
 
 ;----------------------------
 vertexTranslationDatas:
-;
+;target vertex data: vertexDataTemp
 		phx
 		phy
 
@@ -3032,7 +3032,7 @@ setModelRotation:
 
 ;----------------------------
 setModel:
-;
+;target vertex data: vertexDataTemp
 ;transform2D
 		phx
 		phy

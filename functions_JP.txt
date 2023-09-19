@@ -1,0 +1,573 @@
+************************************************************
+*        Polygon construction library for PC Engine        *
+*                Functions Documentation                   *
+*                 document revision 0.1                    *
+************************************************************
+
+
+setZeroMatrix
+	零行列を返す
+	IN	matrix0:	WORD	零行列を設定するアドレス
+	OUT
+
+	| 0 0 0 |
+	| 0 0 0 |
+	| 0 0 0 |
+	の行列を matrix0 に設定したアドレスに設定する
+
+
+setMatrixRotationZ
+	Z軸回転行列を返す
+	IN	XREG:		BYTE	角度（0-255）
+		matrix0:	WORD	行列を設定するアドレス
+	OUT
+
+	| cos  sin    0|
+	|-sin  cos    0|
+	|   0    0    1|
+	の行列を matrix0 に設定したアドレスに設定する
+
+
+setMatrixRotationY
+	Y軸回転行列を返す
+	IN	XREG:		BYTE	角度（0-255）
+		matrix0:	WORD	行列を設定するアドレス
+	OUT
+
+	| cos    0  sin|
+	|   0    1    0|
+	|-sin    0  cos|
+	の行列を matrix0 に設定したアドレスに設定する
+
+
+setMatrixRotationX
+	X軸回転行列を返す
+	IN	XREG:		BYTE	角度（0-255）
+		matrix0:	WORD	行列を設定するアドレス
+	OUT
+
+	|   1    0    0|
+	|   0  cos -sin|
+	|   0  sin  cos|
+	の行列を matrix0 に設定したアドレスに設定する
+
+
+vertexMultiplyDatas
+	複数の頂点に回転行列を掛ける
+	IN	vertex0:	WORD	頂点のアドレス
+		matrix1:	WORD	行列のアドレス
+		vertex2:	WORD	演算後の頂点のアドレス
+		vertexCount:	BYTE	頂点数
+	OUT
+
+	vertex0のアドレスの点にmatrix1のアドレスの回転行列を掛け演算結果をvertex2のアドレスに格納する
+	vertexCount内の頂点数分実行する
+
+
+vertexMultiply
+	頂点に回転行列を掛ける
+	IN	vertex0:	WORD	頂点のアドレス
+		matrix1:	WORD	行列のアドレス
+		vertex2:	WORD	演算後の頂点のアドレス
+	OUT
+
+	vertex0のアドレスの点にmatrix1のアドレスの回転行列を掛け演算結果をvertex2のアドレスに格納する
+
+
+matrixMultiply
+	回転行列に回転行列を掛ける
+	IN	matrix0:	WORD	行列のアドレス
+		matrix1:	WORD	行列のアドレス
+		matrix2:	WORD	演算後の行列のアドレス
+	OUT
+
+	matrix0のアドレスの行列にmatrix1のアドレスの行列を掛けmatrix2のアドレスに格納する
+	matrix2=matrix0×matrix1
+
+
+initializePolygonFunction
+	PCエンジンの初期化
+	IN
+	OUT
+
+	PCエンジンを初期化します
+	VDC，PAD，PSG，割り込み（IRQ2 無効），乱数
+
+
+setMainVolume
+
+	IN
+	OUT
+
+
+initializePsg
+
+	IN
+	OUT
+
+
+initializeDda
+
+	IN
+	OUT
+
+
+startDda
+
+	IN
+	OUT
+
+
+stopDda
+
+	IN
+	OUT
+
+
+setDda
+
+	IN
+	OUT
+
+
+timerPlayDdaFunction
+
+	IN
+	OUT
+
+
+signExt
+
+	IN
+	OUT
+
+
+sdiv32
+
+	IN
+	OUT
+
+
+udiv32
+
+	IN
+	OUT
+
+
+udiv30
+
+	IN
+	OUT
+
+
+smul16
+
+	IN
+	OUT
+
+
+umul16
+
+	IN
+	OUT
+
+
+usqrt32
+
+	IN
+	OUT
+
+
+calcDistance
+
+	IN
+	OUT
+
+
+initializePad
+
+	IN
+	OUT
+
+
+initializePad2
+
+	IN
+	OUT
+
+
+getPadData
+
+	IN
+	OUT
+
+
+selectVertexRotation
+
+	IN
+	OUT
+
+
+vertexRotationZ
+
+	IN
+	OUT
+
+
+vertexRotationY
+
+	IN
+	OUT
+
+
+vertexRotationX
+
+	IN
+	OUT
+
+
+vertexTranslationDatas
+	vertexDataTempの頂点データにX，Y，Zを加算する
+	IN	translationX:	WORD	X座標
+		translationY:	WORD	Y座標
+		translationZ:	WORD	Z座標
+		vertexCount:	BYTE	頂点数
+
+	OUT
+
+	vertexDataTempの頂点データにtranslationX，translationY，translationZの値を加算する
+	vertexCount内の頂点数分実行する
+
+
+setPolygonColorIndex
+	PolygonColorIndexを設定する
+	IN	AREG:		BYTE	設定値
+	OUT
+
+	ポリゴンのカラーに加算する値を設定する
+	ポリゴンカラーを0-31の値に設定し、PolygonColorIndexを96を設定した場合、描画時に96-127のポリゴンカラーを使用します。
+
+
+putPolygonBuffer
+	ポリゴンを出力する
+	IN
+	OUT
+
+	ポリゴンをバッファへ出力します
+
+
+setModelRotation
+	モデルデータを回転し登録する
+	IN	modelAddress:	WORD	モデルデータアドレス
+	OUT
+
+	モデルデータを登録します
+	モデルデータは、$4000-$7FFFには置かないで下さい
+
+
+setModel
+	モデルデータを登録する
+	IN	modelAddress:	WORD	モデルデータアドレス
+	OUT
+
+	モデルデータを登録します
+	頂点データはvertexDataTempを参照します
+
+
+getAngle
+
+	IN
+	OUT
+
+
+atan
+
+	IN
+	OUT
+
+
+_atan
+
+	IN
+	OUT
+
+
+romToVram
+
+	IN
+	OUT
+
+
+setCgCharData
+
+	IN
+	OUT
+
+
+setSgCharData
+
+	IN
+	OUT
+
+
+switchClearBuffer
+	VRAMのバッファをスイッチしクリアします
+	IN
+	OUT
+
+	VRAMのバッファをスイッチしクリアします
+
+
+clearBuffer
+
+	IN
+	OUT
+
+
+setAllPolygonColor
+	ポリゴン用パレットの設定
+	IN	argw0:		WORD	パレットデーターのアドレス
+	OUT
+
+	8×1ドット単位のディザパターンを設定します（128パターン）
+	0～127バイト プレーン0
+	128～255バイト プレーン1
+	256～383バイト プレーン2
+	384～511バイト プレーン3
+
+
+setAllPalette
+	パレットの設定
+	IN	argw0:		WORD	パレットデーターのアドレス
+	OUT
+
+	パレットを設定します
+	BG 16色×16パレット
+	SP 16色×16パレット
+
+	色のフォーマット（2バイト）
+	0000000GGGRRRBBB
+
+
+initializeVdc
+
+	IN
+	OUT
+
+
+setBat
+
+	IN
+	OUT
+
+
+clearSat
+
+	IN
+	OUT
+
+
+setInterruptDisable
+
+	IN
+	OUT
+
+
+irq1PolygonFunction
+	IRQ1割り込み処理
+	IN
+	OUT
+
+	IRQ1の割り込み処理を行います
+
+
+clearSatBuffer
+	SatBufferを初期化する
+	IN
+	OUT
+
+	SatBufferを初期化する
+
+
+setSatBuffer
+
+	IN
+	OUT
+
+
+setScreenCenter
+	スクリーンの中央の設定
+	IN	XREG:		BYTE	X座標
+		YREG:		BYTE	Y座標
+
+	スクリーンの中央をXREGとYREGの値に設定する
+
+
+onScreen
+	BGとSPを表示する
+	IN
+	OUT
+
+	BGとSPを表示する
+
+
+offScreen
+
+	IN
+	OUT
+
+
+enableIrqVdc
+	VSYNC割り込みを有効化する
+	IN
+	OUT
+
+	VSYNC割り込みを有効化する
+
+
+disableIrqVdc
+
+	IN
+	OUT
+
+
+setInc1Vdc
+
+	IN
+	OUT
+
+
+setInc32Vdc
+
+	IN
+	OUT
+
+
+setInc64Vdc
+
+	IN
+	OUT
+
+
+onScreenBg
+
+	IN
+	OUT
+
+
+onScreenSp
+
+	IN
+	OUT
+
+
+offScreenBg
+
+	IN
+	OUT
+
+
+offScreenSp
+
+	IN
+	OUT
+
+
+initializePolygonBuffer
+	PolygonBufferを初期化する
+	IN
+	OUT
+
+	PolygonBufferを初期化する
+
+
+initializeScreenVsync
+	VSYNC同期の初期化
+	IN
+	OUT
+
+	VSYNC同期の初期化
+
+
+waitScreenVsync
+	VSYNC待ち
+	IN
+	OUT
+
+	VSYNC処理の終了を待ちます
+
+
+setSatToVram
+	SATをVRAMへ転送する
+	IN
+	OUT
+
+	satBufferの内容をVRAMへ転送します
+
+
+setVsyncFlag
+	VSYNCフラグをセットします
+	IN
+	OUT
+
+	VSYNCフラグをセットします
+
+
+initializeRandom
+
+	IN
+	OUT
+
+
+getRandom
+
+	IN
+	OUT
+
+
+numToChar
+
+	IN
+	OUT
+
+
+setCgToSgData
+
+	IN
+	OUT
+
+
+calcBatAddressXY
+
+	IN
+	OUT
+
+
+setWriteVramAddress
+
+	IN
+	OUT
+
+
+setVramData
+
+	IN
+	OUT
+
+
+putChar
+
+	IN
+	OUT
+
+
+putString
+
+	IN
+	OUT
+
+
+putHex
+
+	IN
+	OUT

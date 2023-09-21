@@ -888,16 +888,16 @@ MODEL_DATA	.macro
 
 ;----------------------------
 POLYGON_DATA	.macro
-;attribute: circle($80 = circlre) + even line skip($40 = skip) + front clip($04 = cancel) + back check($02 = cancel) + back draw($01 = not draw : front side = counterclockwise) 
-;front color(0-63)
-;back color(0-63) or circle radius(1-8192) low byte
+;attribute: circle($80 = circlre) + even line skip($40 = skip) + front clip($04 = cancel) + back draw($01 = not draw : front side = counterclockwise) 
+;front color(0-127)
+;back color(0-127) or circle radius(1-8192) low byte
 ;vertex count: count(3-4) or circle radius(1-8192) high byte
 ;vertex index 0,
 ;vertex index 1,
 ;vertex index 2,
 ;vertex index 3
-		.if	(\# = 3)
-			.db	\1, \2, #LOW(\3), #HIGH(\3), 0, 0, 0, 0
+		.if	(\# = 4)
+			.db	\1, \2, #LOW(\3), #HIGH(\3), \4*6, 0, 0, 0
 		else
 			.if	(\# = 6)
 				.db	\1, \2, \3, 3, \4*6, \5*6, \6*6, 0

@@ -23,7 +23,9 @@ tiiRts			.ds	1
 ;---------------------
 transform2DWork0	.ds	256
 vertexDataTemp		.equ	transform2DWork0
+vertexDataTemp0		.equ	transform2DWork0
 transform2DWork1	.ds	256
+vertexDataTemp1		.equ	transform2DWork1
 
 ;---------------------
 clip2D0			.ds	(8+1)*4
@@ -67,7 +69,7 @@ satBuffer		.ds	SAT_SIZE*64
 ;Polygon data(MAX 24Byte) is ordered counterclockwise
 ;NEXT ADDR 2Byte
 ;SAMPLE Z 2Byte
-;COLOR 1Byte COLOR:(0-63)
+;COLOR 1Byte COLOR:(0-127)
 ;VERTEX COUNT 1Byte COUNT:(3-9), CIRCLE:+$80, LINESKIP:+$40 or DATA END:$00
 ;X0 1Byte, Y0 1Byte or CIRCLE CENTER X 2Byte
 ;X1 1Byte, Y1 1Byte or CIRCLE CENTER Y 2Byte

@@ -64,12 +64,13 @@
 ;CPU
 ;$0000-$1FFF	I/O
 ;$2000-$3FFF	RAM
-;$4000-$5FFF	sin mul datas, mul datas, transform div datas, polygon functions : switch when using
-;$6000-$7FFF	cos mul datas, edge functions : switch when using
-;$8000-$9FFF
-;$A000-$BFFF
+;$4000-$5FFF	user code/data, sin mul datas, mul datas, transform div datas, polygon functions : switch when using
+;$6000-$7FFF	user code/data, cos mul datas, edge functions : switch when using
+;$8000-$9FFF	user code/data
+;$A000-$BFFF	user code/data
 ;$C000-$DFFF	polygon functions
 ;$E000-$FFFF	reset, nmi, irq1, irq2, timer, polygon function datas
+;*attention* $4000-$7FFF When setModelRotation is used, model data cannot be placed.
 
 ;RAM
 ;1F0000-1F1FFF	ZERO PAGE

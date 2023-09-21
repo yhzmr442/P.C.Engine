@@ -160,6 +160,8 @@ main:
 ;----------------------------
 vsyncFunction:
 ;
+		jsr	getPadData
+
 		rts
 
 
@@ -178,6 +180,27 @@ _irq1:
 
 
 ;----------------------------
+_timer:
+;
+		irqEntry
+
+		stz	INTERRUPT_STATE_REG
+
+		jsr	timerPlayDdaFunction
+
+		irqExit
+
+
+;----------------------------
+_irq2:
+_nmi:
+;
+		irqEntry
+
+		irqExit
+
+
+;----------------------------
 _reset:
 ;
 		macroReset
@@ -187,19 +210,9 @@ _reset:
 
 
 ;----------------------------
-_irq2:
-_nmi:
-_timer:
-;
-		rti
-
-
-;----------------------------
 ;--------    DATA    --------
 ;----------------------------
 ;----------------------------
-
-;----------------
 polygonColor:
 		;plane0 8bit*128
 		.db	$00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF,\

@@ -880,18 +880,18 @@ rmb		.macro
 MODEL_DATA	.macro
 ;
 				.dw	\1	;POLYGON_DATA ADDRESS
-				.db	\2	;POLYGON_DATA COUNTS(1-32)
+				.db	\2	;POLYGON_DATA COUNTS(1 to 32)
 				.dw	\3	;VERTEX_DATA ADDRESS
-				.db	\4	;VERTEX_DATA COUNTS(1-42)
+				.db	\4	;VERTEX_DATA COUNTS(1 to 42)
 		.endm
 
 
 ;----------------------------
 POLYGON_DATA	.macro
 ;attribute: circle($80 = circlre) + even line skip($40 = skip) + front clip($04 = cancel) + back draw($01 = not draw : front side = counterclockwise) 
-;front color(0-127)
-;back color(0-127) or circle radius(1-8192) low byte
-;vertex count: count(3-4) or circle radius(1-8192) high byte
+;front color(0 to 127)
+;back color(0 to 127) or circle radius(1 to 8192) low byte
+;vertex count: count(3 to 4) or circle radius(1 to 8192) high byte
 ;vertex index 0,
 ;vertex index 1,
 ;vertex index 2,

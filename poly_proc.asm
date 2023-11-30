@@ -4,12 +4,12 @@
 ;world coordinate
 ;         TOP
 ;         +Y
-; LEFT -X  | +Z BACK
+; LEFT -X  | +Z FRONT
 ;        \ | /
 ;         \|/
 ;         /|\
 ;        / | \
-;FRONT -Z  | +X RIGHT
+; BACK -Z  | +X RIGHT
 ;         -Y
 ;        BOTTOM
 
@@ -50,6 +50,18 @@
 ;-|-------+X
 
 ;----------------------------
+;screen position
+;--------------- Z:+128
+;\      |      /
+; \     |     /
+;  \    |    /
+;   \   |   /
+;    \  |  /
+;     \ | /
+;      \|/
+;    viewpoint   Z:0
+
+;----------------------------
 ;vertex
 ;|v1 v2 v3|
 
@@ -69,29 +81,29 @@
 ;$8000-$9FFF	user code/data
 ;$A000-$BFFF	user code/data
 ;$C000-$DFFF	polygon functions
-;$E000-$FFFF	reset, nmi, irq1, irq2, timer, polygon function datas
-;*attention* $4000-$7FFF When setModelRotation is used, model data cannot be placed.
+;$E000-$FFFF	user code/data, reset, nmi, irq1, irq2, timer, polygon function datas
 
 ;RAM
-;1F0000-1F1FFF	ZERO PAGE
+;1F0000-1F1FFF	CPU ADDRESS $2000-$3FFF
 
 ;VRAM
 ;$0000-$03FF	BAT0	1KW
 ;$0400-$07FF	BAT1	1KW
 ;$0800-$08FF	SAT	256W
 ;$0900-$0FFF	CG, SG	1792W
-;$1000-$1FFF	CG	4KW
+;$1000-$1FFF	CG, SG	4KW
 ;$2000-$4FFF	BUFFER0	12KW
 ;$5000-$7FFF	BUFFER1	12KW
 
 ;ROM BANK
-;BANK 0		RESET, NMI, IRQ1, IRQ2, TIMER, POLYGON FUNCTION DATAS
+;BANK 0		USER CODE/DATA, RESET, NMI, IRQ1, IRQ2, TIMER, POLYGON FUNCTION DATAS
 ;BANK 1		POLYGON FUNCTIONS
 ;BANK 2		POLYGON FUNCTIONS
 ;BANK 3-18	MULTIPLICATION DATAS
 ;BANK19-30	DIVISION DATAS
 ;BANK31-34	EDGE FUNCTIONS
 
+;----------------------------
 ;palette number used by the system is 15.
 
 
@@ -101,7 +113,7 @@
 
 ;----------------------------
 ;Warning.
-;Using the matrix will slow down
+;Using the matrix will slow down.
 ;----------------------------
 setZeroMatrix:
 ;|   0    0    0|
@@ -2556,7 +2568,7 @@ transform2D:
 
 ;----------------------------
 transform2DProc:
-;work8b+3:work8b+2(rough value) = (mul16c(-32768_32767) * 128 / mul16a(1_32767))
+;work8b+3:work8b+2(rough value) = (mul16c(-32768 to 32767) * 128 / mul16a(1 to 32767))
 		lda	mul16a+1
 		bne	.jp99
 
@@ -4865,7 +4877,7 @@ initializeVdc:
 ;----------------------------
 setBat:
 ;set BAT
-;0 side
+;BAT0
 		st012	#$00, #$0000
 		st0	#$02
 
@@ -4893,7 +4905,7 @@ setBat:
 		inx
 		bne	.clearbatloop2
 
-;1 side
+;BAT1
 		st012	#$00, #$0400
 		st0	#$02
 
@@ -4948,9 +4960,10 @@ setInterruptDisable:
 ;----------------------------
 irq1PolygonFunction:
 ;
-
 		lda	VDC_0
 		sta	<vdpStatus
+
+		bbr5	<vdpStatus, .jp00
 
 		bbr7	<vsyncFlag, .jp00
 
@@ -6198,7 +6211,7 @@ putPolyLineProc:
 
 		phy
 
-;left 0 1
+;left CH0 CH1
 		lda	VDC_2
 		and	<polyLineLeftMask
 		sta	<polyLineDataLow
@@ -6217,7 +6230,7 @@ putPolyLineProc:
 		ora	<polyLineDataHigh
 		sta	VDC_3
 
-;center 0 1
+;center CH0 CH1
 		lda	<polyLineColorDataWork0
 		sta	VDC_2
 
@@ -6259,7 +6272,7 @@ putPolyLineProc:
 		sta	VDC_3	;2
 		sta	VDC_3	;1
 
-;right 0 1
+;right CH0 CH1
 		lda	<polyLineRightAddr
 		ldy	<polyLineRightAddr+1
 
@@ -6287,7 +6300,7 @@ putPolyLineProc:
 		ora	<polyLineDataHigh
 		sta	VDC_3
 
-;left 2 3
+;left CH2 CH3
 		lda	<polyLineLeftAddr
 		ora	#$08
 		ldy	<polyLineLeftAddr+1
@@ -6319,7 +6332,7 @@ putPolyLineProc:
 		ora	<polyLineDataHigh
 		sta	VDC_3
 
-;center 2 3
+;center CH2 CH3
 		lda	<polyLineColorDataWork2
 		sta	VDC_2
 
@@ -6361,7 +6374,7 @@ putPolyLineProc:
 		sta	VDC_3	;2
 		sta	VDC_3	;1
 
-;right 2 3
+;right CH2 CH3
 		lda	<polyLineRightAddr
 		ora	#$08
 		ldy	<polyLineRightAddr+1
@@ -6410,7 +6423,7 @@ putPolyLineProc:
 		eor	#$FF
 		sta	<polyLineMask1
 
-;left 0 1
+;left CH0 CH1
 		lda	VDC_2
 		and	<polyLineMask1
 		sta	<polyLineDataLow
@@ -6429,7 +6442,7 @@ putPolyLineProc:
 		ora	<polyLineDataHigh
 		sta	VDC_3
 
-;left 2 3
+;left CH2 CH3
 		lda	<polyLineLeftAddr
 		ora	#$08
 		ldx	<polyLineLeftAddr+1
@@ -6657,7 +6670,7 @@ putPolyLineProc2:
 
 		phy
 
-;left 0 1
+;left CH0 CH1
 		lda	VDC_2
 		and	<polyLineLeftMask
 		sta	<polyLineDataLow
@@ -6676,7 +6689,7 @@ putPolyLineProc2:
 		ora	<polyLineDataHigh
 		sta	VDC_3
 
-;center 0 1
+;center CH0 CH1
 		lda	<polyLineColorDataWork0
 		sta	VDC_2
 
@@ -6718,7 +6731,7 @@ putPolyLineProc2:
 		sta	VDC_3	;2
 		sta	VDC_3	;1
 
-;right 0 1
+;right CH0 CH1
 		lda	<polyLineRightAddr
 		ldy	<polyLineRightAddr+1
 
@@ -6746,7 +6759,7 @@ putPolyLineProc2:
 		ora	<polyLineDataHigh
 		sta	VDC_3
 
-;left 2 3
+;left CH2 CH3
 		lda	<polyLineLeftAddr
 		ora	#$08
 		ldy	<polyLineLeftAddr+1
@@ -6778,7 +6791,7 @@ putPolyLineProc2:
 		ora	<polyLineDataHigh
 		sta	VDC_3
 
-;center 2 3
+;center CH2 CH3
 		lda	<polyLineColorDataWork2
 		sta	VDC_2
 
@@ -6820,7 +6833,7 @@ putPolyLineProc2:
 		sta	VDC_3	;2
 		sta	VDC_3	;1
 
-;right 2 3
+;right CH2 CH3
 		lda	<polyLineRightAddr
 		ora	#$08
 		ldy	<polyLineRightAddr+1
@@ -6870,7 +6883,7 @@ putPolyLineProc2:
 		eor	#$FF
 		sta	<polyLineMask1
 
-;left 0 1
+;left CH0 CH1
 		lda	VDC_2
 		and	<polyLineMask1
 		sta	<polyLineDataLow
@@ -6889,7 +6902,7 @@ putPolyLineProc2:
 		ora	<polyLineDataHigh
 		sta	VDC_3
 
-;left 2 3
+;left CH2 CH3
 		lda	<polyLineLeftAddr
 		ora	#$08
 		ldx	<polyLineLeftAddr+1

@@ -1,5 +1,12 @@
 ;sample2.asm
 ;///////////////////////////
+;////////  DEFINE   ////////
+;///////////////////////////
+;---------------------
+		INCLUDE	"poly_def.asm"
+
+
+;///////////////////////////
 ;////////    EQU    ////////
 ;///////////////////////////
 ;---------------------
@@ -106,19 +113,19 @@ main:
 		movw	<matrix2, #mtx0
 		jsr	matrixMultiply
 
-		movw	<vertex0, modelData100+MODEL_VERTEX_ADDR
+		movw	<vertex0, modelData + MODEL_VERTEX_ADDR
 		movw	<matrix1, #mtx0
 		movw	<vertex2, #vertexDataTemp
-		mov	<vertexCount, modelData100+MODEL_VERTEX_COUNT
+		mov	<vertexCount, modelData + MODEL_VERTEX_COUNT
 		jsr	vertexMultiplyDatas
 
 		movw	<translationX, #0
 		movw	<translationY, #0
 		movw	<translationZ, #200
-		mov	<vertexCount, modelData100+MODEL_VERTEX_COUNT
+		mov	<vertexCount, modelData + MODEL_VERTEX_COUNT
 		jsr	vertexTranslationDatas
 
-		movw	<modelAddress, #modelData100
+		movw	<modelAddress, #modelData
 		jsr	setModel
 
 ;----------------
@@ -129,7 +136,7 @@ main:
 ;		mov	<eyeRotationX, #0
 ;		mov	<eyeRotationY, #0
 ;		mov	<eyeRotationZ, #0
-;		mov	<eyeRotationSelect, #ROT_FIRST_Z+ROT_SECOND_X+ROT_THIRD_Y
+;		mov	<eyeRotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
 ;
 ;		movw	<translationX, #0
 ;		movw	<translationY, #0
@@ -137,9 +144,9 @@ main:
 ;		mov	<rotationX, #32
 ;		mov	<rotationY, #64
 ;		mov	<rotationZ, <rot_z
-;		mov	<rotationSelect, #ROT_FIRST_Z+ROT_SECOND_X+ROT_THIRD_Y
+;		mov	<rotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
 ;
-;		movw	<modelAddress, #modelData100
+;		movw	<modelAddress, #modelData
 ;		jsr	setModelRotation
 
 		inc	<rot_z
@@ -158,10 +165,13 @@ main:
 
 
 ;----------------------------
-vsyncFunction:
+irq1Function:
 ;
+		bbr5	<vdpStatus, .skip
+
 		jsr	getPadData
 
+.skip:
 		rts
 
 
@@ -172,10 +182,8 @@ _irq1:
 
 		jsr	irq1PolygonFunction
 
-		bbr5	<vdpStatus, .skip
-		jsr	vsyncFunction
+		jsr	irq1Function
 
-.skip:
 		irqExit
 
 
@@ -214,7 +222,8 @@ _reset:
 ;----------------------------
 ;----------------------------
 polygonColor:
-		;plane0 8bit*128
+;128 pattern
+		;CH0
 		.db	$00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF,\
 			$00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $55, $FF, $55, $00, $AA, $FF, $FF,\
 			$00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF,\
@@ -224,7 +233,7 @@ polygonColor:
 			$00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF,\
 			$00, $00, $00, $FF, $00, $FF, $00, $FF, $00, $AA, $FF, $AA, $00, $55, $FF, $FF
 
-		;plane1 8bit*128
+		;CH1
 		.db	$00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF,\
 			$00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $55, $FF, $55, $00, $AA, $FF, $FF,\
 			$00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF,\
@@ -234,7 +243,7 @@ polygonColor:
 			$00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF,\
 			$00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $AA, $FF, $AA, $00, $55, $FF, $FF
 
-		;plane2 8bit*128
+		;CH2
 		.db	$00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $00, $00, $00, $FF, $FF, $FF, $FF,\
 			$00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $55, $FF, $55, $00, $AA, $FF, $FF,\
 			$00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $00, $00, $00, $FF, $FF, $FF, $FF,\
@@ -244,7 +253,7 @@ polygonColor:
 			$00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $00, $00, $00, $FF, $FF, $FF, $FF,\
 			$00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $AA, $FF, $AA, $00, $55, $FF, $FF
 
-		;plane3 8bit*128
+		;CH3
 		.db	$00, $00, $00, $00, $00, $00, $00, $00, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,\
 			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $AA, $FF, $FF, $FF, $FF,\
 			$00, $00, $00, $00, $00, $00, $00, $00, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,\
@@ -326,27 +335,27 @@ paletteData:
 
 
 ;----------------------------
-modelData100
-		MODEL_DATA	modelData100Polygon, 13, modelData100Vertex, 13
+modelData
+		MODEL_DATA	modelDataPolygon, 13, modelDataVertex, 13
 
-modelData100Polygon
-		POLYGON_DATA	ATTR_BACKDRAW_CXL, $07, $00, 0, 1, 2, 3	;center bottom
-		POLYGON_DATA	ATTR_BACKDRAW_CXL, $04, $00, 0, 3, 4	;center front left
-		POLYGON_DATA	ATTR_BACKDRAW_CXL, $0C, $00, 0, 4, 1	;center front right
-		POLYGON_DATA	ATTR_BACKDRAW_CXL, $08, $00, 4, 3, 2	;center back left
-		POLYGON_DATA	ATTR_BACKDRAW_CXL, $0F, $00, 4, 2, 1	;center back right
+modelDataPolygon
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $07, $00,  0,  1,  2,  3	;center bottom
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $04, $00,  0,  3,  4		;center front left
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $0C, $00,  0,  4,  1		;center front right
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $08, $00,  4,  3,  2		;center back left
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $0F, $00,  4,  2,  1		;center back right
 
-		POLYGON_DATA	ATTR_BACKDRAW_CXL, $08, $00, 5, 7, 6	;right center
-		POLYGON_DATA	ATTR_BACKDRAW_CXL, $0F, $00, 5, 6, 8	;right front top
-		POLYGON_DATA	ATTR_BACKDRAW_CXL, $07, $00, 5, 8, 7	;right front bottom
-		POLYGON_DATA	ATTR_BACKDRAW_CXL, $09, $00, 6, 7, 8	;right back
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $08, $00,  5,  7,  6		;right center
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $0F, $00,  5,  6,  8		;right front top
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $07, $00,  5,  8,  7		;right front bottom
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $09, $00,  6,  7,  8		;right back
 
-		POLYGON_DATA	ATTR_BACKDRAW_CXL, $08, $00, 9,10,11	;left center
-		POLYGON_DATA	ATTR_BACKDRAW_CXL, $0F, $00, 9,12,10	;left front top
-		POLYGON_DATA	ATTR_BACKDRAW_CXL, $07, $00, 9,11,12	;left front bottom
-		POLYGON_DATA	ATTR_BACKDRAW_CXL, $09, $00,10,12,11	;left back
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $08, $00,  9, 10, 11		;left center
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $0F, $00,  9, 12, 10		;left front top
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $07, $00,  9, 11, 12		;left front bottom
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $09, $00, 10, 12, 11		;left back
 
-modelData100Vertex
+modelDataVertex
 		VERTEX_DATA	    0,    0,  100	;0
 		VERTEX_DATA	   25,    0,    0	;1
 		VERTEX_DATA	    0,    0,  -50	;2

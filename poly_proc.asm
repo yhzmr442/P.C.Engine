@@ -14,6 +14,9 @@
 ;        BOTTOM
 
 ;----------------------------
+;Angles range from 0 to 255.
+
+;----------------------------
 ;direction of rotation
 ;counterclockwise(A to B)
 ;+Y
@@ -3476,10 +3479,12 @@ clipFront:
 		jeq	.clipFrontJump8
 
 		cmp	#$C0
-		jeq	.clipFrontJump9
+		bne	.clipFrontJump12
+		rts
 
 ;clip front
 ;(128-Z0) to mul16a
+.clipFrontJump12:
 		sec
 		lda	#SCREEN_Z
 		sbc	transform2DWork1+4, x
@@ -5308,7 +5313,7 @@ getRandom:
 ;----------------------------
 numToChar:
 ;in  A Register $0 to $F
-;out A Register '0'-'9'($30-$39) 'A'-'Z'($41-$5A)
+;out A Register '0'-'9'($30-$39) 'A'-'F'($41-$46)
 		sed
 		clc
 		adc	#$90
@@ -6056,7 +6061,7 @@ calcEdge:
 
 ;----------------------------
 putPolyLine:
-;put poly line
+;put horizontal lines
 		inc	<maxEdgeY
 
 		mov	<polyLineColorDataWork0, polyLineColorWork_H_P0
@@ -6100,7 +6105,7 @@ putPolyLine:
 
 ;----------------------------
 putPolyLineProc:
-;put poly line
+;put horizontal line
 		bra	.loopStart
 
 .jpRts:
@@ -6109,12 +6114,10 @@ putPolyLineProc:
 .jpSwap:
 ;swap left and right
 		beq	.jp0
-		tax
-		lda	edgeRight, y
-		sta	edgeLeft, y
-		sax
+		ldx	edgeRight, y
 		sta	edgeRight, y
 		sax
+		sta	edgeLeft, y
 		bra	.jp0
 
 .jpCount0:
@@ -6165,8 +6168,7 @@ putPolyLineProc:
 		st0	#$02
 
 ;put left data
-		lda	edgeLeft, y
-		tax
+		ldx	edgeLeft, y
 
 		lda	polyLineLeftDatas, x
 		sta	<polyLineLeftData
@@ -6195,8 +6197,7 @@ putPolyLineProc:
 		sta	<polyLineRightAddr+1
 
 ;put right data
-		lda	edgeRight, y
-		tax
+		ldx	edgeRight, y
 
 		lda	polyLineRightDatas, x
 		sta	<polyLineRightData
@@ -6411,14 +6412,11 @@ putPolyLineProc:
 .jpCount0Pg:
 ;count 0 then
 ;put line same address
-		lda	edgeLeft, y
-		pha
-
-		lda	edgeRight, y
-		tax
+		ldx	edgeRight, y
 		lda	polyLineRightDatas, x
-		plx
+		ldx	edgeLeft, y
 		and	polyLineLeftDatas, x
+
 		sta	<polyLineMask0
 		eor	#$FF
 		sta	<polyLineMask1
@@ -6559,7 +6557,7 @@ putPolyLineProc:
 
 ;----------------------------
 putPolyLineProc2:
-;put poly line
+;put horizontal line
 		bra	.loopStart
 
 .jpRts:
@@ -6624,8 +6622,7 @@ putPolyLineProc2:
 		st0	#$02
 
 ;put left data
-		lda	edgeLeft, y
-		tax
+		ldx	edgeLeft, y
 
 		lda	polyLineLeftDatas, x
 		sta	<polyLineLeftData
@@ -6654,8 +6651,7 @@ putPolyLineProc2:
 		sta	<polyLineRightAddr+1
 
 ;put right data
-		lda	edgeRight, y
-		tax
+		ldx	edgeRight, y
 
 		lda	polyLineRightDatas, x
 		sta	<polyLineRightData
@@ -6867,18 +6863,14 @@ putPolyLineProc2:
 ;loop jump
 		jmp	.loop0
 
-
 .jpCount0Pg:
 ;count 0 then
 ;put line same address
-		lda	edgeLeft, y
-		pha
-
-		lda	edgeRight, y
-		tax
+		ldx	edgeRight, y
 		lda	polyLineRightDatas, x
-		plx
+		ldx	edgeLeft, y
 		and	polyLineLeftDatas, x
+
 		sta	<polyLineMask0
 		eor	#$FF
 		sta	<polyLineMask1

@@ -6185,7 +6185,9 @@ putPolyLineProc:
 		sbc	<polyLineCount
 		beq	.jpCount0
 
-		sta	<polyLineCount
+;center jump index
+		asl	a
+		pha
 
 ;right address
 		lda	polyLineAddrConvXLow, x
@@ -6205,10 +6207,7 @@ putPolyLineProc:
 		sta	<polyLineRightMask
 
 ;put line
-;center jump index
-		lda	<polyLineCount
-		asl	a
-		tax
+		plx
 
 		phy
 
@@ -6639,7 +6638,9 @@ putPolyLineProc2:
 		sbc	<polyLineCount
 		beq	.jpCount0
 
-		sta	<polyLineCount
+;center jump index
+		asl	a
+		pha
 
 ;right address
 		lda	polyLineAddrConvXLow, x
@@ -6659,10 +6660,7 @@ putPolyLineProc2:
 		sta	<polyLineRightMask
 
 ;put line
-;center jump index
-		lda	<polyLineCount
-		asl	a
-		tax
+		plx
 
 		phy
 

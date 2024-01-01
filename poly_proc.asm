@@ -583,13 +583,11 @@ timerPlayDdaFunction:
 
 ;----------------------------
 signExt:
-;a(sign extension) = a
-		cmp	#$00
-		bpl	.convPositive
+;A(sign extension) = A
+		and	#$80
+		beq	.convPositive
 		lda	#$FF
-		rts
 .convPositive:
-		cla
 		rts
 
 
@@ -4541,7 +4539,7 @@ atan:
 
 ;----------------------------
 _atan:
-;mul16a = x(0_32767), mul16b = y(0_32767)
+;mul16a = x(1_32767), mul16b = y(0_32767)
 ;A(0_63) = atan(y/x)
 		phx
 

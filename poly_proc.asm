@@ -5875,33 +5875,14 @@ calcEdge:
 ;
 		lda	<edgeY1
 		cmp	<edgeY0
-		jcc	.jpRightEdge
+		bcc	.jpRightEdge
 
 ;calculation left edge
-;calculation edge Y
-		sec
-		lda	<edgeY1
+;calculation slope Y
 		sbc	<edgeY0
 		sta	<edgeSlopeY
-		bcs	.edgeJump7L
 
-		eor	#$FF
-		inc	a
-		sta	<edgeSlopeY
-
-;edgeY0 > edgeY1 exchange X0<->X1 Y0<->Y1
-		lda	<edgeX0
-		ldx	<edgeX1
-		sta	<edgeX1
-		stx	<edgeX0
-
-		lda	<edgeY0
-		ldx	<edgeY1
-		sta	<edgeY1
-		stx	<edgeY0
-
-.edgeJump7L:
-;calculation edge X
+;calculation slope X
 		sec
 		lda	<edgeX1
 		sbc	<edgeX0
@@ -5933,67 +5914,51 @@ calcEdge:
 		bcs	.edgeJump4L
 
 ;edgeSlopeX > edgeSlopeY
-;check edgeSigneX
-		bbs7	<edgeSigneX, .edgeJump10L
-
-
-;edgeSigneX plus
+;set bank
 		lda	#EDGE_FUNC_L_0_1_BANK
 		tam	#POLYGON_EDGE_FUNC_MAP
 
+;check edgeSigneX
+		bbs7	<edgeSigneX, .edgeJump10L
+
+;edgeSigneX plus
 		jmp	calcEdgeL0
 
 ;edgeSigneX minus
 .edgeJump10L:
-		lda	#EDGE_FUNC_L_0_1_BANK
-		tam	#POLYGON_EDGE_FUNC_MAP
-
 		jmp	calcEdgeL1
 
 .edgeJump4L:
 ;edgeSlopeY >= edgeSlopeX
+;set bank
+		lda	#EDGE_FUNC_L_2_3_BANK
+		tam	#POLYGON_EDGE_FUNC_MAP
+
 ;check edgeSigneX
 		bbs7	<edgeSigneX, .edgeYLoop8L
 
 ;edgeSigneX plus
-		lda	#EDGE_FUNC_L_2_3_BANK
-		tam	#POLYGON_EDGE_FUNC_MAP
-
 		jmp	calcEdgeL2
 
 ;edgeSigneX minus
 .edgeYLoop8L:
-		lda	#EDGE_FUNC_L_2_3_BANK
-		tam	#POLYGON_EDGE_FUNC_MAP
-
 		jmp	calcEdgeL3
 
 .jpRightEdge:
 ;calculation right edge
-;calculation edge Y
-		sec
-		lda	<edgeY1
-		sbc	<edgeY0
-		sta	<edgeSlopeY
-		bcs	.edgeJump7R
-
-		eor	#$FF
-		inc	a
-		sta	<edgeSlopeY
-
-;edgeY0 > edgeY1 exchange X0<->X1 Y0<->Y1
+;edgeY0 > edgeY1 exchange X0<->X1
 		lda	<edgeX0
 		ldx	<edgeX1
 		sta	<edgeX1
 		stx	<edgeX0
 
+;calculation slope Y
+		sec
 		lda	<edgeY0
-		ldx	<edgeY1
-		sta	<edgeY1
-		stx	<edgeY0
+		sbc	<edgeY1
+		sta	<edgeSlopeY
 
-.edgeJump7R:
-;calculation edge X
+;calculation slope X
 		sec
 		lda	<edgeX1
 		sbc	<edgeX0
@@ -6024,38 +5989,35 @@ calcEdge:
 		cmp	<edgeSlopeX
 		bcs	.edgeJump4R
 
+;edgeSlopeX > edgeSlopeY
+;set bank
+		lda	#EDGE_FUNC_R_0_1_BANK
+		tam	#POLYGON_EDGE_FUNC_MAP
+
 ;check edgeSigneX
 		bbs7	<edgeSigneX, .edgeJump10R
 
 ;edgeSigneX plus
-		lda	#EDGE_FUNC_R_0_1_BANK
-		tam	#POLYGON_EDGE_FUNC_MAP
-
 		jmp	calcEdgeR0
 
 ;edgeSigneX minus
 .edgeJump10R:
-		lda	#EDGE_FUNC_R_0_1_BANK
-		tam	#POLYGON_EDGE_FUNC_MAP
-
 		jmp	calcEdgeR1
 
 .edgeJump4R:
 ;edgeSlopeY >= edgeSlopeX
+;set bank
+		lda	#EDGE_FUNC_R_2_3_BANK
+		tam	#POLYGON_EDGE_FUNC_MAP
+
 ;check edgeSigneX
 		bbs7	<edgeSigneX, .edgeYLoop8R
 
 ;edgeSigneX plus
-		lda	#EDGE_FUNC_R_2_3_BANK
-		tam	#POLYGON_EDGE_FUNC_MAP
-
 		jmp	calcEdgeR2
 
 ;edgeSigneX minus
 .edgeYLoop8R:
-		lda	#EDGE_FUNC_R_2_3_BANK
-		tam	#POLYGON_EDGE_FUNC_MAP
-
 		jmp	calcEdgeR3
 
 

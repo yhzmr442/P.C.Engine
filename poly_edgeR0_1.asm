@@ -46,7 +46,7 @@ calcEdgeR0:
 		inc	a
 
 		ldx	<edgeX0
-		ldy	<edgeY0
+		ldy	<edgeY1
 
 		clc
 		jmp	[edgeJumpAddr]
@@ -846,7 +846,7 @@ calcEdgeR1:
 		inc	a
 
 		ldx	<edgeX0
-		ldy	<edgeY0
+		ldy	<edgeY1
 
 		clc
 		jmp	[edgeJumpAddr]

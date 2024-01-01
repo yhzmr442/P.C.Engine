@@ -45,7 +45,7 @@ calcEdgeREX:
 		sta	<edgeJumpAddr+1
 
 		lda	<edgeX0
-		ldy	<edgeY0
+		ldy	<edgeY1
 
 		jmp	[edgeJumpAddr]
 
@@ -647,7 +647,7 @@ calcEdgeR2:
 		inc	a
 
 		ldx	<edgeX1
-		ldy	<edgeY0
+		ldy	<edgeY1
 
 		clc
 		jmp	[edgeJumpAddr]
@@ -1252,7 +1252,7 @@ calcEdgeR3:
 		inc	a
 
 		ldx	<edgeX1
-		ldy	<edgeY0
+		ldy	<edgeY1
 
 		clc
 		jmp	[edgeJumpAddr]

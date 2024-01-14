@@ -1,6 +1,15 @@
 ;poly_proc.asm
 ;//////////////////////////////////
 ;----------------------------
+;angles range from 0 to 255.
+
+;----------------------------
+;polygon display area is 256 * 192 pixels.
+
+;----------------------------
+;palette number used by the system is 15.
+
+;----------------------------
 ;world coordinate
 ;         TOP
 ;         +Y
@@ -12,9 +21,6 @@
 ; BACK -Z  | +X RIGHT
 ;         -Y
 ;        BOTTOM
-
-;----------------------------
-;Angles range from 0 to 255.
 
 ;----------------------------
 ;direction of rotation
@@ -65,11 +71,11 @@
 ;    viewpoint   Z:0
 
 ;----------------------------
-;vertex
+;vertex data structure
 ;|v1 v2 v3|
 
 ;----------------------------
-;matrix
+;matrix data structure
 ;|a11 a21 a31|
 ;|a12 a22 a32|
 ;|a13 a23 a33|
@@ -105,9 +111,6 @@
 ;BANK 3-18	MULTIPLICATION DATAS
 ;BANK19-30	DIVISION DATAS
 ;BANK31-34	EDGE FUNCTIONS
-
-;----------------------------
-;palette number used by the system is 15.
 
 
 ;//////////////////////////////////
@@ -4616,7 +4619,7 @@ romToVram:
 
 ;----------------------------
 setCgCharData:
-;argw0: rom address, argw1: src CG No(0-2047), argw2: dist CG No(0-2047), argw3: character count(0-2047)
+;argw0: rom address, argw1: src CG No(0-2047), argw2: dist CG No(0-2047), argw3: character count(1-2048)
 		asl	<argw1
 		rol	<argw1+1
 		asl	<argw1
@@ -7069,8 +7072,8 @@ polyLineRightDatas:
 
 ;////////////////////////////
 		.bank	3
-		INCBIN	"mul.dat"		;  128K  3~18 $03~$12
-		INCBIN	"div.dat"		;   96K 19~30 $13~$1E
+		INCBIN	"mul.dat"		;  128K
+		INCBIN	"div.dat"		;   96K
 
 
 ;////////////////////////////

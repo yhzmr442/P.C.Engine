@@ -14,9 +14,10 @@ calcEdgeR2_m	.macro
 		sta	edgeRight+\1, y
 		sax
 		adc	<edgeSlopeX
-		bcc	.jp\2
+		bcc	.jp\@
 		sbc	<edgeSlopeY
 		dex
+.jp\@:
 		.endm
 
 
@@ -27,14 +28,16 @@ calcEdgeR3_m	.macro
 		sta	edgeRight+\1, y
 		sax
 		adc	<edgeSlopeX
-		bcc	.jp\2
+		bcc	.jp\@
 		sbc	<edgeSlopeY
 		inx
+.jp\@:
 		.endm
 
 
 ;//////////////////////////////////
 		.org	$6000
+
 ;----------------------------
 calcEdgeREX:
 ;
@@ -652,197 +655,197 @@ calcEdgeR2:
 		clc
 		jmp	[edgeJumpAddr]
 
-		calcEdgeR2_m	191, 190
-		calcEdgeR2_m	190, 189
-		calcEdgeR2_m	189, 188
-		calcEdgeR2_m	188, 187
-		calcEdgeR2_m	187, 186
-		calcEdgeR2_m	186, 185
-		calcEdgeR2_m	185, 184
-		calcEdgeR2_m	184, 183
-		calcEdgeR2_m	183, 182
-		calcEdgeR2_m	182, 181
-		calcEdgeR2_m	181, 180
-		calcEdgeR2_m	180, 179
-		calcEdgeR2_m	179, 178
-		calcEdgeR2_m	178, 177
-		calcEdgeR2_m	177, 176
-		calcEdgeR2_m	176, 175
-		calcEdgeR2_m	175, 174
-		calcEdgeR2_m	174, 173
-		calcEdgeR2_m	173, 172
-		calcEdgeR2_m	172, 171
-		calcEdgeR2_m	171, 170
-		calcEdgeR2_m	170, 169
-		calcEdgeR2_m	169, 168
-		calcEdgeR2_m	168, 167
-		calcEdgeR2_m	167, 166
-		calcEdgeR2_m	166, 165
-		calcEdgeR2_m	165, 164
-		calcEdgeR2_m	164, 163
-		calcEdgeR2_m	163, 162
-		calcEdgeR2_m	162, 161
-		calcEdgeR2_m	161, 160
-		calcEdgeR2_m	160, 159
-		calcEdgeR2_m	159, 158
-		calcEdgeR2_m	158, 157
-		calcEdgeR2_m	157, 156
-		calcEdgeR2_m	156, 155
-		calcEdgeR2_m	155, 154
-		calcEdgeR2_m	154, 153
-		calcEdgeR2_m	153, 152
-		calcEdgeR2_m	152, 151
-		calcEdgeR2_m	151, 150
-		calcEdgeR2_m	150, 149
-		calcEdgeR2_m	149, 148
-		calcEdgeR2_m	148, 147
-		calcEdgeR2_m	147, 146
-		calcEdgeR2_m	146, 145
-		calcEdgeR2_m	145, 144
-		calcEdgeR2_m	144, 143
-		calcEdgeR2_m	143, 142
-		calcEdgeR2_m	142, 141
-		calcEdgeR2_m	141, 140
-		calcEdgeR2_m	140, 139
-		calcEdgeR2_m	139, 138
-		calcEdgeR2_m	138, 137
-		calcEdgeR2_m	137, 136
-		calcEdgeR2_m	136, 135
-		calcEdgeR2_m	135, 134
-		calcEdgeR2_m	134, 133
-		calcEdgeR2_m	133, 132
-		calcEdgeR2_m	132, 131
-		calcEdgeR2_m	131, 130
-		calcEdgeR2_m	130, 129
-		calcEdgeR2_m	129, 128
-		calcEdgeR2_m	128, 127
-		calcEdgeR2_m	127, 126
-		calcEdgeR2_m	126, 125
-		calcEdgeR2_m	125, 124
-		calcEdgeR2_m	124, 123
-		calcEdgeR2_m	123, 122
-		calcEdgeR2_m	122, 121
-		calcEdgeR2_m	121, 120
-		calcEdgeR2_m	120, 119
-		calcEdgeR2_m	119, 118
-		calcEdgeR2_m	118, 117
-		calcEdgeR2_m	117, 116
-		calcEdgeR2_m	116, 115
-		calcEdgeR2_m	115, 114
-		calcEdgeR2_m	114, 113
-		calcEdgeR2_m	113, 112
-		calcEdgeR2_m	112, 111
-		calcEdgeR2_m	111, 110
-		calcEdgeR2_m	110, 109
-		calcEdgeR2_m	109, 108
-		calcEdgeR2_m	108, 107
-		calcEdgeR2_m	107, 106
-		calcEdgeR2_m	106, 105
-		calcEdgeR2_m	105, 104
-		calcEdgeR2_m	104, 103
-		calcEdgeR2_m	103, 102
-		calcEdgeR2_m	102, 101
-		calcEdgeR2_m	101, 100
-		calcEdgeR2_m	100, 99
-		calcEdgeR2_m	99, 98
-		calcEdgeR2_m	98, 97
-		calcEdgeR2_m	97, 96
-		calcEdgeR2_m	96, 95
-		calcEdgeR2_m	95, 94
-		calcEdgeR2_m	94, 93
-		calcEdgeR2_m	93, 92
-		calcEdgeR2_m	92, 91
-		calcEdgeR2_m	91, 90
-		calcEdgeR2_m	90, 89
-		calcEdgeR2_m	89, 88
-		calcEdgeR2_m	88, 87
-		calcEdgeR2_m	87, 86
-		calcEdgeR2_m	86, 85
-		calcEdgeR2_m	85, 84
-		calcEdgeR2_m	84, 83
-		calcEdgeR2_m	83, 82
-		calcEdgeR2_m	82, 81
-		calcEdgeR2_m	81, 80
-		calcEdgeR2_m	80, 79
-		calcEdgeR2_m	79, 78
-		calcEdgeR2_m	78, 77
-		calcEdgeR2_m	77, 76
-		calcEdgeR2_m	76, 75
-		calcEdgeR2_m	75, 74
-		calcEdgeR2_m	74, 73
-		calcEdgeR2_m	73, 72
-		calcEdgeR2_m	72, 71
-		calcEdgeR2_m	71, 70
-		calcEdgeR2_m	70, 69
-		calcEdgeR2_m	69, 68
-		calcEdgeR2_m	68, 67
-		calcEdgeR2_m	67, 66
-		calcEdgeR2_m	66, 65
-		calcEdgeR2_m	65, 64
-		calcEdgeR2_m	64, 63
-		calcEdgeR2_m	63, 62
-		calcEdgeR2_m	62, 61
-		calcEdgeR2_m	61, 60
-		calcEdgeR2_m	60, 59
-		calcEdgeR2_m	59, 58
-		calcEdgeR2_m	58, 57
-		calcEdgeR2_m	57, 56
-		calcEdgeR2_m	56, 55
-		calcEdgeR2_m	55, 54
-		calcEdgeR2_m	54, 53
-		calcEdgeR2_m	53, 52
-		calcEdgeR2_m	52, 51
-		calcEdgeR2_m	51, 50
-		calcEdgeR2_m	50, 49
-		calcEdgeR2_m	49, 48
-		calcEdgeR2_m	48, 47
-		calcEdgeR2_m	47, 46
-		calcEdgeR2_m	46, 45
-		calcEdgeR2_m	45, 44
-		calcEdgeR2_m	44, 43
-		calcEdgeR2_m	43, 42
-		calcEdgeR2_m	42, 41
-		calcEdgeR2_m	41, 40
-		calcEdgeR2_m	40, 39
-		calcEdgeR2_m	39, 38
-		calcEdgeR2_m	38, 37
-		calcEdgeR2_m	37, 36
-		calcEdgeR2_m	36, 35
-		calcEdgeR2_m	35, 34
-		calcEdgeR2_m	34, 33
-		calcEdgeR2_m	33, 32
-		calcEdgeR2_m	32, 31
-		calcEdgeR2_m	31, 30
-		calcEdgeR2_m	30, 29
-		calcEdgeR2_m	29, 28
-		calcEdgeR2_m	28, 27
-		calcEdgeR2_m	27, 26
-		calcEdgeR2_m	26, 25
-		calcEdgeR2_m	25, 24
-		calcEdgeR2_m	24, 23
-		calcEdgeR2_m	23, 22
-		calcEdgeR2_m	22, 21
-		calcEdgeR2_m	21, 20
-		calcEdgeR2_m	20, 19
-		calcEdgeR2_m	19, 18
-		calcEdgeR2_m	18, 17
-		calcEdgeR2_m	17, 16
-		calcEdgeR2_m	16, 15
-		calcEdgeR2_m	15, 14
-		calcEdgeR2_m	14, 13
-		calcEdgeR2_m	13, 12
-		calcEdgeR2_m	12, 11
-		calcEdgeR2_m	11, 10
-		calcEdgeR2_m	10, 9
-		calcEdgeR2_m	9, 8
-		calcEdgeR2_m	8, 7
-		calcEdgeR2_m	7, 6
-		calcEdgeR2_m	6, 5
-		calcEdgeR2_m	5, 4
-		calcEdgeR2_m	4, 3
-		calcEdgeR2_m	3, 2
-		calcEdgeR2_m	2, 1
-		calcEdgeR2_m	1, 0
+		calcEdgeR2_m	191
+		calcEdgeR2_m	190
+		calcEdgeR2_m	189
+		calcEdgeR2_m	188
+		calcEdgeR2_m	187
+		calcEdgeR2_m	186
+		calcEdgeR2_m	185
+		calcEdgeR2_m	184
+		calcEdgeR2_m	183
+		calcEdgeR2_m	182
+		calcEdgeR2_m	181
+		calcEdgeR2_m	180
+		calcEdgeR2_m	179
+		calcEdgeR2_m	178
+		calcEdgeR2_m	177
+		calcEdgeR2_m	176
+		calcEdgeR2_m	175
+		calcEdgeR2_m	174
+		calcEdgeR2_m	173
+		calcEdgeR2_m	172
+		calcEdgeR2_m	171
+		calcEdgeR2_m	170
+		calcEdgeR2_m	169
+		calcEdgeR2_m	168
+		calcEdgeR2_m	167
+		calcEdgeR2_m	166
+		calcEdgeR2_m	165
+		calcEdgeR2_m	164
+		calcEdgeR2_m	163
+		calcEdgeR2_m	162
+		calcEdgeR2_m	161
+		calcEdgeR2_m	160
+		calcEdgeR2_m	159
+		calcEdgeR2_m	158
+		calcEdgeR2_m	157
+		calcEdgeR2_m	156
+		calcEdgeR2_m	155
+		calcEdgeR2_m	154
+		calcEdgeR2_m	153
+		calcEdgeR2_m	152
+		calcEdgeR2_m	151
+		calcEdgeR2_m	150
+		calcEdgeR2_m	149
+		calcEdgeR2_m	148
+		calcEdgeR2_m	147
+		calcEdgeR2_m	146
+		calcEdgeR2_m	145
+		calcEdgeR2_m	144
+		calcEdgeR2_m	143
+		calcEdgeR2_m	142
+		calcEdgeR2_m	141
+		calcEdgeR2_m	140
+		calcEdgeR2_m	139
+		calcEdgeR2_m	138
+		calcEdgeR2_m	137
+		calcEdgeR2_m	136
+		calcEdgeR2_m	135
+		calcEdgeR2_m	134
+		calcEdgeR2_m	133
+		calcEdgeR2_m	132
+		calcEdgeR2_m	131
+		calcEdgeR2_m	130
+		calcEdgeR2_m	129
+		calcEdgeR2_m	128
+		calcEdgeR2_m	127
+		calcEdgeR2_m	126
+		calcEdgeR2_m	125
+		calcEdgeR2_m	124
+		calcEdgeR2_m	123
+		calcEdgeR2_m	122
+		calcEdgeR2_m	121
+		calcEdgeR2_m	120
+		calcEdgeR2_m	119
+		calcEdgeR2_m	118
+		calcEdgeR2_m	117
+		calcEdgeR2_m	116
+		calcEdgeR2_m	115
+		calcEdgeR2_m	114
+		calcEdgeR2_m	113
+		calcEdgeR2_m	112
+		calcEdgeR2_m	111
+		calcEdgeR2_m	110
+		calcEdgeR2_m	109
+		calcEdgeR2_m	108
+		calcEdgeR2_m	107
+		calcEdgeR2_m	106
+		calcEdgeR2_m	105
+		calcEdgeR2_m	104
+		calcEdgeR2_m	103
+		calcEdgeR2_m	102
+		calcEdgeR2_m	101
+		calcEdgeR2_m	100
+		calcEdgeR2_m	99
+		calcEdgeR2_m	98
+		calcEdgeR2_m	97
+		calcEdgeR2_m	96
+		calcEdgeR2_m	95
+		calcEdgeR2_m	94
+		calcEdgeR2_m	93
+		calcEdgeR2_m	92
+		calcEdgeR2_m	91
+		calcEdgeR2_m	90
+		calcEdgeR2_m	89
+		calcEdgeR2_m	88
+		calcEdgeR2_m	87
+		calcEdgeR2_m	86
+		calcEdgeR2_m	85
+		calcEdgeR2_m	84
+		calcEdgeR2_m	83
+		calcEdgeR2_m	82
+		calcEdgeR2_m	81
+		calcEdgeR2_m	80
+		calcEdgeR2_m	79
+		calcEdgeR2_m	78
+		calcEdgeR2_m	77
+		calcEdgeR2_m	76
+		calcEdgeR2_m	75
+		calcEdgeR2_m	74
+		calcEdgeR2_m	73
+		calcEdgeR2_m	72
+		calcEdgeR2_m	71
+		calcEdgeR2_m	70
+		calcEdgeR2_m	69
+		calcEdgeR2_m	68
+		calcEdgeR2_m	67
+		calcEdgeR2_m	66
+		calcEdgeR2_m	65
+		calcEdgeR2_m	64
+		calcEdgeR2_m	63
+		calcEdgeR2_m	62
+		calcEdgeR2_m	61
+		calcEdgeR2_m	60
+		calcEdgeR2_m	59
+		calcEdgeR2_m	58
+		calcEdgeR2_m	57
+		calcEdgeR2_m	56
+		calcEdgeR2_m	55
+		calcEdgeR2_m	54
+		calcEdgeR2_m	53
+		calcEdgeR2_m	52
+		calcEdgeR2_m	51
+		calcEdgeR2_m	50
+		calcEdgeR2_m	49
+		calcEdgeR2_m	48
+		calcEdgeR2_m	47
+		calcEdgeR2_m	46
+		calcEdgeR2_m	45
+		calcEdgeR2_m	44
+		calcEdgeR2_m	43
+		calcEdgeR2_m	42
+		calcEdgeR2_m	41
+		calcEdgeR2_m	40
+		calcEdgeR2_m	39
+		calcEdgeR2_m	38
+		calcEdgeR2_m	37
+		calcEdgeR2_m	36
+		calcEdgeR2_m	35
+		calcEdgeR2_m	34
+		calcEdgeR2_m	33
+		calcEdgeR2_m	32
+		calcEdgeR2_m	31
+		calcEdgeR2_m	30
+		calcEdgeR2_m	29
+		calcEdgeR2_m	28
+		calcEdgeR2_m	27
+		calcEdgeR2_m	26
+		calcEdgeR2_m	25
+		calcEdgeR2_m	24
+		calcEdgeR2_m	23
+		calcEdgeR2_m	22
+		calcEdgeR2_m	21
+		calcEdgeR2_m	20
+		calcEdgeR2_m	19
+		calcEdgeR2_m	18
+		calcEdgeR2_m	17
+		calcEdgeR2_m	16
+		calcEdgeR2_m	15
+		calcEdgeR2_m	14
+		calcEdgeR2_m	13
+		calcEdgeR2_m	12
+		calcEdgeR2_m	11
+		calcEdgeR2_m	10
+		calcEdgeR2_m	9
+		calcEdgeR2_m	8
+		calcEdgeR2_m	7
+		calcEdgeR2_m	6
+		calcEdgeR2_m	5
+		calcEdgeR2_m	4
+		calcEdgeR2_m	3
+		calcEdgeR2_m	2
+		calcEdgeR2_m	1
 
 .jp0:
 		txa
@@ -1257,197 +1260,197 @@ calcEdgeR3:
 		clc
 		jmp	[edgeJumpAddr]
 
-		calcEdgeR3_m	191, 190
-		calcEdgeR3_m	190, 189
-		calcEdgeR3_m	189, 188
-		calcEdgeR3_m	188, 187
-		calcEdgeR3_m	187, 186
-		calcEdgeR3_m	186, 185
-		calcEdgeR3_m	185, 184
-		calcEdgeR3_m	184, 183
-		calcEdgeR3_m	183, 182
-		calcEdgeR3_m	182, 181
-		calcEdgeR3_m	181, 180
-		calcEdgeR3_m	180, 179
-		calcEdgeR3_m	179, 178
-		calcEdgeR3_m	178, 177
-		calcEdgeR3_m	177, 176
-		calcEdgeR3_m	176, 175
-		calcEdgeR3_m	175, 174
-		calcEdgeR3_m	174, 173
-		calcEdgeR3_m	173, 172
-		calcEdgeR3_m	172, 171
-		calcEdgeR3_m	171, 170
-		calcEdgeR3_m	170, 169
-		calcEdgeR3_m	169, 168
-		calcEdgeR3_m	168, 167
-		calcEdgeR3_m	167, 166
-		calcEdgeR3_m	166, 165
-		calcEdgeR3_m	165, 164
-		calcEdgeR3_m	164, 163
-		calcEdgeR3_m	163, 162
-		calcEdgeR3_m	162, 161
-		calcEdgeR3_m	161, 160
-		calcEdgeR3_m	160, 159
-		calcEdgeR3_m	159, 158
-		calcEdgeR3_m	158, 157
-		calcEdgeR3_m	157, 156
-		calcEdgeR3_m	156, 155
-		calcEdgeR3_m	155, 154
-		calcEdgeR3_m	154, 153
-		calcEdgeR3_m	153, 152
-		calcEdgeR3_m	152, 151
-		calcEdgeR3_m	151, 150
-		calcEdgeR3_m	150, 149
-		calcEdgeR3_m	149, 148
-		calcEdgeR3_m	148, 147
-		calcEdgeR3_m	147, 146
-		calcEdgeR3_m	146, 145
-		calcEdgeR3_m	145, 144
-		calcEdgeR3_m	144, 143
-		calcEdgeR3_m	143, 142
-		calcEdgeR3_m	142, 141
-		calcEdgeR3_m	141, 140
-		calcEdgeR3_m	140, 139
-		calcEdgeR3_m	139, 138
-		calcEdgeR3_m	138, 137
-		calcEdgeR3_m	137, 136
-		calcEdgeR3_m	136, 135
-		calcEdgeR3_m	135, 134
-		calcEdgeR3_m	134, 133
-		calcEdgeR3_m	133, 132
-		calcEdgeR3_m	132, 131
-		calcEdgeR3_m	131, 130
-		calcEdgeR3_m	130, 129
-		calcEdgeR3_m	129, 128
-		calcEdgeR3_m	128, 127
-		calcEdgeR3_m	127, 126
-		calcEdgeR3_m	126, 125
-		calcEdgeR3_m	125, 124
-		calcEdgeR3_m	124, 123
-		calcEdgeR3_m	123, 122
-		calcEdgeR3_m	122, 121
-		calcEdgeR3_m	121, 120
-		calcEdgeR3_m	120, 119
-		calcEdgeR3_m	119, 118
-		calcEdgeR3_m	118, 117
-		calcEdgeR3_m	117, 116
-		calcEdgeR3_m	116, 115
-		calcEdgeR3_m	115, 114
-		calcEdgeR3_m	114, 113
-		calcEdgeR3_m	113, 112
-		calcEdgeR3_m	112, 111
-		calcEdgeR3_m	111, 110
-		calcEdgeR3_m	110, 109
-		calcEdgeR3_m	109, 108
-		calcEdgeR3_m	108, 107
-		calcEdgeR3_m	107, 106
-		calcEdgeR3_m	106, 105
-		calcEdgeR3_m	105, 104
-		calcEdgeR3_m	104, 103
-		calcEdgeR3_m	103, 102
-		calcEdgeR3_m	102, 101
-		calcEdgeR3_m	101, 100
-		calcEdgeR3_m	100, 99
-		calcEdgeR3_m	99, 98
-		calcEdgeR3_m	98, 97
-		calcEdgeR3_m	97, 96
-		calcEdgeR3_m	96, 95
-		calcEdgeR3_m	95, 94
-		calcEdgeR3_m	94, 93
-		calcEdgeR3_m	93, 92
-		calcEdgeR3_m	92, 91
-		calcEdgeR3_m	91, 90
-		calcEdgeR3_m	90, 89
-		calcEdgeR3_m	89, 88
-		calcEdgeR3_m	88, 87
-		calcEdgeR3_m	87, 86
-		calcEdgeR3_m	86, 85
-		calcEdgeR3_m	85, 84
-		calcEdgeR3_m	84, 83
-		calcEdgeR3_m	83, 82
-		calcEdgeR3_m	82, 81
-		calcEdgeR3_m	81, 80
-		calcEdgeR3_m	80, 79
-		calcEdgeR3_m	79, 78
-		calcEdgeR3_m	78, 77
-		calcEdgeR3_m	77, 76
-		calcEdgeR3_m	76, 75
-		calcEdgeR3_m	75, 74
-		calcEdgeR3_m	74, 73
-		calcEdgeR3_m	73, 72
-		calcEdgeR3_m	72, 71
-		calcEdgeR3_m	71, 70
-		calcEdgeR3_m	70, 69
-		calcEdgeR3_m	69, 68
-		calcEdgeR3_m	68, 67
-		calcEdgeR3_m	67, 66
-		calcEdgeR3_m	66, 65
-		calcEdgeR3_m	65, 64
-		calcEdgeR3_m	64, 63
-		calcEdgeR3_m	63, 62
-		calcEdgeR3_m	62, 61
-		calcEdgeR3_m	61, 60
-		calcEdgeR3_m	60, 59
-		calcEdgeR3_m	59, 58
-		calcEdgeR3_m	58, 57
-		calcEdgeR3_m	57, 56
-		calcEdgeR3_m	56, 55
-		calcEdgeR3_m	55, 54
-		calcEdgeR3_m	54, 53
-		calcEdgeR3_m	53, 52
-		calcEdgeR3_m	52, 51
-		calcEdgeR3_m	51, 50
-		calcEdgeR3_m	50, 49
-		calcEdgeR3_m	49, 48
-		calcEdgeR3_m	48, 47
-		calcEdgeR3_m	47, 46
-		calcEdgeR3_m	46, 45
-		calcEdgeR3_m	45, 44
-		calcEdgeR3_m	44, 43
-		calcEdgeR3_m	43, 42
-		calcEdgeR3_m	42, 41
-		calcEdgeR3_m	41, 40
-		calcEdgeR3_m	40, 39
-		calcEdgeR3_m	39, 38
-		calcEdgeR3_m	38, 37
-		calcEdgeR3_m	37, 36
-		calcEdgeR3_m	36, 35
-		calcEdgeR3_m	35, 34
-		calcEdgeR3_m	34, 33
-		calcEdgeR3_m	33, 32
-		calcEdgeR3_m	32, 31
-		calcEdgeR3_m	31, 30
-		calcEdgeR3_m	30, 29
-		calcEdgeR3_m	29, 28
-		calcEdgeR3_m	28, 27
-		calcEdgeR3_m	27, 26
-		calcEdgeR3_m	26, 25
-		calcEdgeR3_m	25, 24
-		calcEdgeR3_m	24, 23
-		calcEdgeR3_m	23, 22
-		calcEdgeR3_m	22, 21
-		calcEdgeR3_m	21, 20
-		calcEdgeR3_m	20, 19
-		calcEdgeR3_m	19, 18
-		calcEdgeR3_m	18, 17
-		calcEdgeR3_m	17, 16
-		calcEdgeR3_m	16, 15
-		calcEdgeR3_m	15, 14
-		calcEdgeR3_m	14, 13
-		calcEdgeR3_m	13, 12
-		calcEdgeR3_m	12, 11
-		calcEdgeR3_m	11, 10
-		calcEdgeR3_m	10, 9
-		calcEdgeR3_m	9, 8
-		calcEdgeR3_m	8, 7
-		calcEdgeR3_m	7, 6
-		calcEdgeR3_m	6, 5
-		calcEdgeR3_m	5, 4
-		calcEdgeR3_m	4, 3
-		calcEdgeR3_m	3, 2
-		calcEdgeR3_m	2, 1
-		calcEdgeR3_m	1, 0
+		calcEdgeR3_m	191
+		calcEdgeR3_m	190
+		calcEdgeR3_m	189
+		calcEdgeR3_m	188
+		calcEdgeR3_m	187
+		calcEdgeR3_m	186
+		calcEdgeR3_m	185
+		calcEdgeR3_m	184
+		calcEdgeR3_m	183
+		calcEdgeR3_m	182
+		calcEdgeR3_m	181
+		calcEdgeR3_m	180
+		calcEdgeR3_m	179
+		calcEdgeR3_m	178
+		calcEdgeR3_m	177
+		calcEdgeR3_m	176
+		calcEdgeR3_m	175
+		calcEdgeR3_m	174
+		calcEdgeR3_m	173
+		calcEdgeR3_m	172
+		calcEdgeR3_m	171
+		calcEdgeR3_m	170
+		calcEdgeR3_m	169
+		calcEdgeR3_m	168
+		calcEdgeR3_m	167
+		calcEdgeR3_m	166
+		calcEdgeR3_m	165
+		calcEdgeR3_m	164
+		calcEdgeR3_m	163
+		calcEdgeR3_m	162
+		calcEdgeR3_m	161
+		calcEdgeR3_m	160
+		calcEdgeR3_m	159
+		calcEdgeR3_m	158
+		calcEdgeR3_m	157
+		calcEdgeR3_m	156
+		calcEdgeR3_m	155
+		calcEdgeR3_m	154
+		calcEdgeR3_m	153
+		calcEdgeR3_m	152
+		calcEdgeR3_m	151
+		calcEdgeR3_m	150
+		calcEdgeR3_m	149
+		calcEdgeR3_m	148
+		calcEdgeR3_m	147
+		calcEdgeR3_m	146
+		calcEdgeR3_m	145
+		calcEdgeR3_m	144
+		calcEdgeR3_m	143
+		calcEdgeR3_m	142
+		calcEdgeR3_m	141
+		calcEdgeR3_m	140
+		calcEdgeR3_m	139
+		calcEdgeR3_m	138
+		calcEdgeR3_m	137
+		calcEdgeR3_m	136
+		calcEdgeR3_m	135
+		calcEdgeR3_m	134
+		calcEdgeR3_m	133
+		calcEdgeR3_m	132
+		calcEdgeR3_m	131
+		calcEdgeR3_m	130
+		calcEdgeR3_m	129
+		calcEdgeR3_m	128
+		calcEdgeR3_m	127
+		calcEdgeR3_m	126
+		calcEdgeR3_m	125
+		calcEdgeR3_m	124
+		calcEdgeR3_m	123
+		calcEdgeR3_m	122
+		calcEdgeR3_m	121
+		calcEdgeR3_m	120
+		calcEdgeR3_m	119
+		calcEdgeR3_m	118
+		calcEdgeR3_m	117
+		calcEdgeR3_m	116
+		calcEdgeR3_m	115
+		calcEdgeR3_m	114
+		calcEdgeR3_m	113
+		calcEdgeR3_m	112
+		calcEdgeR3_m	111
+		calcEdgeR3_m	110
+		calcEdgeR3_m	109
+		calcEdgeR3_m	108
+		calcEdgeR3_m	107
+		calcEdgeR3_m	106
+		calcEdgeR3_m	105
+		calcEdgeR3_m	104
+		calcEdgeR3_m	103
+		calcEdgeR3_m	102
+		calcEdgeR3_m	101
+		calcEdgeR3_m	100
+		calcEdgeR3_m	99
+		calcEdgeR3_m	98
+		calcEdgeR3_m	97
+		calcEdgeR3_m	96
+		calcEdgeR3_m	95
+		calcEdgeR3_m	94
+		calcEdgeR3_m	93
+		calcEdgeR3_m	92
+		calcEdgeR3_m	91
+		calcEdgeR3_m	90
+		calcEdgeR3_m	89
+		calcEdgeR3_m	88
+		calcEdgeR3_m	87
+		calcEdgeR3_m	86
+		calcEdgeR3_m	85
+		calcEdgeR3_m	84
+		calcEdgeR3_m	83
+		calcEdgeR3_m	82
+		calcEdgeR3_m	81
+		calcEdgeR3_m	80
+		calcEdgeR3_m	79
+		calcEdgeR3_m	78
+		calcEdgeR3_m	77
+		calcEdgeR3_m	76
+		calcEdgeR3_m	75
+		calcEdgeR3_m	74
+		calcEdgeR3_m	73
+		calcEdgeR3_m	72
+		calcEdgeR3_m	71
+		calcEdgeR3_m	70
+		calcEdgeR3_m	69
+		calcEdgeR3_m	68
+		calcEdgeR3_m	67
+		calcEdgeR3_m	66
+		calcEdgeR3_m	65
+		calcEdgeR3_m	64
+		calcEdgeR3_m	63
+		calcEdgeR3_m	62
+		calcEdgeR3_m	61
+		calcEdgeR3_m	60
+		calcEdgeR3_m	59
+		calcEdgeR3_m	58
+		calcEdgeR3_m	57
+		calcEdgeR3_m	56
+		calcEdgeR3_m	55
+		calcEdgeR3_m	54
+		calcEdgeR3_m	53
+		calcEdgeR3_m	52
+		calcEdgeR3_m	51
+		calcEdgeR3_m	50
+		calcEdgeR3_m	49
+		calcEdgeR3_m	48
+		calcEdgeR3_m	47
+		calcEdgeR3_m	46
+		calcEdgeR3_m	45
+		calcEdgeR3_m	44
+		calcEdgeR3_m	43
+		calcEdgeR3_m	42
+		calcEdgeR3_m	41
+		calcEdgeR3_m	40
+		calcEdgeR3_m	39
+		calcEdgeR3_m	38
+		calcEdgeR3_m	37
+		calcEdgeR3_m	36
+		calcEdgeR3_m	35
+		calcEdgeR3_m	34
+		calcEdgeR3_m	33
+		calcEdgeR3_m	32
+		calcEdgeR3_m	31
+		calcEdgeR3_m	30
+		calcEdgeR3_m	29
+		calcEdgeR3_m	28
+		calcEdgeR3_m	27
+		calcEdgeR3_m	26
+		calcEdgeR3_m	25
+		calcEdgeR3_m	24
+		calcEdgeR3_m	23
+		calcEdgeR3_m	22
+		calcEdgeR3_m	21
+		calcEdgeR3_m	20
+		calcEdgeR3_m	19
+		calcEdgeR3_m	18
+		calcEdgeR3_m	17
+		calcEdgeR3_m	16
+		calcEdgeR3_m	15
+		calcEdgeR3_m	14
+		calcEdgeR3_m	13
+		calcEdgeR3_m	12
+		calcEdgeR3_m	11
+		calcEdgeR3_m	10
+		calcEdgeR3_m	9
+		calcEdgeR3_m	8
+		calcEdgeR3_m	7
+		calcEdgeR3_m	6
+		calcEdgeR3_m	5
+		calcEdgeR3_m	4
+		calcEdgeR3_m	3
+		calcEdgeR3_m	2
+		calcEdgeR3_m	1
 
 .jp0:
 		txa

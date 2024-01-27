@@ -107,14 +107,14 @@
 ;ROM BANK
 ;BANK 0		USER CODE/DATA, RESET, NMI, IRQ1, IRQ2, TIMER, POLYGON FUNCTION DATAS
 ;BANK 1		POLYGON FUNCTIONS
-;BANK 2		POLYGON FUNCTIONS
-;BANK 3-18	MULTIPLICATION DATAS
-;BANK19-30	DIVISION DATAS
-;BANK31-34	EDGE FUNCTIONS
+;BANK 2		POLYGON SUB FUNCTIONS
+;BANK 3- 6	EDGE FUNCTIONS
+;BANK 7-22	MULTIPLICATION DATAS
+;BANK23-30	DIVISION DATAS
 
 
 ;//////////////////////////////////
-		.bank	1
+		.bank	POLYGON_FUNC_BANK
 		.org	$C000
 
 ;----------------------------
@@ -317,6 +317,21 @@ vertexMultiplyDatas:
 
 
 ;----------------------------
+matrixMultiply:
+;
+		jsr	vertexMultiply
+
+		addw	<matrix0, #6
+		addw	<matrix2, #6
+		jsr	vertexMultiply
+
+		addw	<matrix0, #6
+		addw	<matrix2, #6
+		;;;jsr	vertexMultiply
+		;;;rts
+
+
+;----------------------------
 vertexMultiply:
 ;
 		phx
@@ -385,21 +400,6 @@ vertexMultiply:
 		plx
 		rts
 
-
-;----------------------------
-matrixMultiply:
-;
-		jsr	vertexMultiply
-
-		addw	<matrix0, #6
-		addw	<matrix2, #6
-		jsr	vertexMultiply
-
-		addw	<matrix0, #6
-		addw	<matrix2, #6
-		jsr	vertexMultiply
-
-		rts
 
 ;----------------------------
 initializePolygonFunction:
@@ -1074,11 +1074,8 @@ umul16:
 		lda	mulBankData, y
 		tam	#MUL_DATA_MAP
 
-		lda	<mul16b
-		and	#$0F
-		asl	a
-		adc	#MUL_DATA_ADDR
 		stz	<mulAddr
+		lda	mulAddrData, y
 		sta	<mulAddr+1
 
 		ldy	<mul16a
@@ -1118,10 +1115,7 @@ umul16:
 		lda	mulBankData, y
 		tam	#MUL_DATA_MAP
 
-		lda	<mul16b+1
-		and	#$0F
-		asl	a
-		adc	#MUL_DATA_ADDR
+		lda	mulAddrData, y
 		sta	<mulAddr+1
 
 		ldy	<mul16a
@@ -2483,13 +2477,13 @@ transform2D:
 		jmp	.transform2DJump00
 
 .transform2DJump05:
-;X0 to mul16c
+;X0 to mul16b
 		lda	transform2DWork0, x
 		sta	transform2DWork1, x
-		sta	<mul16c
+		sta	<mul16b
 		lda	transform2DWork0+1, x
 		sta	transform2DWork1+1, x
-		sta	<mul16c+1
+		sta	<mul16b+1
 
 ;Z0 to mul16a
 		lda	transform2DWork0+4, x
@@ -2501,40 +2495,34 @@ transform2D:
 		jsr	transform2DProc
 
 ;X0*128/Z0+centerX
-;mul16a+centerX to X0
+;mul16d+centerX to X0
 		clc
-		lda	<work8b+2
+		lda	<mul16d
 		adc	<centerX
 		sta	transform2DWork0, x	;X0
-		lda	<work8b+3
+		lda	<mul16d+1
 		adc	<centerX+1
 		sta	transform2DWork0+1, x
 
-;Y0 to mul16c
+;Y0 to mul16b
 		lda	transform2DWork0+2, x
 		sta	transform2DWork1+2, x
-		sta	<mul16c
+		sta	<mul16b
 		lda	transform2DWork0+3, x
 		sta	transform2DWork1+3, x
-		sta	<mul16c+1
-
-;Z0 to mul16a
-		lda	transform2DWork0+4, x
-		sta	<mul16a
-		lda	transform2DWork0+5, x
-		sta	<mul16a+1
+		sta	<mul16b+1
 
 ;Y0*128/Z0
-		jsr	transform2DProc
+		jsr	transform2DProcEX
 
 ;centerY-Y0*128/Z0
-;centerY-mul16a to Y0
+;centerY-mul16d to Y0
 		sec
 		lda	<centerY
-		sbc	<work8b+2
+		sbc	<mul16d
 		sta	transform2DWork0+2, x	;Y0
 		lda	<centerY+1
-		sbc	<work8b+3
+		sbc	<mul16d+1
 		sta	transform2DWork0+3, x
 
 		jmp	.transform2DJump01
@@ -2572,175 +2560,70 @@ transform2D:
 
 ;----------------------------
 transform2DProc:
-;work8b+3:work8b+2(rough value) = (mul16c(-32768 to 32767) * 128 / mul16a(1 to 32767))
-		lda	mul16a+1
-		bne	.jp99
-
-		lda	mul16a
-		cmp	#SCREEN_Z
-		bne	.jp98
-
-		movw	work8b+2, mul16c
-		rts
-
-.jp98:
-		phx
+;mul16d(very rough value) = mul16b(-32768 to 32767) * 128 / mul16a(128 to 32767)
 		phy
 
-;get div data
-		lda	divBankData
-		tax
-		tam	#DIV_DATA_MAP
+		asl	<div16a
+		rol	<div16a+1
 
-		lda	#DIV_DATA_ADDR
-		bra	.jp97
-
-.jp99:
-		phx
-		phy
-
-;get div data
 		ldy	<div16a+1
 		lda	divBankData, y
-		tax
 		tam	#DIV_DATA_MAP
 
+		lda	divAddrData, y
+		sta	<div16a+1
+
+		lda	[div16a]
+		tay
+		inc	<div16a
+		lda	[div16a]
+
+		sty	<div16a
+		sta	<div16a+1
+
+		ply
+
+
+;----------------------------
+transform2DProcEX:
+;
 		lda	<div16a+1
-		and	#$1F
-		clc
-		adc	#DIV_DATA_ADDR
+		ora	<div16a
+		bne	.jp02
 
-.jp97:
-		stz	<mulAddr
-		sta	<mulAddr+1
+		movw	<mul16d, <mul16c
+		rts
 
-		ldy	<div16a
-		lda	[mulAddr], y
-		sta	<work8a
-
-		clc
-		txa
-		adc	#4		;carry clear
-		tam	#DIV_DATA_MAP
-
-		lda	[mulAddr], y
-		sta	<work8a+1
-
-		txa
-		adc	#8		;carry clear
-		tam	#DIV_DATA_MAP
-
-		lda	[mulAddr], y
-		sta	<work8a+2
-
-;c sign
-		lda	<mul16c+1
+.jp02:
+		lda	<mul16b+1
 		pha
 		bpl	.jp00
-;c neg
+
 		sec
 		cla
-		sbc	<mul16c
-		sta	<mul16c
+		sbc	<mul16b
+		sta	<mul16b
 
 		cla
-		sbc	<mul16c+1
-		sta	<mul16c+1
+		sbc	<mul16b+1
+		sta	<mul16b+1
 
 .jp00:
-;mul mul16c low byte
-		ldy	<mul16c
-		lda	mulBankData, y
-		tam	#MUL_DATA_MAP
-
-		lda	<mul16c
-		and	#$0F
-		asl	a
-		clc
-		adc	#MUL_DATA_ADDR
-		sta	<mulAddr+1
-
-		ldy	<work8a+1
-		lda	[mulAddr], y
-		sta	<work8b+1
-
-		ldy	<work8a+2
-		lda	[mulAddr], y
-		sta	<work8b+2
-
-		inc	<mulAddr+1
-
-		ldx	#LOW(work8b+1)
-		ldy	<work8a
-		set
-		adc	[mulAddr], y
-
-		inx
-		ldy	<work8a+1
-		set
-		adc	[mulAddr], y
-
-		ldy	<work8a+2
-		lda	[mulAddr], y
-		adc	#0		;carry clear
-		sta	<work8b+3
-
-;mul mul16c high byte
-		ldy	<mul16c+1
-		lda	mulBankData, y
-		tam	#MUL_DATA_MAP
-
-
-		lda	<mul16c+1
-		and	#$0F
-		asl	a
-		clc
-		adc	#MUL_DATA_ADDR
-		sta	<mulAddr+1
-
-		ldx	#LOW(work8b+1)
-		ldy	<work8a
-		set
-		adc	[mulAddr], y
-
-		inx
-		ldy	<work8a+1
-		set
-		adc	[mulAddr], y
-
-		inx
-		ldy	<work8a+2
-		set
-		adc	[mulAddr], y
-
-		inc	<mulAddr+1
-
-		ldx	#LOW(work8b+2)
-		ldy	<work8a
-		clc
-		set
-		adc	[mulAddr], y
-
-		inx
-		ldy	<work8a+1
-		set
-		adc	[mulAddr], y
+		jsr	umul16
 
 		pla
 		bpl	.jp01
-;ans neg
+
 		sec
 		cla
-		sbc	<work8b+2
-		sta	<work8b+2
+		sbc	<mul16d
+		sta	<mul16d
 
 		cla
-		sbc	<work8b+3
-		sta	<work8b+3
+		sbc	<mul16d+1
+		sta	<mul16d+1
 
 .jp01:
-		ply
-		plx
 		rts
 
 
@@ -3109,9 +2992,9 @@ setModel:
 		sta	<mul16a+1
 
 		lda	<setModelBackColor
-		sta	<mul16c
+		sta	<mul16b
 		lda	<setModelCount
-		sta	<mul16c+1
+		sta	<mul16b+1
 
 ;transform 2D
 		tma	#DIV_DATA_MAP
@@ -3120,12 +3003,12 @@ setModel:
 		pla
 		tam	#DIV_DATA_MAP
 
-		lda	<work8b+2
-		ora	<work8b+3
+		lda	<mul16d
+		ora	<mul16d+1
 		jeq	.setModelJump0
 
-		mov	clip2D0+8, <work8b+2
-		mov	clip2D0+10, <work8b+3
+		mov	clip2D0+8, <mul16d
+		mov	clip2D0+10, <mul16d+1
 
 		ldy	#5
 		lda	<setModelAttr
@@ -3287,6 +3170,11 @@ setModel:
 		jmi	.setModelJump0
 
 .setModelJump13:
+;back side check cancel
+		bbr1	<setModelAttr, .setModelJump15
+		jmp	.setModelJump2
+
+.setModelJump15:
 ;back side check
 		stz	<backCheckFlag
 		subw	<mul16a, backCheckWork+8, backCheckWork+4	;X2-X1
@@ -4730,7 +4618,7 @@ switchClearBuffer:
 
 .jp0:
 		lda	#DRAWING_NO_1_ADDR
-		jmp	clearBuffer
+		;;;jmp	clearBuffer
 
 
 ;----------------------------
@@ -4813,8 +4701,8 @@ setAllPolygonColor:
 		movw	tiiSrc, <argw0
 		movw	tiiDst, #polygonColorP0
 		movw	tiiCnt, #128*4
-		jsr	tiiFunction
 
+		jsr	tiiFunction
 		rts
 
 
@@ -4827,8 +4715,8 @@ setAllPalette:
 		movw	tiaSrc, <argw0
 		movw	tiaDst, #VCE_4
 		movw	tiaCnt, #$20*32
-		jsr	tiaFunction
 
+		jsr	tiaFunction
 		rts
 
 
@@ -5568,7 +5456,7 @@ putHex:
 
 
 ;////////////////////////////
-		.bank	2
+		.bank	POLYGON_SUB_FUNC_BANK
 		.org	$4000
 
 ;----------------------------
@@ -7071,26 +6959,30 @@ polyLineRightDatas:
 
 
 ;////////////////////////////
-		.bank	3
-		INCBIN	"mul.dat"		;  128K
-		INCBIN	"div.dat"		;   96K
-
-
-;////////////////////////////
-		.bank	31
+		.bank	EDGE_FUNC_L_0_1_BANK
 		INCLUDE	"poly_edgeL0_1.asm"	;    8K
 
 
 ;////////////////////////////
-		.bank	32
+		.bank	EDGE_FUNC_L_2_3_BANK
 		INCLUDE	"poly_edgeL2_3.asm"	;    8K
 
 
 ;////////////////////////////
-		.bank	33
+		.bank	EDGE_FUNC_R_0_1_BANK
 		INCLUDE	"poly_edgeR0_1.asm"	;    8K
 
 
 ;////////////////////////////
-		.bank	34
+		.bank	EDGE_FUNC_R_2_3_BANK
 		INCLUDE	"poly_edgeR2_3.asm"	;    8K
+
+
+;////////////////////////////
+		.bank	MUL_DATA_BANK
+		INCBIN	"mul.dat"		;  128K
+
+
+;////////////////////////////
+		.bank	DIV_DATA_BANK
+		INCBIN	"div.dat"		;   64K

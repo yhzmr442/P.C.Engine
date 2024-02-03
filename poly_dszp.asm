@@ -32,7 +32,7 @@ padState2		.ds	1
 ;---------------------
 vsyncFlag		.ds	1
 vdpStatus		.ds	1
-vdc_R05			.ds	2
+vdcR05			.ds	2
 drawingNo		.ds	1
 
 ;---------------------
@@ -96,6 +96,9 @@ mulSinAddr0A		.ds	2
 mulSinAddr0B		.ds	2
 mulCosAddr0A		.ds	2
 mulCosAddr0B		.ds	2
+mulDataWorkA		.ds	1
+mulDataWorkB		.ds	1
+mulDataWorkC		.ds	1
 saveSin8Mpr		.ds	1
 saveCos8Mpr		.ds	1
 backCheckFlag		.ds	1

@@ -66,14 +66,14 @@ SAT_SIZE		.rs	0
 satBuffer		.ds	SAT_SIZE*64
 
 ;---------------------
-;Polygon data(MAX 24Byte) is ordered counterclockwise
+;polygon data(MAX 24Byte) is ordered counterclockwise
 ;NEXT ADDR 2Byte
 ;SAMPLE Z 2Byte
-;COLOR 1Byte COLOR:(0 to 127)
-;VERTEX COUNT 1Byte COUNT:(3 to 9), CIRCLE:+$80, LINESKIP:+$40 or DATA END:$00
+;COLOR 1Byte COLOR:0 to 127
+;VERTEX COUNT 1Byte COUNT:3 to 9, CIRCLE:$80, LINESKIP:+$40 or DATA END:$00
 ;X0 1Byte, Y0 1Byte or CIRCLE CENTER X 2Byte
 ;X1 1Byte, Y1 1Byte or CIRCLE CENTER Y 2Byte
-;X2 1Byte, Y2 1Byte or CIRCLE RADIUS 2Byte (1 to 8192)
+;X2 1Byte, Y2 1Byte or CIRCLE RADIUS 2Byte:1 to 8191
 ;X3 1Byte, Y3 1Byte
 ;X4 1Byte, Y4 1Byte
 ;X5 1Byte, Y5 1Byte

@@ -888,7 +888,7 @@ MODEL_DATA	.macro
 
 ;----------------------------
 POLYGON_DATA	.macro
-;attribute: circle($80 = circlre) + even line skip($40 = skip) + front clip($04 = cancel) + back draw($01 = not draw : front side = counterclockwise) 
+;attribute: circle($80 = circlre) + even line skip($40 = skip) + front clip($04 = cancel) + back draw($01 = not draw : front side = counterclockwise)
 ;front color(0 to 127)
 ;back color(0 to 127) or circle radius(1 to 8192) low byte
 ;vertex count: count(3 to 4) or circle radius(1 to 8192) high byte
@@ -919,18 +919,4 @@ VERTEX_DATA	.macro
 MATRIX_AREA	.macro
 ;
 				.ds	9*2	;3*3 matrix
-		.endm
-
-
-;----------------------------
-braDrawingNo0	.macro
-;
-		bbr0	<drawingNo, \1
-		.endm
-
-
-;----------------------------
-braDrawingNo1	.macro
-;
-		bbs0	<drawingNo, \1
 		.endm

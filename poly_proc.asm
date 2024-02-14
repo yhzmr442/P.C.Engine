@@ -2830,7 +2830,6 @@ setModelRotation:
 ;----------------------------
 setModel:
 ;target vertex data: vertexDataTemp
-;transform2D
 		phx
 		phy
 
@@ -4268,8 +4267,8 @@ getAngle:
 
 ;----------------------------
 atan:
-;mul16a = x(-32767_32767), mul16b = y(-32767_32767)
-;A(0_255) = atan(y/x)
+;mul16a = x(-32767 to 32767), mul16b = y(-32767 to 32767)
+;A(0 to 255) = atan(y/x)
 		phx
 
 		lda	<mul16b+1
@@ -4327,8 +4326,8 @@ atan:
 
 ;----------------------------
 _atan:
-;mul16a = x(1_32767), mul16b = y(0_32767)
-;A(0_63) = atan(y/x)
+;mul16a = x(1 to 32767), mul16b = y(0 to 32767)
+;A(0 to 63) = atan(y/x)
 		phx
 
 		lda	<mul16a
@@ -4508,7 +4507,7 @@ setTiaTiiFunction:
 ;----------------------------
 switchClearBuffer:
 ;switching the drawing area and clear buffer
-		braDrawingNo1	.jp0
+		bbs0	<drawingNo, .jp0
 
 		lda	#DRAWING_NO_0_ADDR
 		jmp	clearBuffer
@@ -5243,7 +5242,7 @@ setWriteVramAddress:
 		st0	#$00
 		sty	VDC_2
 
-		braDrawingNo1	.jp0
+		bbs0	<drawingNo, .jp0
 
 		stx	VDC_3
 		bra	.jp1
@@ -5822,11 +5821,11 @@ putPolyLine:
 		and	#$FE
 		tay
 
-		braDrawingNo1	.jp4
-		jsr	putPolyLineProc
+		bbs0	<drawingNo, .jp4
+		jsr	putPolyLineProc0
 		bra	.jp5
 .jp4:
-		jsr	putPolyLineProc2
+		jsr	putPolyLineProc1
 
 .jp5:
 		bbs6	<polyAttribute, .jp3
@@ -5841,18 +5840,18 @@ putPolyLine:
 		inc	a
 		tay
 
-		braDrawingNo1	.jp6
-		jsr	putPolyLineProc
+		bbs0	<drawingNo, .jp6
+		jsr	putPolyLineProc0
 		bra	.jp3
 .jp6:
-		jsr	putPolyLineProc2
+		jsr	putPolyLineProc1
 
 .jp3:
 		rts
 
 
 ;----------------------------
-putPolyLineProc:
+putPolyLineProc0:
 ;put horizontal line
 		bra	.loopStart
 
@@ -5885,14 +5884,14 @@ putPolyLineProc:
 		cmp	edgeRight, y
 		bcs	.jpSwap
 
-;calation left counts
+;calculation left counts
 .jp0:
 		lsr	a
 		lsr	a
 		lsr	a
 		sta	<polyLineCount
 
-;calation left vram address
+;calculation left vram address
 		tax
 
 		lda	polyLineAddrConvXHigh, x
@@ -5923,7 +5922,7 @@ putPolyLineProc:
 		eor	#$FF
 		sta	<polyLineLeftMask
 
-;calation counts
+;calculation counts
 		lda	edgeRight, y
 		lsr	a
 		lsr	a
@@ -6303,7 +6302,7 @@ putPolyLineProc:
 
 
 ;----------------------------
-putPolyLineProc2:
+putPolyLineProc1:
 ;put horizontal line
 		bra	.loopStart
 
@@ -6338,14 +6337,14 @@ putPolyLineProc2:
 		cmp	edgeRight, y
 		bcs	.jpSwap
 
-;calation left counts
+;calculation left counts
 .jp0:
 		lsr	a
 		lsr	a
 		lsr	a
 		sta	<polyLineCount
 
-;calation left vram address
+;calculation left vram address
 		tax
 
 		lda	polyLineAddrConvXHigh, x
@@ -6376,7 +6375,7 @@ putPolyLineProc2:
 		eor	#$FF
 		sta	<polyLineLeftMask
 
-;calation counts
+;calculation counts
 		lda	edgeRight, y
 		lsr	a
 		lsr	a

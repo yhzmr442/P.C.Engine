@@ -5731,7 +5731,7 @@ calcEdge:
 
 .jpRightEdge:
 ;calculation right edge
-;edgeY0 > edgeY1 exchange X0<->X1
+;edgeY0 > edgeY1 swap X0 and X1
 		lda	<edgeX0
 		ldx	<edgeX1
 		sta	<edgeX1
@@ -5900,7 +5900,7 @@ putPolyLineProc0:
 
 		lda	polyLineAddrConvXLow, x
 		ora	polyLineAddrConvYLow, y
-		sta	<polyLineLeftAddr
+		pha
 
 ;set left address
 		ldx	<polyLineLeftAddr+1
@@ -5955,8 +5955,6 @@ putPolyLineProc0:
 
 ;put line
 		plx
-
-		phy
 
 ;left CH0 CH1
 		lda	VDC_2
@@ -6020,12 +6018,11 @@ putPolyLineProc0:
 		sta	VDC_3	;1
 
 ;right CH0 CH1
-		lda	<polyLineRightAddr
-		ldy	<polyLineRightAddr+1
-
 		st0	#$01
+		lda	<polyLineRightAddr
 		sta	VDC_2
-		sty	VDC_3
+		lda	<polyLineRightAddr+1
+		sta	VDC_3
 
 		st0	#$02
 
@@ -6048,9 +6045,12 @@ putPolyLineProc0:
 		sta	VDC_3
 
 ;left CH2 CH3
-		lda	<polyLineLeftAddr
+		pla
 		ora	#$08
+
+		phy
 		ldy	<polyLineLeftAddr+1
+
 		st0	#$00
 		sta	VDC_2
 		sty	VDC_3
@@ -6058,6 +6058,8 @@ putPolyLineProc0:
 		st0	#$01
 		sta	VDC_2
 		sty	VDC_3
+
+		ply
 
 		st0	#$02
 
@@ -6122,13 +6124,12 @@ putPolyLineProc0:
 		sta	VDC_3	;1
 
 ;right CH2 CH3
+		st0	#$01
 		lda	<polyLineRightAddr
 		ora	#$08
-		ldy	<polyLineRightAddr+1
-
-		st0	#$01
 		sta	VDC_2
-		sty	VDC_3
+		lda	<polyLineRightAddr+1
+		sta	VDC_3
 
 		st0	#$02
 
@@ -6150,8 +6151,6 @@ putPolyLineProc0:
 		ora	<polyLineDataHigh
 		sta	VDC_3
 
-		ply
-
 ;loop jump
 		jmp	.loop0
 
@@ -6167,7 +6166,7 @@ putPolyLineProc0:
 		eor	#$FF
 		sta	<polyLineMask1
 
-;left CH0 CH1
+;CH0 CH1
 		lda	VDC_2
 		and	<polyLineMask1
 		sta	<polyLineDataLow
@@ -6186,8 +6185,8 @@ putPolyLineProc0:
 		ora	<polyLineDataHigh
 		sta	VDC_3
 
-;left CH2 CH3
-		lda	<polyLineLeftAddr
+;CH2 CH3
+		pla
 		ora	#$08
 		ldx	<polyLineLeftAddr+1
 		st0	#$00
@@ -6353,7 +6352,7 @@ putPolyLineProc1:
 
 		lda	polyLineAddrConvXLow, x
 		ora	polyLineAddrConvYLow, y
-		sta	<polyLineLeftAddr
+		pha
 
 ;set left address
 		ldx	<polyLineLeftAddr+1
@@ -6408,8 +6407,6 @@ putPolyLineProc1:
 
 ;put line
 		plx
-
-		phy
 
 ;left CH0 CH1
 		lda	VDC_2
@@ -6473,12 +6470,11 @@ putPolyLineProc1:
 		sta	VDC_3	;1
 
 ;right CH0 CH1
-		lda	<polyLineRightAddr
-		ldy	<polyLineRightAddr+1
-
 		st0	#$01
+		lda	<polyLineRightAddr
 		sta	VDC_2
-		sty	VDC_3
+		lda	<polyLineRightAddr+1
+		sta	VDC_3
 
 		st0	#$02
 
@@ -6501,9 +6497,12 @@ putPolyLineProc1:
 		sta	VDC_3
 
 ;left CH2 CH3
-		lda	<polyLineLeftAddr
+		pla
 		ora	#$08
+
+		phy
 		ldy	<polyLineLeftAddr+1
+
 		st0	#$00
 		sta	VDC_2
 		sty	VDC_3
@@ -6511,6 +6510,8 @@ putPolyLineProc1:
 		st0	#$01
 		sta	VDC_2
 		sty	VDC_3
+
+		ply
 
 		st0	#$02
 
@@ -6575,13 +6576,12 @@ putPolyLineProc1:
 		sta	VDC_3	;1
 
 ;right CH2 CH3
+		st0	#$01
 		lda	<polyLineRightAddr
 		ora	#$08
-		ldy	<polyLineRightAddr+1
-
-		st0	#$01
 		sta	VDC_2
-		sty	VDC_3
+		lda	<polyLineRightAddr+1
+		sta	VDC_3
 
 		st0	#$02
 
@@ -6603,8 +6603,6 @@ putPolyLineProc1:
 		ora	<polyLineDataHigh
 		sta	VDC_3
 
-		ply
-
 ;loop jump
 		jmp	.loop0
 
@@ -6620,7 +6618,7 @@ putPolyLineProc1:
 		eor	#$FF
 		sta	<polyLineMask1
 
-;left CH0 CH1
+;CH0 CH1
 		lda	VDC_2
 		and	<polyLineMask1
 		sta	<polyLineDataLow
@@ -6639,8 +6637,8 @@ putPolyLineProc1:
 		ora	<polyLineDataHigh
 		sta	VDC_3
 
-;left CH2 CH3
-		lda	<polyLineLeftAddr
+;CH2 CH3
+		pla
 		ora	#$08
 		ldx	<polyLineLeftAddr+1
 		st0	#$00

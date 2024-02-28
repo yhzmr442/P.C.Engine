@@ -664,6 +664,56 @@ sbx		.macro
 
 
 ;----------------------------
+sby		.macro
+;y = y - \1
+		say
+		sec
+		sbc	\1
+		say
+		.endm
+
+
+;----------------------------
+adx2		.macro
+;x = x + \1
+		txa
+		clc
+		adc	\1
+		tax
+		.endm
+
+
+;----------------------------
+ady2		.macro
+;y = y + \1
+		tya
+		clc
+		adc	\1
+		tay
+		.endm
+
+
+;----------------------------
+sbx2		.macro
+;x = x - \1
+		txa
+		sec
+		sbc	\1
+		tax
+		.endm
+
+
+;----------------------------
+sby2		.macro
+;y = y - \1
+		tya
+		sec
+		sbc	\1
+		tay
+		.endm
+
+
+;----------------------------
 stzw		.macro
 ;\1 = 0
 		stz	\1

@@ -111,6 +111,7 @@
 ;BANK 3- 6	EDGE FUNCTIONS
 ;BANK 7-22	MULTIPLICATION DATAS
 ;BANK23-30	DIVISION DATAS
+;BANK31		ATAN DATAS
 
 
 ;//////////////////////////////////
@@ -652,7 +653,7 @@ sdiv32:
 
 .sdiv16jp01:
 
-		jsr	udiv30
+		jsr	_udiv30
 
 ;anser sign
 		pla
@@ -812,6 +813,16 @@ udiv30:
 		phx
 		phy
 
+		jsr	_udiv30
+
+		ply
+		plx
+		rts
+
+
+;----------------------------
+_udiv30:
+;div16a div16b = div16d:div16c(30bit) / div16a(15bit)
 ;dec div16a
 		lda	<div16a
 		bne	.jp00
@@ -827,20 +838,24 @@ udiv30:
 		asl	<div16c
 		rol	<div16c+1
 
-		ldx	#$05
+		mov	<work1a, #5
+		ldx	<div16d
 		ldy	<div16d+1
 
 ;----------------
 .jpPl00_A:
 ;div16d
-		rol	<div16d
+		txa
+		rol	a
+		tax
+
 		tya
 		rol	a
 		tay
 
-		lda	<div16d
+		txa
 		sbc	<div16a
-		sta	<div16d
+		tax
 
 		tya
 		sbc	<div16a+1
@@ -855,14 +870,17 @@ udiv30:
 ;----------------
 .jpPl01_A:
 ;div16d
-		rol	<div16d
+		txa
+		rol	a
+		tax
+
 		tya
 		rol	a
 		tay
 
-		lda	<div16d
+		txa
 		sbc	<div16a
-		sta	<div16d
+		tax
 
 		tya
 		sbc	<div16a+1
@@ -877,14 +895,17 @@ udiv30:
 ;----------------
 .jpPl02_A:
 ;div16d
-		rol	<div16d
+		txa
+		rol	a
+		tax
+
 		tya
 		rol	a
 		tay
 
-		lda	<div16d
+		txa
 		sbc	<div16a
-		sta	<div16d
+		tax
 
 		tya
 		sbc	<div16a+1
@@ -896,7 +917,7 @@ udiv30:
 		rol	<div16c
 		rol	<div16c+1
 
-		dex
+		dec	<work1a
 		bne	.jpPl00_A
 
 ;----------------
@@ -905,25 +926,25 @@ udiv30:
 		lda	<div16c+1
 		sta	<div16a+1
 
-		lda	<div16d
-		sta	<div16b
+		stx	<div16b
 		sty	<div16b+1
 
-		ply
-		plx
 		rts
 
 ;----------------
 .jpMi00_A:
 ;div16d
-		rol	<div16d
+		txa
+		rol	a
+		tax
+
 		tya
 		rol	a
 		tay
 
-		lda	<div16d
+		txa
 		adc	<div16a
-		sta	<div16d
+		tax
 
 		tya
 		adc	<div16a+1
@@ -938,14 +959,17 @@ udiv30:
 ;----------------
 .jpMi01_A:
 ;div16d
-		rol	<div16d
+		txa
+		rol	a
+		tax
+
 		tya
 		rol	a
 		tay
 
-		lda	<div16d
+		txa
 		adc	<div16a
-		sta	<div16d
+		tax
 
 		tya
 		adc	<div16a+1
@@ -960,14 +984,17 @@ udiv30:
 ;----------------
 .jpMi02_A:
 ;div16d
-		rol	<div16d
+		txa
+		rol	a
+		tax
+
 		tya
 		rol	a
 		tay
 
-		lda	<div16d
+		txa
 		adc	<div16a
-		sta	<div16d
+		tax
 
 		tya
 		adc	<div16a+1
@@ -979,13 +1006,13 @@ udiv30:
 		rol	<div16c
 		rol	<div16c+1
 
-		dex
+		dec	<work1a
 		bne	.jpMi00_A
 
 ;----------------
 .jpMiEnd:
 		sec
-		lda	<div16d
+		txa
 		adc	<div16a
 		sta	<div16b
 
@@ -998,8 +1025,6 @@ udiv30:
 		lda	<div16c+1
 		sta	<div16a+1
 
-		ply
-		plx
 		rts
 
 
@@ -1298,22 +1323,20 @@ checkEnd:
 
 
 ;----------------------------
-setSin8MulData:
-;mul16a sin data
-		phy
-
-		lda	<mul16a+1
+setSinCos8MulData:
+;sin data
+		lda	sin8DataHigh, x
 		sta	<mulSinWork0
 
 ;save MPR2 data
 		tma	#POLYGON_SIN8_MAP
 		sta	<saveSin8Mpr
 
-		ldy	<mul16a
+		ldy	sin8DataLow, x
 		lda	mulBankData, y
 		tam	#POLYGON_SIN8_MAP
 
-		lda	<mul16a
+		tya
 		and	#$0F
 		asl	a
 		adc	#POLYGON_SIN8_ADDR
@@ -1323,37 +1346,19 @@ setSin8MulData:
 		inc	a
 		sta	<mulSinAddr0B+1
 
-		ply
-
-		rts
-
-
-;----------------------------
-unsetSin8MulData:
-;
-		lda	<saveSin8Mpr
-		tam	#POLYGON_SIN8_MAP
-
-		rts
-
-
-;----------------------------
-setCos8MulData:
-;mul16a cos data
-		phy
-
-		lda	<mul16a+1
+;cos data
+		lda	cos8DataHigh, x
 		sta	<mulCosWork0
 
 ;save MPR3 data
 		tma	#POLYGON_COS8_MAP
 		sta	<saveCos8Mpr
 
-		ldy	<mul16a
+		ldy	cos8DataLow, x
 		lda	mulBankData, y
 		tam	#POLYGON_COS8_MAP
 
-		lda	<mul16a
+		tya
 		and	#$0F
 		asl	a
 		adc	#POLYGON_COS8_ADDR
@@ -1363,14 +1368,15 @@ setCos8MulData:
 		inc	a
 		sta	<mulCosAddr0B+1
 
-		ply
-
 		rts
 
 
 ;----------------------------
-unsetCos8MulData:
+unsetSinCos8MulData:
 ;
+		lda	<saveSin8Mpr
+		tam	#POLYGON_SIN8_MAP
+
 		lda	<saveCos8Mpr
 		tam	#POLYGON_COS8_MAP
 
@@ -1700,17 +1706,7 @@ vertexRotationZ8:
 		lda	<vertexCount
 		beq	.vertexRotationZEnd
 
-		lda	sin8DataLow, x			;sin
-		sta	<mul16a
-		lda	sin8DataHigh, x
-		sta	<mul16a+1
-		jsr	setSin8MulData
-
-		lda	cos8DataLow, x			;cos
-		sta	<mul16a
-		lda	cos8DataHigh, x
-		sta	<mul16a+1
-		jsr	setCos8MulData
+		jsr	setSinCos8MulData
 
 		ldx	<vertexCount
 
@@ -1739,13 +1735,12 @@ vertexRotationZ8:
 		lda	<mul16c+1
 		sta	transform2DWork0+3, y
 
-		ady	#6
+		ady2	#6
 
 		dex
 		bne	.vertexRotationZLoop
 
-		jsr	unsetSin8MulData
-		jsr	unsetCos8MulData
+		jsr	unsetSinCos8MulData
 
 .vertexRotationZEnd:
 		ply
@@ -1768,17 +1763,7 @@ vertexRotationY8:
 		lda	<vertexCount
 		beq	.vertexRotationYEnd
 
-		lda	sin8DataLow, x			;sin
-		sta	<mul16a
-		lda	sin8DataHigh, x
-		sta	<mul16a+1
-		jsr	setSin8MulData
-
-		lda	cos8DataLow, x			;cos
-		sta	<mul16a
-		lda	cos8DataHigh, x
-		sta	<mul16a+1
-		jsr	setCos8MulData
+		jsr	setSinCos8MulData
 
 		ldx	<vertexCount
 
@@ -1807,13 +1792,12 @@ vertexRotationY8:
 		lda	<mul16c+1
 		sta	transform2DWork0+5, y
 
-		ady	#6
+		ady2	#6
 
 		dex
 		bne	.vertexRotationYLoop
 
-		jsr	unsetSin8MulData
-		jsr	unsetCos8MulData
+		jsr	unsetSinCos8MulData
 
 .vertexRotationYEnd:
 		ply
@@ -1836,17 +1820,7 @@ vertexRotationX8:
 		lda	<vertexCount
 		beq	.vertexRotationXEnd
 
-		lda	sin8DataLow, x			;sin
-		sta	<mul16a
-		lda	sin8DataHigh, x
-		sta	<mul16a+1
-		jsr	setSin8MulData
-
-		lda	cos8DataLow, x			;cos
-		sta	<mul16a
-		lda	cos8DataHigh, x
-		sta	<mul16a+1
-		jsr	setCos8MulData
+		jsr	setSinCos8MulData
 
 		ldx	<vertexCount
 
@@ -1875,13 +1849,12 @@ vertexRotationX8:
 		lda	<mul16d+1
 		sta	transform2DWork0+5, y
 
-		ady	#6
+		ady2	#6
 
 		dex
 		bne	.vertexRotationXLoop
 
-		jsr	unsetSin8MulData
-		jsr	unsetCos8MulData
+		jsr	unsetSinCos8MulData
 
 .vertexRotationXEnd:
 		ply
@@ -1895,10 +1868,8 @@ selectVertexRotation8:
 		and	#3
 		beq	.rotationSelectX
 
-		cmp	#2
-		beq	.rotationSelectZ
-		bcc	.rotationSelectY
-		rts
+		cmp	#1
+		beq	.rotationSelectY
 
 .rotationSelectZ:
 		ldx	<rotationZ
@@ -1922,10 +1893,8 @@ selectVertexRotation:
 		and	#3
 		beq	.rotationSelectX
 
-		cmp	#2
-		beq	.rotationSelectZ
-		bcc	.rotationSelectY
-		rts
+		cmp	#1
+		beq	.rotationSelectY
 
 .rotationSelectZ:
 		ldx	<rotationZ
@@ -2050,7 +2019,7 @@ vertexRotationZ:
 		sta	transform2DWork0+1, y
 
 ;----------------
-		ady	#6
+		ady2	#6
 
 		dex
 		jne	.vertexRotationZLoop
@@ -2168,7 +2137,7 @@ vertexRotationY:
 		sta	transform2DWork0+1, y
 
 ;----------------
-		ady	#6
+		ady2	#6
 
 		dex
 		jne	.vertexRotationYLoop
@@ -2286,7 +2255,7 @@ vertexRotationX:
 		sta	transform2DWork0+3, y
 
 ;----------------
-		ady	#6
+		ady2	#6
 
 		dex
 		jne	.vertexRotationXLoop
@@ -2333,7 +2302,7 @@ vertexTranslationDatas:
 		adc	<translationZ+1
 		sta	transform2DWork0+5, y
 
-		ady	#6
+		ady2	#6
 
 		dex
 		bne	.vertexTranslationLoop
@@ -2407,7 +2376,7 @@ transform2D:
 		sta	<mul16b+1
 
 ;Y0*128/Z0
-		jsr	transform2DProcEX
+		jsr	_transform2DProc
 
 ;centerY-Y0*128/Z0
 ;centerY-mul16d to Y0
@@ -2438,7 +2407,7 @@ transform2D:
 		sta	transform2DWork0+5, x
 
 .transform2DJump01:
-		adx	#6
+		adx2	#6
 
 		dey
 		jne	.transform2DLoop0
@@ -2477,12 +2446,12 @@ transform2DProc:
 
 		ply
 
-		;;;jsr	transform2DProcEX
+		;;;jsr	_transform2DProc
 		;;;rts
 
 
 ;----------------------------
-transform2DProcEX:
+_transform2DProc:
 ;
 		lda	<div16a+1
 		ora	<div16a
@@ -2771,13 +2740,11 @@ setModelRotation:
 		jsr	moveToTransform2DWork0
 
 		lda	<rotationSelect
-		and	#3
 		jsr	selectVertexRotation8
 
 		lda	<rotationSelect
 		lsr	a
 		lsr	a
-		and	#3
 		jsr	selectVertexRotation8
 
 		lda	<rotationSelect
@@ -2785,7 +2752,6 @@ setModelRotation:
 		lsr	a
 		lsr	a
 		lsr	a
-		and	#3
 		jsr	selectVertexRotation8
 
 ;translation
@@ -2803,13 +2769,11 @@ setModelRotation:
 		mov	<rotationZ, <eyeRotationZ
 
 		lda	<eyeRotationSelect
-		and	#3
 		jsr	selectVertexRotation8
 
 		lda	<eyeRotationSelect
 		lsr	a
 		lsr	a
-		and	#3
 		jsr	selectVertexRotation8
 
 		lda	<eyeRotationSelect
@@ -2817,7 +2781,6 @@ setModelRotation:
 		lsr	a
 		lsr	a
 		lsr	a
-		and	#3
 		jsr	selectVertexRotation8
 
 		jsr	setModel
@@ -3219,7 +3182,7 @@ setModel:
 
 		lda	clip2D0, x
 		sta	[polyBufferAddr], y
-		sbx	#6
+		sbx2	#6
 		iny
 
 		dec	<clip2D0Count
@@ -3730,7 +3693,7 @@ clip2DX255:
 
 		add	<clip2D0Count, #$02
 
-		adx	#8
+		adx2	#8
 
 		jmp	.clip2DX255Jump03
 
@@ -3893,7 +3856,7 @@ clip2DX0:
 
 		add	<clip2D1Count, #$02
 
-		adx	#8
+		adx2	#8
 
 		jmp	.clip2DX0Jump03
 
@@ -4066,7 +4029,7 @@ clip2DY255:
 
 		add	<clip2D0Count, #$02
 
-		adx	#8
+		adx2	#8
 
 		jmp	.clip2DY255Jump03
 
@@ -4229,7 +4192,7 @@ clip2DY0:
 
 		add	<clip2D1Count, #$02
 
-		adx	#8
+		adx2	#8
 
 		jmp	.clip2DY0Jump03
 
@@ -4326,59 +4289,64 @@ atan:
 
 ;----------------------------
 _atan:
-;mul16a = x(1 to 32767), mul16b = y(0 to 32767)
-;A(0 to 63) = atan(y/x)
-		phx
+;mul16a = x(0 to 32767), mul16b = y(0 to 32767)
+;A(0 to 64) = atan2(y/x)
+		tma	#ATAN_DATA_MAP
+		pha
+
+		lda	#ATAN_DATA_BANK
+		tam	#ATAN_DATA_MAP
+
+		lda	<mul16a+1
+		ora	<mul16b+1
+		beq	.jp01
+
+.jp03:
+		lda	<mul16a+1
+		ora	<mul16b+1
+		and	#$E0
+		bne	.jp02
+
+		asl	<mul16a
+		rol	<mul16a+1
+		asl	<mul16b
+		rol	<mul16b+1
+		bra	.jp03
+
+.jp02:
+		mov	<mul16a, <mul16a+1
+		mov	<mul16b, <mul16b+1
+
+.jp01:
+		lda	<mul16a
+		ora	<mul16b
+		and	#$C0
+		beq	.jp00
+
+		lsr	<mul16a
+		lsr	<mul16b
+		bra	.jp01
+
+.jp00:
+		lda	<mul16b
+		stz	<mul16b
+		lsr	a
+		ror	<mul16b
+		lsr	a
+		ror	<mul16b
+		sta	<mul16b+1
 
 		lda	<mul16a
-		ora	<mul16a+1
-		beq	.atanJump0
+		ora	<mul16b
+		sta	<mul16b
+		add	<mul16b+1, #ATAN_DATA_ADDR
+		lda	[mul16b]
+		sta	<mul16a
 
-		stz	<mul16c
+		pla
+		tam	#ATAN_DATA_MAP
 
-		lda	<mul16b
-		sta	<mul16c+1
-
-		lda	<mul16b+1
-		sta	<mul16d
-
-		stz	<mul16d+1
-
-		asl	<mul16c+1
-		rol	<mul16d
-		rol	<mul16d+1
-
-		sec
-		lda	<mul16d
-		sbc	<mul16a
-		lda	<mul16d+1
-		sbc	<mul16a+1
-		bcs	.atanJump0
-
-		jsr	udiv30
-
-		clx
-.atanLoop:
-		sec
-		lda	atanDataLow, x
-		sbc	<div16a
-		lda	atanDataHigh, x
-		sbc	<div16a+1
-		bcs	.atanJump1
-
-		inx
-		cpx	#64
-		bne	.atanLoop
-
-.atanJump1:
-		txa
-		bra	.atanEnd
-
-.atanJump0:
-		lda	#64
-
-.atanEnd:
-		plx
+		lda	<mul16a
 		rts
 
 
@@ -6880,3 +6848,7 @@ polyLineRightDatas:
 ;////////////////////////////
 		.bank	DIV_DATA_BANK
 		INCBIN	"div.dat"		;   64K
+
+;////////////////////////////
+		.bank	ATAN_DATA_BANK
+		INCBIN	"atan.dat"		;   4K

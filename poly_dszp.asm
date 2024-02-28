@@ -15,13 +15,23 @@ div16d			equ	mul16d
 mulAddr			.ds	2
 
 ;---------------------
-work4a			.ds	4
-work4b			.ds	4
-work8a			equ	work4a
+work1a			.ds	1
+work1b			.ds	1
+work1c			.ds	1
+work1d			.ds	1
+
+work2a			equ	work1a
+work2b			equ	work1c
+work2c			.ds	2
+work2d			.ds	2
+
+work4a			equ	work2a
+work4b			equ	work2c
 work4c			.ds	4
 work4d			.ds	4
+
+work8a			equ	work4a
 work8b			equ	work4c
-transform2DRet		equ	work8b+2
 
 ;---------------------
 padLast			.ds	1

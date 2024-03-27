@@ -1,13 +1,13 @@
 ;poly_proc.asm
 ;//////////////////////////////////
 ;----------------------------
-;angles range from 0 to 255.
-
-;----------------------------
 ;polygon display area is 256 * 192 pixels.
 
 ;----------------------------
 ;palette number used by the system is 15.
+
+;----------------------------
+;angles range from 0 to 255.
 
 ;----------------------------
 ;world coordinate
@@ -85,12 +85,12 @@
 ;CPU
 ;$0000-$1FFF	I/O
 ;$2000-$3FFF	RAM
-;$4000-$5FFF	user code/data, sin mul datas, mul datas, transform div datas, polygon functions : switch when using
+;$4000-$5FFF	user code/data, sin mul datas, mul datas, transform div datas, atan datas, polygon functions : switch when using
 ;$6000-$7FFF	user code/data, cos mul datas, edge functions : switch when using
 ;$8000-$9FFF	user code/data
 ;$A000-$BFFF	user code/data
 ;$C000-$DFFF	polygon functions
-;$E000-$FFFF	user code/data, reset, nmi, irq1, irq2, timer, polygon function datas
+;$E000-$FFFF	user code/data, reset nmi irq1 irq2 timer functions, polygon function datas
 
 ;RAM
 ;1F0000-1F1FFF	CPU ADDRESS $2000-$3FFF
@@ -4478,11 +4478,15 @@ switchClearBuffer:
 		bbs0	<drawingNo, .jp0
 
 		lda	#DRAWING_NO_0_ADDR
+		;;;bra	.jp1
 		jmp	clearBuffer
 
 .jp0:
 		lda	#DRAWING_NO_1_ADDR
-		;;;jmp	clearBuffer
+
+;;;.jp1:
+		;;;jsr	clearBuffer
+		;;;rts
 
 
 ;----------------------------
@@ -4492,68 +4496,30 @@ clearBuffer:
 		st1	#$00
 		sta	VDC_3
 
-		st0	#$02
+		tma	#POLYGON_SUB_FUNC_MAP
+		pha
 
+		tma	#POLYGON_EDGE_FUNC_MAP
+		pha
+
+		lda	#CLEAR_FUNC_BANK
+		tam	#POLYGON_SUB_FUNC_MAP
+
+		lda	#POLYGON_SUB_FUNC_BANK
+		tam	#POLYGON_EDGE_FUNC_MAP
+
+		st0	#$02
 		st1	#$00
 
-		clx
-.cloop0:
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
+		jsr	$4000
+		jsr	$4000
+		jsr	$4000
 
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
+		pla
+		tam	#POLYGON_EDGE_FUNC_MAP
 
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-		st2	#$00
-
-		inx
-		bne	.cloop0
+		pla
+		tam	#POLYGON_SUB_FUNC_MAP
 
 		rts
 
@@ -4617,7 +4583,7 @@ initializeVdc:
 		bra	.vdcdataloop
 .vdcdataend:
 
-;sec vce
+;set vce
 		movw	VCE_0, #VCE0_INIT_DATA
 
 ;wait vsync
@@ -5324,6 +5290,11 @@ putHex:
 		.org	$4000
 
 ;----------------------------
+;for clearBuffer function
+		rts
+
+
+;----------------------------
 calcCircle_putPoly:
 ;
 ;check top < 192
@@ -5420,12 +5391,7 @@ calcCircle_putPoly:
 		rts
 
 .loop0:
-		sec
-		lda	<circleX
-		sbc	<circleY
-		lda	<circleX+1
-		sbc	<circleY+1
-
+		cmpw	<circleX, <circleY
 		bmi	.jp999
 
 		bbr7	<circleD+1, .jp01
@@ -5847,7 +5813,7 @@ putPolyLineProc0:
 		cpy	<maxEdgeY
 		bcs	.jpRts
 
-.putPolyProc:
+;compare left and right values
 		lda	edgeLeft, y
 		cmp	edgeRight, y
 		bcs	.jpSwap
@@ -5863,7 +5829,7 @@ putPolyLineProc0:
 		tax
 
 		lda	polyLineAddrConvXHigh, x
-		ora	polyLineAddrConvYHigh, y
+		ora	polyLineAddrConvYHigh0, y
 		sta	<polyLineLeftAddr+1
 
 		lda	polyLineAddrConvXLow, x
@@ -5910,7 +5876,7 @@ putPolyLineProc0:
 		sta	<polyLineRightAddr
 
 		lda	polyLineAddrConvXHigh, x
-		ora	polyLineAddrConvYHigh, y
+		ora	polyLineAddrConvYHigh0, y
 		sta	<polyLineRightAddr+1
 
 ;put right data
@@ -6299,7 +6265,7 @@ putPolyLineProc1:
 		cpy	<maxEdgeY
 		bcs	.jpRts
 
-.putPolyProc:
+;compare left and right values
 		lda	edgeLeft, y
 		cmp	edgeRight, y
 		bcs	.jpSwap
@@ -6315,7 +6281,7 @@ putPolyLineProc1:
 		tax
 
 		lda	polyLineAddrConvXHigh, x
-		ora	polyLineAddrConvYHigh2, y
+		ora	polyLineAddrConvYHigh1, y
 		sta	<polyLineLeftAddr+1
 
 		lda	polyLineAddrConvXLow, x
@@ -6362,7 +6328,7 @@ putPolyLineProc1:
 		sta	<polyLineRightAddr
 
 		lda	polyLineAddrConvXHigh, x
-		ora	polyLineAddrConvYHigh2, y
+		ora	polyLineAddrConvYHigh1, y
 		sta	<polyLineRightAddr+1
 
 ;put right data
@@ -6721,7 +6687,7 @@ putPolyLineProc1:
 
 
 ;----------------------------
-polyLineAddrConvYHigh:
+polyLineAddrConvYHigh0:
 		.db	$20, $20, $20, $20, $20, $20, $20, $20, $24, $24, $24, $24, $24, $24, $24, $24,\
 			$28, $28, $28, $28, $28, $28, $28, $28, $2C, $2C, $2C, $2C, $2C, $2C, $2C, $2C,\
 			$30, $30, $30, $30, $30, $30, $30, $30, $34, $34, $34, $34, $34, $34, $34, $34,\
@@ -6737,7 +6703,7 @@ polyLineAddrConvYHigh:
 
 
 ;----------------------------
-polyLineAddrConvYHigh2:
+polyLineAddrConvYHigh1:
 		.db	$50, $50, $50, $50, $50, $50, $50, $50, $54, $54, $54, $54, $54, $54, $54, $54,\
 			$58, $58, $58, $58, $58, $58, $58, $58, $5C, $5C, $5C, $5C, $5C, $5C, $5C, $5C,\
 			$60, $60, $60, $60, $60, $60, $60, $60, $64, $64, $64, $64, $64, $64, $64, $64,\
@@ -6820,35 +6786,41 @@ polyLineRightDatas:
 			$80, $C0, $E0, $F0, $F8, $FC, $FE, $FF, $80, $C0, $E0, $F0, $F8, $FC, $FE, $FF
 
 
+;----------------------------
+		.org	$5000
+		INCBIN	"atan.dat"		;  4K
+
+
 ;////////////////////////////
 		.bank	EDGE_FUNC_L_0_1_BANK
-		INCLUDE	"poly_edgeL0_1.asm"	;    8K
+		INCLUDE	"poly_edgeL0_1.asm"	;  8K
 
 
 ;////////////////////////////
 		.bank	EDGE_FUNC_L_2_3_BANK
-		INCLUDE	"poly_edgeL2_3.asm"	;    8K
+		INCLUDE	"poly_edgeL2_3.asm"	;  8K
 
 
 ;////////////////////////////
 		.bank	EDGE_FUNC_R_0_1_BANK
-		INCLUDE	"poly_edgeR0_1.asm"	;    8K
+		INCLUDE	"poly_edgeR0_1.asm"	;  8K
 
 
 ;////////////////////////////
 		.bank	EDGE_FUNC_R_2_3_BANK
-		INCLUDE	"poly_edgeR2_3.asm"	;    8K
+		INCLUDE	"poly_edgeR2_3.asm"	;  8K
+
+
+;////////////////////////////
+		.bank	CLEAR_FUNC_BANK
+		INCBIN	"clear.dat"		;  8K
 
 
 ;////////////////////////////
 		.bank	MUL_DATA_BANK
-		INCBIN	"mul.dat"		;  128K
+		INCBIN	"mul.dat"		;128K
 
 
 ;////////////////////////////
 		.bank	DIV_DATA_BANK
-		INCBIN	"div.dat"		;   64K
-
-;////////////////////////////
-		.bank	ATAN_DATA_BANK
-		INCBIN	"atan.dat"		;   4K
+		INCBIN	"div.dat"		; 64K

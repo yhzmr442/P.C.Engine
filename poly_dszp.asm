@@ -34,8 +34,8 @@ work8a			equ	work4a
 work8b			equ	work4c
 
 ;---------------------
-padLast			.ds	1
-padNow			.ds	1
+padLast			.ds	1	;bit7 6 5 4 3 2 1 0
+padNow			.ds	1	;   L D R U r S 2 1
 padState		.ds	1
 padState2		.ds	1
 

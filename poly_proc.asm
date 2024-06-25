@@ -92,9 +92,6 @@
 ;$C000-$DFFF	polygon functions
 ;$E000-$FFFF	user code/data, reset nmi irq1 irq2 timer functions, polygon function datas
 
-;RAM
-;1F0000-1F1FFF	CPU ADDRESS $2000-$3FFF
-
 ;VRAM
 ;$0000-$03FF	BAT0	1KW
 ;$0400-$07FF	BAT1	1KW
@@ -107,11 +104,11 @@
 ;ROM BANK
 ;BANK 0		USER CODE/DATA, RESET, NMI, IRQ1, IRQ2, TIMER, POLYGON FUNCTION DATAS
 ;BANK 1		POLYGON FUNCTIONS
-;BANK 2		POLYGON SUB FUNCTIONS
-;BANK 3- 6	EDGE FUNCTIONS
-;BANK 7-22	MULTIPLICATION DATAS
-;BANK23-30	DIVISION DATAS
-;BANK31		ATAN DATAS
+;BANK 2		POLYGON SUB FUNCTIONS, ATAN DATAS
+;BANK 3- 6	EDGE CALCULATION FUNCTIONS
+;BANK 7		BUFFER CLEAR_FUNCTION
+;BANK 8-23	MULTIPLICATION DATAS
+;BANK24-31	DIVISION DATAS
 
 
 ;//////////////////////////////////
@@ -3230,30 +3227,25 @@ clipFront:
 		bne	.clipFrontJump12
 		rts
 
-;clip front
-;(128-Z0) to mul16a
 .clipFrontJump12:
+;clip front
+;(128-Z0) => mul16d
 		sec
 		lda	#SCREEN_Z
 		sbc	transform2DWork1+4, x
-		sta	<mul16a
+		sta	<mul16d
 		cla
 		sbc	transform2DWork1+5, x
-		sta	<mul16a+1
+		sta	<mul16d+1
 
-;(X1-X0) to mul16b
-		sec
-		lda	transform2DWork1+0, y
-		sbc	transform2DWork1+0, x
-		sta	<mul16b
-		lda	transform2DWork1+1, y
-		sbc	transform2DWork1+1, x
-		sta	<mul16b+1
+;(128-Z0) * 32768 => mul16d:mul16c
+		stzw	<mul16c
+		asl	a
+		ror	<mul16d+1
+		ror	<mul16d
+		ror	<mul16c+1
 
-;(128-Z0)*(X1-X0) to mul16d:mul16c
-		jsr	smul16
-
-;(Z1-Z0) to mul16a
+;(Z1-Z0) => mul16a
 		sec
 		lda	transform2DWork1+4, y
 		sbc	transform2DWork1+4, x
@@ -3262,29 +3254,48 @@ clipFront:
 		sbc	transform2DWork1+5, x
 		sta	<mul16a+1
 
-;(128-Z0)*(X1-X0)/(Z1-Z0)
+;(128-Z0)*32768/(Z1-Z0) => mul16a
 		jsr	sdiv32
 
-;(128-Z0)*(X1-X0)/(Z1-Z0)+X0
-		clc
 		lda	<mul16a
+		pha
+		lda	<mul16a+1
+		pha
+
+;(X1-X0) => mul16b
+		sec
+		lda	transform2DWork1+0, y
+		sbc	transform2DWork1+0, x
+		sta	<mul16b
+		lda	transform2DWork1+1, y
+		sbc	transform2DWork1+1, x
+		sta	<mul16b+1
+
+;(128-Z0)*32768/(Z1-Z0)*(X1-X0) => mul16d:mul16c
+		jsr	smul16
+
+;(128-Z0)*32768/(Z1-Z0)*(X1-X0)*2 => mul16d
+		asl	<mul16c+1
+		rol	<mul16d
+		rol	<mul16d+1
+
+;(128-Z0)*32768/(Z1-Z0)*(X1-X0)*2+X0 => mul16a
+		clc
+		lda	<mul16d
 		adc	transform2DWork1+0, x
 		sta	<mul16a
-		lda	<mul16a+1
+		lda	<mul16d+1
 		adc	transform2DWork1+1, x
 		sta	<mul16a+1
 
 ;mul16a+centerX
 		addw	<clipFrontX, <mul16a, <centerX
 
-;(128-Z0) to mul16a
-		sec
-		lda	#SCREEN_Z
-		sbc	transform2DWork1+4, x
-		sta	<mul16a
-		cla
-		sbc	transform2DWork1+5, x
+;(128-Z0)*32768/(Z1-Z0) => mul16a
+		pla
 		sta	<mul16a+1
+		pla
+		sta	<mul16a
 
 ;(Y1-Y0) to mul16b
 		sec
@@ -3295,27 +3306,20 @@ clipFront:
 		sbc	transform2DWork1+3, x
 		sta	<mul16b+1
 
-;(128-Z0)*(Y1-Y0) to mul16d:mul16c
+;(128-Z0)*32768/(Z1-Z0)*(Y1-Y0) => mul16d:mul16c
 		jsr	smul16
 
-;(Z1-Z0) to mul16a
-		sec
-		lda	transform2DWork1+4, y
-		sbc	transform2DWork1+4, x
-		sta	<mul16a
-		lda	transform2DWork1+5, y
-		sbc	transform2DWork1+5, x
-		sta	<mul16a+1
+;(128-Z0)*32768/(Z1-Z0)*(Y1-Y0)*2 => mul16d
+		asl	<mul16c+1
+		rol	<mul16d
+		rol	<mul16d+1
 
-;(128-Z0)*(Y1-Y0)/(Z1-Z0)
-		jsr	sdiv32
-
-;(128-Z0)*(Y1-Y0)/(Z1-Z0)+Y0
+;(128-Z0)*32768/(Z1-Z0)*(Y1-Y0)*2+Y0 => mul16a
 		clc
-		lda	<mul16a
+		lda	<mul16d
 		adc	transform2DWork1+2, x
 		sta	<mul16a
-		lda	<mul16a+1
+		lda	<mul16d+1
 		adc	transform2DWork1+3, x
 		sta	<mul16a+1
 
@@ -4511,9 +4515,9 @@ clearBuffer:
 		st0	#$02
 		st1	#$00
 
-		jsr	$4000
-		jsr	$4000
-		jsr	$4000
+		jsr	clearBufferSub
+		jsr	clearBufferSub
+		jsr	clearBufferSub
 
 		pla
 		tam	#POLYGON_EDGE_FUNC_MAP
@@ -4933,6 +4937,16 @@ offScreenSp:
 
 
 ;----------------------------
+initializePolygonAndSat:
+
+		jsr	initializePolygonBuffer
+
+		jsr	clearSatBuffer
+
+		rts
+
+
+;----------------------------
 initializePolygonBuffer:
 ;
 ;initialize polyBufferAddr = polyBuffer
@@ -4973,6 +4987,22 @@ initializeScreenVsync:
 
 ;set scroll y
 		st012	#$08, #$0100
+
+		rts
+
+
+;----------------------------
+putPolygonWithVsync:
+;
+		jsr	waitScreenVsync
+
+		jsr	setSatToVram
+
+		jsr	switchClearBuffer
+
+		jsr	putPolygonBuffer
+
+		jsr	setVsyncFlag
 
 		rts
 
@@ -5887,7 +5917,7 @@ putPolyLineProc0:
 		eor	#$FF
 		sta	<polyLineRightMask
 
-;put line
+;put line process
 		plx
 
 ;left CH0 CH1
@@ -6339,7 +6369,7 @@ putPolyLineProc1:
 		eor	#$FF
 		sta	<polyLineRightMask
 
-;put line
+;put line process
 		plx
 
 ;left CH0 CH1
@@ -6813,6 +6843,9 @@ polyLineRightDatas:
 
 ;////////////////////////////
 		.bank	CLEAR_FUNC_BANK
+		.org	$4000
+
+clearBufferSub:
 		INCBIN	"clear.dat"		;  8K
 
 

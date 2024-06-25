@@ -966,7 +966,7 @@ VERTEX_DATA	.macro
 
 
 ;----------------------------
-MATRIX_AREA	.macro
+MATRIX_DATA	.macro
 ;
 				.ds	9*2	;3*3 matrix
 		.endm

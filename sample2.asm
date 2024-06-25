@@ -19,9 +19,10 @@ rot_z		.ds	1
 ;///////////////////////////
 		.bss
 ;---------------------
-mtx0		MATRIX_AREA
-mtx1		MATRIX_AREA
-mtx2		MATRIX_AREA
+;to use matrix
+;mtx0		MATRIX_DATA
+;mtx1		MATRIX_DATA
+;mtx2		MATRIX_DATA
 
 ;---------------------
 		INCLUDE	"poly_ds.asm"
@@ -66,87 +67,89 @@ main:
 
 		cli
 
+;----------------
+;example: without matrix
 .mainLoop:
-		jsr	initializePolygonBuffer
-
-		jsr	clearSatBuffer
+		jsr	initializePolygonAndSat
 
 		lda	#0
 		jsr	setPolygonColorIndex
 
-;----------------
-;example of using a matrix
-		movw	<matrix0, #mtx0
-		ldx	<rot_z
-		jsr	setMatrixRotationZ
-
-		movw	<matrix0, #mtx1
-		ldx	#32
-		jsr	setMatrixRotationX
-
-		movw	<matrix0, #mtx0
-		movw	<matrix1, #mtx1
-		movw	<matrix2, #mtx2
-		jsr	matrixMultiply
-
-		movw	<matrix0, #mtx1
-		ldx	#64
-		jsr	setMatrixRotationY
-
-		movw	<matrix0, #mtx2
-		movw	<matrix1, #mtx1
-		movw	<matrix2, #mtx0
-		jsr	matrixMultiply
-
-		movw	<vertex0, modelData + MODEL_VERTEX_ADDR
-		movw	<matrix1, #mtx0
-		movw	<vertex2, #vertexDataTemp
-		mov	<vertexCount, modelData + MODEL_VERTEX_COUNT
-		jsr	vertexMultiplyDatas
+		movw	<eyeTranslationX, #0
+		movw	<eyeTranslationY, #0
+		movw	<eyeTranslationZ, #0
+		mov	<eyeRotationX, #0
+		mov	<eyeRotationY, #0
+		mov	<eyeRotationZ, #0
+		mov	<eyeRotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
 
 		movw	<translationX, #0
 		movw	<translationY, #0
 		movw	<translationZ, #200
-		mov	<vertexCount, modelData + MODEL_VERTEX_COUNT
-		jsr	vertexTranslationDatas
-
+		mov	<rotationX, #32
+		mov	<rotationY, #64
+		mov	<rotationZ, <rot_z
+		mov	<rotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
 		movw	<modelAddress, #modelData
-		jsr	setModel
+		jsr	setModelRotation
+
+		jsr	putPolygonWithVsync
+
+		inc	<rot_z
+
+		jmp	.mainLoop
+
 
 ;----------------
-;example without matrix
-;		movw	<eyeTranslationX, #0
-;		movw	<eyeTranslationY, #0
-;		movw	<eyeTranslationZ, #0
-;		mov	<eyeRotationX, #0
-;		mov	<eyeRotationY, #0
-;		mov	<eyeRotationZ, #0
-;		mov	<eyeRotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
+;example: using matrix
+;.mainLoop:
+;		jsr	initializePolygonAndSat
+;
+;		lda	#0
+;		jsr	setPolygonColorIndex
+;
+;		movw	<matrix0, #mtx0
+;		ldx	<rot_z
+;		jsr	setMatrixRotationZ
+;
+;		movw	<matrix0, #mtx1
+;		ldx	#32
+;		jsr	setMatrixRotationX
+;
+;		movw	<matrix0, #mtx0
+;		movw	<matrix1, #mtx1
+;		movw	<matrix2, #mtx2
+;		jsr	matrixMultiply
+;
+;		movw	<matrix0, #mtx1
+;		ldx	#64
+;		jsr	setMatrixRotationY
+;
+;		movw	<matrix0, #mtx2
+;		movw	<matrix1, #mtx1
+;		movw	<matrix2, #mtx0
+;		jsr	matrixMultiply
+;
+;		movw	<vertex0, modelData + MODEL_VERTEX_ADDR
+;		movw	<matrix1, #mtx0
+;		movw	<vertex2, #vertexDataTemp
+;		mov	<vertexCount, modelData + MODEL_VERTEX_COUNT
+;		jsr	vertexMultiplyDatas
 ;
 ;		movw	<translationX, #0
 ;		movw	<translationY, #0
 ;		movw	<translationZ, #200
-;		mov	<rotationX, #32
-;		mov	<rotationY, #64
-;		mov	<rotationZ, <rot_z
-;		mov	<rotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
+;		mov	<vertexCount, modelData + MODEL_VERTEX_COUNT
+;		jsr	vertexTranslationDatas
 ;
 ;		movw	<modelAddress, #modelData
-;		jsr	setModelRotation
-
-		inc	<rot_z
-
-		jsr	waitScreenVsync
-
-		jsr	setSatToVram
-
-		jsr	switchClearBuffer
-
-		jsr	putPolygonBuffer
-
-		jsr	setVsyncFlag
-
-		jmp	.mainLoop
+;		jsr	setModel
+;
+;		jsr	putPolygonWithVsync
+;
+;		inc	<rot_z
+;
+;		jmp	.mainLoop
 
 
 ;----------------------------

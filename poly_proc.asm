@@ -405,6 +405,9 @@ initializePolygonFunction:
 ;set tia tii function
 		jsr	setTiaTiiFunction
 
+;initialize umul16
+		jsr	initializeUmul16
+
 ;initialize VDC
 		jsr	initializeVdc
 
@@ -1091,6 +1094,14 @@ smul16:
 
 
 ;----------------------------
+initializeUmul16:
+;
+		stz	<mulAddr0
+		stz	<mulAddr1
+		rts
+
+
+;----------------------------
 umul16:
 ;mul16d:mul16c = mul16a * mul16b
 		phy
@@ -1103,29 +1114,27 @@ umul16:
 		lda	mulBankData, y
 		tam	#MUL_DATA_MAP
 
-		stz	<mulAddr
 		lda	mulAddrData, y
-		sta	<mulAddr+1
+		sta	<mulAddr0+1
+
+		inc	a
+		sta	<mulAddr1+1
 
 		ldy	<mul16a
-		lda	[mulAddr], y
+		lda	[mulAddr0], y
 		sta	<mul16c
+
+		lda	[mulAddr1], y
+		sta	<mul16c+1
 
 		clc
 
 		ldy	<mul16a+1
-		lda	[mulAddr], y
-		sta	<mul16c+1
-
-		inc	<mulAddr+1
-
-		ldy	<mul16a
-		lda	[mulAddr], y
+		lda	[mulAddr0], y
 		adc	<mul16c+1
 		sta	<mul16c+1
 
-		ldy	<mul16a+1
-		lda	[mulAddr], y
+		lda	[mulAddr1], y
 		adc	#0
 		sta	<mul16d
 
@@ -1134,15 +1143,17 @@ umul16:
 		tam	#MUL_DATA_MAP
 
 		lda	mulAddrData, y
-		sta	<mulAddr+1
+		sta	<mulAddr0+1
+
+		inc	a
+		sta	<mulAddr1+1
 
 		ldy	<mul16a
-		lda	[mulAddr], y
+		lda	[mulAddr0], y
 		adc	<mul16c+1
 		sta	<mul16c+1
 
-		ldy	<mul16a+1
-		lda	[mulAddr], y
+		lda	[mulAddr1], y
 		adc	<mul16d
 		sta	<mul16d
 
@@ -1150,15 +1161,12 @@ umul16:
 		adc	#0
 		sta	<mul16d+1
 
-		inc	<mulAddr+1
-
-		ldy	<mul16a
-		lda	[mulAddr], y
+		ldy	<mul16a+1
+		lda	[mulAddr0], y
 		adc	<mul16d
 		sta	<mul16d
 
-		ldy	<mul16a+1
-		lda	[mulAddr], y
+		lda	[mulAddr1], y
 		adc	<mul16d+1
 		sta	<mul16d+1
 

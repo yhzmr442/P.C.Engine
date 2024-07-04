@@ -12,7 +12,8 @@ mul16d			.ds	2
 div16c			equ	mul16c
 div16d			equ	mul16d
 
-mulAddr			.ds	2
+mulAddr0		.ds	2
+mulAddr1		.ds	2
 
 ;---------------------
 work1a			.ds	1

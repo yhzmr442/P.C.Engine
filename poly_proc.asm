@@ -1328,542 +1328,276 @@ checkEnd:
 
 
 ;----------------------------
-setSinCos8MulData:
-;sin data
-		lda	sin8DataHigh, x
-		sta	<mulSinWork0
+setSinCos8:
+;
+		phx
 
 ;save MPR2 data
-		tma	#POLYGON_SIN8_MAP
-		sta	<saveSin8Mpr
+		tma	#2
+		sta	<saveMpr2
 
-		ldy	sin8DataLow, x
-		lda	mulBankData, y
-		tam	#POLYGON_SIN8_MAP
+		tma	#3
+		sta	<saveMpr3
 
-		tya
-		and	#$0F
-		asl	a
-		adc	#POLYGON_SIN8_ADDR
-		stz	<mulSinAddr0A
-		sta	<mulSinAddr0A+1
-		stz	<mulSinAddr0B
-		inc	a
-		sta	<mulSinAddr0B+1
+;sin data
+		lda	sin8DataLow, x
+		sta	<saveSin8Data
+		lda	sin8DataHigh, x
+		sta	<saveSin8Data+1
 
 ;cos data
+		lda	cos8DataLow, x
+		sta	<saveCos8Data
 		lda	cos8DataHigh, x
-		sta	<mulCosWork0
+		sta	<saveCos8Data+1
 
-;save MPR3 data
-		tma	#POLYGON_COS8_MAP
-		sta	<saveCos8Mpr
+;sin mul data
+		ldx	<saveSin8Data
+		lda	mulBankData, x
+		tam	#2
 
-		ldy	cos8DataLow, x
-		lda	mulBankData, y
-		tam	#POLYGON_COS8_MAP
+		stz	<sinLowAddr
+		lda	mulAddrData, x
+		sta	<sinLowAddr+1
 
-		tya
-		and	#$0F
-		asl	a
-		adc	#POLYGON_COS8_ADDR
-		stz	<mulCosAddr0A
-		sta	<mulCosAddr0A+1
-		stz	<mulCosAddr0B
+		stz	<sinHighAddr
 		inc	a
-		sta	<mulCosAddr0B+1
+		sta	<sinHighAddr+1
+
+;cos mul data
+		ldx	<saveCos8Data
+		lda	mulBankData, x
+		tam	#3
+
+		stz	<cosLowAddr
+		lda	mulAddrData, x
+		add	#$20
+		sta	<cosLowAddr+1
+
+		stz	<cosHighAddr
+		inc	a
+		sta	<cosHighAddr+1
+
+		plx
 
 		rts
 
 
 ;----------------------------
-unsetSinCos8MulData:
+unsetSinCos8:
 ;
-		lda	<saveSin8Mpr
-		tam	#POLYGON_SIN8_MAP
+;save MPR2 data
+		lda	<saveMpr2
+		tam	#2
 
-		lda	<saveCos8Mpr
-		tam	#POLYGON_COS8_MAP
+		lda	<saveMpr3
+		tma	#3
 
 		rts
 
 
 ;----------------------------
-calcSinCos8Mul:
-;mul16c = mul16a * cos + mul16b * sin
-;mul16d = mul16b * cos - mul16a * sin
+rotation8:
+;work2a = work2a * cosA - work2b * sinA
+;work2b = work2a * sinA + work2b * cosA
+;x (0 to 255)
+
 		phy
 
-;mul16a sign
-		lda	<mul16a+1
-		sta	<mulDataWorkA
-		bpl	.jp00
+;work2a * cosA
+		movw	<mul16a, <work2a
+		MULCOS8
+		movq	<work4c, <mul16c
 
-;mul16a neg
-		sec
-		cla
-		sbc	<mul16a
-		sta	<mul16a
+;work2b * sinA
+		movw	<mul16a, <work2b
+		MULSIN8
 
-		cla
-		sbc	<mul16a+1
-		sta	<mul16a+1
+;work2a * cosA - work2b * sinA
+		subq	<work4c, <mul16c
 
-.jp00:
-;mul16b sign
-		lda	<mul16b+1
-		sta	<mulDataWorkB
-		bpl	.jp01
+;work2a * sinA
+		movw	<mul16a, <work2a
+		MULSIN8
+		movq	<work4d, <mul16c
 
-;mul16b neg
-		sec
-		cla
-		sbc	<mul16b
-		sta	<mul16b
+;work2b * cosA
+		movw	<mul16a, <work2b
+		MULCOS8
 
-		cla
-		sbc	<mul16b+1
-		sta	<mul16b+1
+;work2a * sinA + work2b * cosA
+		addq	<work4d, <mul16c
 
-.jp01:
-;mul16c:mulDataWorkC = mul16a * cos
-		bbr0	<mulCosWork0, .jp02
+		mov	<work2a, <work4c+1
+		mov	<work2a+1, <work4c+2
 
-		stz	<mulDataWorkC
-		movw	<mul16c, <mul16a
-		bra	.jp03
-
-.jp02:
-		ldy	<mul16a
-		lda	[mulCosAddr0A], y
-		sta	<mulDataWorkC
-
-		lda	[mulCosAddr0B], y
-
-		clc
-		ldy	<mul16a+1
-		adc	[mulCosAddr0A], y
-		sta	<mul16c
-
-		lda	[mulCosAddr0B], y
-		adc	#0
-		sta	<mul16c+1
-
-.jp03:
-		lda	<mulDataWorkA
-		eor	<mulCosWork0
-		bpl	.jp04
-
-;anser neg
-		sec
-		cla
-		sbc	<mulDataWorkC
-		sta	<mulDataWorkC
-
-		cla
-		sbc	<mul16c
-		sta	<mul16c
-
-		cla
-		sbc	<mul16c+1
-		sta	<mul16c+1
-
-.jp04:
-;mul16c:mulDataWorkC += mul16b * sin
-		bbr0	<mulSinWork0, .jp06
-
-		lda	<mulDataWorkB
-		eor	<mulSinWork0
-		bpl	.jp20
-
-;sub
-		sec
-		lda	<mul16c
-		sbc	<mul16b
-		sta	<mul16c
-
-		lda	<mul16c+1
-		sbc	<mul16b+1
-		sta	<mul16c+1
-
-		bra	.jp09
-
-.jp20:
-;add
-		clc
-		lda	<mul16c
-		adc	<mul16b
-		sta	<mul16c
-
-		lda	<mul16c+1
-		adc	<mul16b+1
-		sta	<mul16c+1
-
-		bra	.jp09
-
-.jp06:
-		lda	<mulDataWorkB
-		eor	<mulSinWork0
-		bpl	.jp21
-
-;sub
-		sec
-		ldy	<mul16b
-		lda	<mulDataWorkC
-		sbc	[mulSinAddr0A], y
-
-		lda	<mul16c
-		sbc	[mulSinAddr0B], y
-		sta	<mul16c
-
-		lda	<mul16c+1
-		sbc	#0
-		sta	<mul16c+1
-
-		sec
-		ldy	<mul16b+1
-		lda	<mul16c
-		sbc	[mulSinAddr0A], y
-		sta	<mul16c
-
-		lda	<mul16c+1
-		sbc	[mulSinAddr0B], y
-		sta	<mul16c+1
-
-		bra	.jp09
-
-.jp21:
-;add
-		clc
-		ldy	<mul16b
-		lda	<mulDataWorkC
-		adc	[mulSinAddr0A], y
-
-		lda	<mul16c
-		adc	[mulSinAddr0B], y
-		sta	<mul16c
-
-		lda	<mul16c+1
-		adc	#0
-		sta	<mul16c+1
-
-		sec
-		ldy	<mul16b+1
-		lda	<mul16c
-		adc	[mulSinAddr0A], y
-		sta	<mul16c
-
-		lda	<mul16c+1
-		adc	[mulSinAddr0B], y
-		sta	<mul16c+1
-
-.jp09:
-;mul16d:mulDataWorkC = mul16b * cos
-		bbr0	<mulCosWork0, .jp10
-
-		stz	<mulDataWorkC
-		movw	<mul16d, <mul16b
-		bra	.jp11
-
-.jp10:
-		ldy	<mul16b
-		lda	[mulCosAddr0A], y
-		sta	<mulDataWorkC
-
-		lda	[mulCosAddr0B], y
-
-		clc
-		ldy	<mul16b+1
-		adc	[mulCosAddr0A], y
-		sta	<mul16d
-
-		lda	[mulCosAddr0B], y
-		adc	#0
-		sta	<mul16d+1
-
-.jp11:
-		lda	<mulDataWorkB
-		eor	<mulCosWork0
-		bpl	.jp12
-
-;anser neg
-		sec
-		cla
-		sbc	<mulDataWorkC
-		sta	<mulDataWorkC
-
-		cla
-		sbc	<mul16d
-		sta	<mul16d
-
-		cla
-		sbc	<mul16d+1
-		sta	<mul16d+1
-
-.jp12:
-;mul16d:mulDataWorkC -= mul16a * sin
-		bbr0	<mulSinWork0, .jp13
-
-		lda	<mulDataWorkA
-		eor	<mulSinWork0
-		bmi	.jp22
-
-;sub
-		sec
-		lda	<mul16d
-		sbc	<mul16a
-		sta	<mul16d
-
-		lda	<mul16d+1
-		sbc	<mul16a+1
-		sta	<mul16d+1
+		mov	<work2b, <work4d+1
+		mov	<work2b+1, <work4d+2
 
 		ply
-		rts
 
-.jp22:
-;add
-		clc
-		lda	<mul16d
-		adc	<mul16a
-		sta	<mul16d
-
-		lda	<mul16d+1
-		adc	<mul16a+1
-		sta	<mul16d+1
-
-		ply
-		rts
-
-.jp13:
-		lda	<mulDataWorkA
-		eor	<mulSinWork0
-		bmi	.jp23
-
-;sub
-		sec
-		ldy	<mul16a
-		lda	<mulDataWorkC
-		sbc	[mulSinAddr0A], y
-
-		lda	<mul16d
-		sbc	[mulSinAddr0B], y
-		sta	<mul16d
-
-		lda	<mul16d+1
-		sbc	#0
-		sta	<mul16d+1
-
-		sec
-		ldy	<mul16a+1
-		lda	<mul16d
-		sbc	[mulSinAddr0A], y
-		sta	<mul16d
-
-		lda	<mul16d+1
-		sbc	[mulSinAddr0B], y
-		sta	<mul16d+1
-
-		ply
-		rts
-
-.jp23:
-;add
-		clc
-		ldy	<mul16a
-		lda	<mulDataWorkC
-		adc	[mulSinAddr0A], y
-
-		lda	<mul16d
-		adc	[mulSinAddr0B], y
-		sta	<mul16d
-
-		lda	<mul16d+1
-		adc	#0
-		sta	<mul16d+1
-
-		sec
-		ldy	<mul16a+1
-		lda	<mul16d
-		adc	[mulSinAddr0A], y
-		sta	<mul16d
-
-		lda	<mul16d+1
-		adc	[mulSinAddr0B], y
-		sta	<mul16d+1
-
-		ply
 		rts
 
 
 ;----------------------------
 vertexRotationZ8:
 ;x=xcosA-ysinA	y=xsinA+ycosA	z=z
-;transform2DWork0 => transform2DWork0
-;vertexCount = count
-;x = angle
 		phx
 		phy
 
 		cpx	#0
-		beq	.vertexRotationZEnd
+		beq	.jpEnd
 
 		lda	<vertexCount
-		beq	.vertexRotationZEnd
+		beq	.jpEnd
 
-		jsr	setSinCos8MulData
-
-		ldx	<vertexCount
+		jsr	setSinCos8
 
 		cly
+		ldx	<vertexCount
 
-.vertexRotationZLoop:
-		lda	transform2DWork0, y		;X0
-		sta	<mul16b
+.loop0:
+		lda	transform2DWork0, y
+		sta	<work2a
 		lda	transform2DWork0+1, y
-		sta	<mul16b+1
+		sta	<work2a+1
 
-		lda	transform2DWork0+2, y		;Y0
-		sta	<mul16a
+		lda	transform2DWork0+2, y
+		sta	<work2b
 		lda	transform2DWork0+3, y
-		sta	<mul16a+1
+		sta	<work2b+1
 
-		jsr	calcSinCos8Mul
+		jsr	rotation8
 
-		lda	<mul16d
-		sta	transform2DWork0, y		;X0
-		lda	<mul16d+1
+		lda	<work2a
+		sta	transform2DWork0, y
+		lda	<work2a+1
 		sta	transform2DWork0+1, y
 
-		lda	<mul16c
-		sta	transform2DWork0+2, y		;Y0
-		lda	<mul16c+1
+		lda	<work2b
+		sta	transform2DWork0+2, y
+		lda	<work2b+1
 		sta	transform2DWork0+3, y
 
 		ady2	#6
 
 		dex
-		bne	.vertexRotationZLoop
+		bne	.loop0
 
-		jsr	unsetSinCos8MulData
+		jsr	unsetSinCos8
 
-.vertexRotationZEnd:
+.jpEnd:
 		ply
 		plx
+
 		rts
 
 
 ;----------------------------
 vertexRotationY8:
 ;x=xcosA-zsinA	y=y		z=xsinA+zcosA
-;transform2DWork0 => transform2DWork0
-;vertexCount = count
-;x = angle
 		phx
 		phy
 
 		cpx	#0
-		beq	.vertexRotationYEnd
+		beq	.jpEnd
 
 		lda	<vertexCount
-		beq	.vertexRotationYEnd
+		beq	.jpEnd
 
-		jsr	setSinCos8MulData
-
-		ldx	<vertexCount
+		jsr	setSinCos8
 
 		cly
+		ldx	<vertexCount
 
-.vertexRotationYLoop:
-		lda	transform2DWork0, y		;X0
-		sta	<mul16b
+.loop0:
+		lda	transform2DWork0, y
+		sta	<work2a
 		lda	transform2DWork0+1, y
-		sta	<mul16b+1
+		sta	<work2a+1
 
-		lda	transform2DWork0+4, y		;Z0
-		sta	<mul16a
+		lda	transform2DWork0+4, y
+		sta	<work2b
 		lda	transform2DWork0+5, y
-		sta	<mul16a+1
+		sta	<work2b+1
 
-		jsr	calcSinCos8Mul
+		jsr	rotation8
 
-		lda	<mul16d
-		sta	transform2DWork0, y		;X0
-		lda	<mul16d+1
+		lda	<work2a
+		sta	transform2DWork0, y
+		lda	<work2a+1
 		sta	transform2DWork0+1, y
 
-		lda	<mul16c
-		sta	transform2DWork0+4, y		;Z0
-		lda	<mul16c+1
+		lda	<work2b
+		sta	transform2DWork0+4, y
+		lda	<work2b+1
 		sta	transform2DWork0+5, y
 
 		ady2	#6
 
 		dex
-		bne	.vertexRotationYLoop
+		bne	.loop0
 
-		jsr	unsetSinCos8MulData
+		jsr	unsetSinCos8
 
-.vertexRotationYEnd:
+.jpEnd:
 		ply
 		plx
+
 		rts
 
 
 ;----------------------------
 vertexRotationX8:
-;x=x		y=ycosA+zsinA	z=-ysinA+zcosA
-;transform2DWork0 => transform2DWork0
-;vertexCount = count
-;x = angle
+;x=x		y=zsinA+ycosA	z=zcosA-ysinA
 		phx
 		phy
 
 		cpx	#0
-		beq	.vertexRotationXEnd
+		beq	.jpEnd
 
 		lda	<vertexCount
-		beq	.vertexRotationXEnd
+		beq	.jpEnd
 
-		jsr	setSinCos8MulData
-
-		ldx	<vertexCount
+		jsr	setSinCos8
 
 		cly
+		ldx	<vertexCount
 
-.vertexRotationXLoop:
-		lda	transform2DWork0+2, y		;Y0
-		sta	<mul16a
-		lda	transform2DWork0+3, y
-		sta	<mul16a+1
-
-		lda	transform2DWork0+4, y		;Z0
-		sta	<mul16b
+.loop0:
+		lda	transform2DWork0+4, y
+		sta	<work2a
 		lda	transform2DWork0+5, y
-		sta	<mul16b+1
+		sta	<work2a+1
 
-		jsr	calcSinCos8Mul
+		lda	transform2DWork0+2, y
+		sta	<work2b
+		lda	transform2DWork0+3, y
+		sta	<work2b+1
 
-		lda	<mul16c
-		sta	transform2DWork0+2, y		;Y0
-		lda	<mul16c+1
-		sta	transform2DWork0+3, y
+		jsr	rotation8
 
-		lda	<mul16d
-		sta	transform2DWork0+4, y		;Z0
-		lda	<mul16d+1
+		lda	<work2a
+		sta	transform2DWork0+4, y
+		lda	<work2a+1
 		sta	transform2DWork0+5, y
+
+		lda	<work2b
+		sta	transform2DWork0+2, y
+		lda	<work2b+1
+		sta	transform2DWork0+3, y
 
 		ady2	#6
 
 		dex
-		bne	.vertexRotationXLoop
+		bne	.loop0
 
-		jsr	unsetSinCos8MulData
+		jsr	unsetSinCos8
 
-.vertexRotationXEnd:
+.jpEnd:
 		ply
 		plx
+
 		rts
 
 

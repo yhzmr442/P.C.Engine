@@ -1,7 +1,180 @@
 ;poly_macro.asm
 ;//////////////////////////////////
 ;----------------------------
-macroReset	.macro
+MULSIN8		.macro
+;
+;broken Y register
+;anser sign
+		lda	<mul16a+1
+		eor	<saveSin8Data+1
+		pha
+
+;a neg check
+		bbr7	<mul16a+1, .jp02\@
+
+;a neg
+		sec
+		cla
+		sbc	<mul16a
+		sta	<mul16a
+
+		cla
+		sbc	<mul16a+1
+		sta	<mul16a+1
+
+.jp02\@:
+;mul16a*256 check
+		bbr0	<saveSin8Data+1, .jp00\@
+
+;mul16a*256
+		stz	<mul16c
+
+		lda	<mul16a
+		sta	<mul16c+1
+
+		lda	<mul16a+1
+		sta	<mul16d
+
+		stz	<mul16d+1
+
+		bra	.jp03\@
+
+.jp00\@:
+		ldy	<mul16a
+		lda	[sinLowAddr], y
+		sta	<mul16c
+
+		lda	[sinHighAddr], y
+		sta	<mul16c+1
+
+		clc
+
+		ldy	<mul16a+1
+		lda	[sinLowAddr], y
+		adc	<mul16c+1
+		sta	<mul16c+1
+
+		lda	[sinHighAddr], y
+		adc	#0
+		sta	<mul16d
+
+		stz	<mul16d+1
+
+.jp03\@:
+;anser sign
+		pla
+		bpl	.jpEnd\@
+
+;anser neg
+		sec
+		cla
+		sbc	<mul16c
+		sta	<mul16c
+
+		cla
+		sbc	<mul16c+1
+		sta	<mul16c+1
+
+		cla
+		sbc	<mul16d
+		sta	<mul16d
+
+		cla
+		sbc	<mul16d+1
+		sta	<mul16d+1
+
+.jpEnd\@:
+		.endm
+
+
+;----------------------------
+MULCOS8		.macro
+;broken Y register
+;anser sign
+		lda	<mul16a+1
+		eor	<saveCos8Data+1
+		pha
+
+;a neg check
+		bbr7	<mul16a+1, .jp02\@
+
+;a neg
+		sec
+		cla
+		sbc	<mul16a
+		sta	<mul16a
+
+		cla
+		sbc	<mul16a+1
+		sta	<mul16a+1
+
+.jp02\@:
+;mul16a*256 check
+		bbr0	<saveCos8Data+1, .jp00\@
+
+;mul16a*256
+		stz	<mul16c
+
+		lda	<mul16a
+		sta	<mul16c+1
+
+		lda	<mul16a+1
+		sta	<mul16d
+
+		stz	<mul16d+1
+
+		bra	.jp03\@
+
+.jp00\@:
+		ldy	<mul16a
+		lda	[cosLowAddr], y
+		sta	<mul16c
+
+		lda	[cosHighAddr], y
+		sta	<mul16c+1
+
+		clc
+
+		ldy	<mul16a+1
+		lda	[cosLowAddr], y
+		adc	<mul16c+1
+		sta	<mul16c+1
+
+		lda	[cosHighAddr], y
+		adc	#0
+		sta	<mul16d
+
+		stz	<mul16d+1
+
+.jp03\@:
+;anser sign
+		pla
+		bpl	.jpEnd\@
+
+;anser neg
+		sec
+		cla
+		sbc	<mul16c
+		sta	<mul16c
+
+		cla
+		sbc	<mul16c+1
+		sta	<mul16c+1
+
+		cla
+		sbc	<mul16d
+		sta	<mul16d
+
+		cla
+		sbc	<mul16d+1
+		sta	<mul16d+1
+
+.jpEnd\@:
+		.endm
+
+
+;----------------------------
+RESET_PROCESS	.macro
 ;
 		sei
 
@@ -31,7 +204,7 @@ macroReset	.macro
 
 
 ;----------------------------
-irqEntry	.macro
+IRQ_ENTRY	.macro
 ;
 		pha
 		phx
@@ -41,7 +214,7 @@ irqEntry	.macro
 
 
 ;----------------------------
-irqExit		.macro
+IRQ_EXIT	.macro
 ;
 		ply
 		plx

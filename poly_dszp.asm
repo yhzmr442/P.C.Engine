@@ -101,17 +101,14 @@ polyLineMask1		equ	polyLineRightMask
 
 ;---------------------
 			.org	shareAreaTop
-mulSinWork0		.ds	1
-mulCosWork0		.ds	1
-mulSinAddr0A		.ds	2
-mulSinAddr0B		.ds	2
-mulCosAddr0A		.ds	2
-mulCosAddr0B		.ds	2
-mulDataWorkA		.ds	1
-mulDataWorkB		.ds	1
-mulDataWorkC		.ds	1
-saveSin8Mpr		.ds	1
-saveCos8Mpr		.ds	1
+saveMpr2		.ds	1
+saveMpr3		.ds	1
+sinLowAddr		.ds	2
+sinHighAddr		.ds	2
+cosLowAddr		.ds	2
+cosHighAddr		.ds	2
+saveSin8Data		.ds	2
+saveCos8Data		.ds	2
 backCheckFlag		.ds	1
 
 ;---------------------

@@ -166,40 +166,40 @@ irq1Function:
 ;----------------------------
 _irq1:
 ;
-		irqEntry
+		IRQ_ENTRY
 
 		jsr	irq1PolygonFunction
 
 		jsr	irq1Function
 
-		irqExit
+		IRQ_EXIT
 
 
 ;----------------------------
 _timer:
 ;
-		irqEntry
+		IRQ_ENTRY
 
 		stz	INTERRUPT_STATE_REG
 
 		jsr	timerPlayDdaFunction
 
-		irqExit
+		IRQ_EXIT
 
 
 ;----------------------------
 _irq2:
 _nmi:
 ;
-		irqEntry
+		IRQ_ENTRY
 
-		irqExit
+		IRQ_EXIT
 
 
 ;----------------------------
 _reset:
 ;
-		macroReset
+		RESET_PROCESS
 
 ;jump main
 		jmp	main

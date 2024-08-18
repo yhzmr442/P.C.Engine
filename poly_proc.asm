@@ -95,8 +95,9 @@
 ;VRAM
 ;$0000-$03FF	BAT0	1KW
 ;$0400-$07FF	BAT1	1KW
-;$0800-$08FF	SAT	256W
-;$0900-$0FFF	CG, SG	1792W
+;$0800-$08FF	SAT0	256W
+;$0900-$09FF	SAT1	256W
+;$0A00-$0FFF	CG, SG	1536W
 ;$1000-$1FFF	CG, SG	4KW
 ;$2000-$4FFF	BUFFER0	12KW
 ;$5000-$7FFF	BUFFER1	12KW
@@ -303,6 +304,8 @@ setMatrixRotationX:
 ;----------------------------
 vertexMultiplyDatas:
 ;
+		phx
+
 		ldx	<vertexCount
 .loop0:
 		jsr	vertexMultiply
@@ -311,6 +314,7 @@ vertexMultiplyDatas:
 		dex
 		bne	.loop0
 
+		plx
 		rts
 
 
@@ -457,6 +461,9 @@ setMainVolume:
 ;----------------------------
 initializePsg:
 ;
+		phx
+		phy
+
 		stz	PSG_0
 		stz	PSG_1
 		stz	PSG_8
@@ -488,6 +495,8 @@ initializePsg:
 		mov	PSG_0, #5
 		stz	PSG_7
 
+		ply
+		plx
 		rts
 
 
@@ -1333,10 +1342,10 @@ setSinCos8:
 		phx
 
 ;save MPR2 data
-		tma	#2
+		tma	#POLYGON_SIN8_MAP
 		sta	<saveMpr2
 
-		tma	#3
+		tma	#POLYGON_COS8_MAP
 		sta	<saveMpr3
 
 ;sin data
@@ -1354,7 +1363,7 @@ setSinCos8:
 ;sin mul data
 		ldx	<saveSin8Data
 		lda	mulBankData, x
-		tam	#2
+		tam	#POLYGON_SIN8_MAP
 
 		stz	<sinLowAddr
 		lda	mulAddrData, x
@@ -1367,11 +1376,11 @@ setSinCos8:
 ;cos mul data
 		ldx	<saveCos8Data
 		lda	mulBankData, x
-		tam	#3
+		tam	#POLYGON_COS8_MAP
 
 		stz	<cosLowAddr
 		lda	mulAddrData, x
-		add	#$20
+		add	#POLYGON_COS8_ADDR - POLYGON_SIN8_ADDR
 		sta	<cosLowAddr+1
 
 		stz	<cosHighAddr
@@ -1386,12 +1395,12 @@ setSinCos8:
 ;----------------------------
 unsetSinCos8:
 ;
-;save MPR2 data
+;set MPR2 data
 		lda	<saveMpr2
 		tam	#2
 
 		lda	<saveMpr3
-		tma	#3
+		tam	#3
 
 		rts
 
@@ -1404,29 +1413,332 @@ rotation8:
 
 		phy
 
+;================
 ;work2a * cosA
 		movw	<mul16a, <work2a
-		MULCOS8
-		movq	<work4c, <mul16c
 
+;anser sign
+		lda	<mul16a+1
+		eor	<saveCos8Data+1
+		pha
+
+;a neg check
+		bbr7	<mul16a+1, .jpCosA_02
+
+;a neg
+		sec
+		cla
+		sbc	<mul16a
+		sta	<mul16a
+
+		cla
+		sbc	<mul16a+1
+		sta	<mul16a+1
+
+.jpCosA_02:
+;mul16a*256 check
+		bbr0	<saveCos8Data+1, .jpCosA_00
+
+;mul16a*256
+		stz	<work4c
+
+		lda	<mul16a
+		sta	<work4c+1
+
+		lda	<mul16a+1
+		sta	<work4c+2
+
+		stz	<work4c+3
+
+		bra	.jpCosA_03
+
+.jpCosA_00:
+		ldy	<mul16a
+		lda	[cosLowAddr], y
+		sta	<work4c
+
+		lda	[cosHighAddr], y
+		sta	<work4c+1
+
+		clc
+
+		ldy	<mul16a+1
+		lda	[cosLowAddr], y
+		adc	<work4c+1
+		sta	<work4c+1
+
+		lda	[cosHighAddr], y
+		adc	#0
+		sta	<work4c+2
+
+		stz	<work4c+3
+
+.jpCosA_03:
+;anser sign
+		pla
+		bpl	.jpCosA_End
+
+;anser neg
+		sec
+		cla
+		sbc	<work4c
+		sta	<work4c
+
+		cla
+		sbc	<work4c+1
+		sta	<work4c+1
+
+		cla
+		sbc	<work4c+2
+		sta	<work4c+2
+
+		cla
+		sbc	<work4c+3
+		sta	<work4c+3
+
+.jpCosA_End:
+;================
+
+;================
 ;work2b * sinA
 		movw	<mul16a, <work2b
-		MULSIN8
 
+;anser sign
+		lda	<mul16a+1
+		eor	<saveSin8Data+1
+		pha
+
+;a neg check
+		bbr7	<mul16a+1, .jpSinA_02
+
+;a neg
+		sec
+		cla
+		sbc	<mul16a
+		sta	<mul16a
+
+		cla
+		sbc	<mul16a+1
+		sta	<mul16a+1
+
+.jpSinA_02:
+;mul16a*256 check
+		bbr0	<saveSin8Data+1, .jpSinA_00
+
+;mul16a*256
+		stz	<mul16c
+
+		lda	<mul16a
+		sta	<mul16c+1
+
+		lda	<mul16a+1
+		sta	<mul16d
+
+		stz	<mul16d+1
+
+		bra	.jpSinA_03
+
+.jpSinA_00:
+		ldy	<mul16a
+		lda	[sinLowAddr], y
+		sta	<mul16c
+
+		lda	[sinHighAddr], y
+		sta	<mul16c+1
+
+		clc
+
+		ldy	<mul16a+1
+		lda	[sinLowAddr], y
+		adc	<mul16c+1
+		sta	<mul16c+1
+
+		lda	[sinHighAddr], y
+		adc	#0
+		sta	<mul16d
+
+		stz	<mul16d+1
+
+.jpSinA_03:
+;anser sign
+		pla
+		bpl	.jpSinA_04
+
+;anser neg
+;work2a * cosA - ( - ( work2b * sinA ) )
+		addq	<work4c, <mul16c
+
+		bra	.jpSinA_End
+
+.jpSinA_04:
 ;work2a * cosA - work2b * sinA
 		subq	<work4c, <mul16c
 
+.jpSinA_End:
+;================
+
+;================
 ;work2a * sinA
 		movw	<mul16a, <work2a
-		MULSIN8
-		movq	<work4d, <mul16c
 
+;anser sign
+		lda	<mul16a+1
+		eor	<saveSin8Data+1
+		pha
+
+;a neg check
+		bbr7	<mul16a+1, .jpSinB_02
+
+;a neg
+		sec
+		cla
+		sbc	<mul16a
+		sta	<mul16a
+
+		cla
+		sbc	<mul16a+1
+		sta	<mul16a+1
+
+.jpSinB_02:
+;mul16a*256 check
+		bbr0	<saveSin8Data+1, .jpSinB_00
+
+;mul16a*256
+		stz	<work4d
+
+		lda	<mul16a
+		sta	<work4d+1
+
+		lda	<mul16a+1
+		sta	<work4d+2
+
+		stz	<work4d+3
+
+		bra	.jpSinB_03
+
+.jpSinB_00:
+		ldy	<mul16a
+		lda	[sinLowAddr], y
+		sta	<work4d
+
+		lda	[sinHighAddr], y
+		sta	<work4d+1
+
+		clc
+
+		ldy	<mul16a+1
+		lda	[sinLowAddr], y
+		adc	<work4d+1
+		sta	<work4d+1
+
+		lda	[sinHighAddr], y
+		adc	#0
+		sta	<work4d+2
+
+		stz	<work4d+3
+
+.jpSinB_03:
+;anser sign
+		pla
+		bpl	.jpSinB_End
+
+;anser neg
+		sec
+		cla
+		sbc	<work4d
+		sta	<work4d
+
+		cla
+		sbc	<work4d+1
+		sta	<work4d+1
+
+		cla
+		sbc	<work4d+2
+		sta	<work4d+2
+
+		cla
+		sbc	<work4d+3
+		sta	<work4d+3
+
+.jpSinB_End:
+;================
+
+;================
 ;work2b * cosA
 		movw	<mul16a, <work2b
-		MULCOS8
+;anser sign
+		lda	<mul16a+1
+		eor	<saveCos8Data+1
+		pha
 
+;a neg check
+		bbr7	<mul16a+1, .jpCosB_02
+
+;a neg
+		sec
+		cla
+		sbc	<mul16a
+		sta	<mul16a
+
+		cla
+		sbc	<mul16a+1
+		sta	<mul16a+1
+
+.jpCosB_02:
+;mul16a*256 check
+		bbr0	<saveCos8Data+1, .jpCosB_00
+
+;mul16a*256
+		stz	<mul16c
+
+		lda	<mul16a
+		sta	<mul16c+1
+
+		lda	<mul16a+1
+		sta	<mul16d
+
+		stz	<mul16d+1
+
+		bra	.jpCosB_03
+
+.jpCosB_00:
+		ldy	<mul16a
+		lda	[cosLowAddr], y
+		sta	<mul16c
+
+		lda	[cosHighAddr], y
+		sta	<mul16c+1
+
+		clc
+
+		ldy	<mul16a+1
+		lda	[cosLowAddr], y
+		adc	<mul16c+1
+		sta	<mul16c+1
+
+		lda	[cosHighAddr], y
+		adc	#0
+		sta	<mul16d
+
+		stz	<mul16d+1
+
+.jpCosB_03:
+;anser sign
+		pla
+		bpl	.jpCosB_04
+
+;anser neg
+;work2a * sinA + ( - ( work2b * cosA ) )
+		subq	<work4d, <mul16c
+
+		bra	.jpCosB_End
+
+.jpCosB_04:
 ;work2a * sinA + work2b * cosA
 		addq	<work4d, <mul16c
+
+.jpCosB_End:
+;================
 
 		mov	<work2a, <work4c+1
 		mov	<work2a+1, <work4c+2
@@ -1457,27 +1769,27 @@ vertexRotationZ8:
 		ldx	<vertexCount
 
 .loop0:
-		lda	transform2DWork0, y
+		lda	transform2DWork0+VX, y
 		sta	<work2a
-		lda	transform2DWork0+1, y
+		lda	transform2DWork0+VX+1, y
 		sta	<work2a+1
 
-		lda	transform2DWork0+2, y
+		lda	transform2DWork0+VY, y
 		sta	<work2b
-		lda	transform2DWork0+3, y
+		lda	transform2DWork0+VY+1, y
 		sta	<work2b+1
 
 		jsr	rotation8
 
 		lda	<work2a
-		sta	transform2DWork0, y
+		sta	transform2DWork0+VX, y
 		lda	<work2a+1
-		sta	transform2DWork0+1, y
+		sta	transform2DWork0+VX+1, y
 
 		lda	<work2b
-		sta	transform2DWork0+2, y
+		sta	transform2DWork0+VY, y
 		lda	<work2b+1
-		sta	transform2DWork0+3, y
+		sta	transform2DWork0+VY+1, y
 
 		ady2	#6
 
@@ -1511,27 +1823,27 @@ vertexRotationY8:
 		ldx	<vertexCount
 
 .loop0:
-		lda	transform2DWork0, y
+		lda	transform2DWork0+VX, y
 		sta	<work2a
-		lda	transform2DWork0+1, y
+		lda	transform2DWork0+VX+1, y
 		sta	<work2a+1
 
-		lda	transform2DWork0+4, y
+		lda	transform2DWork0+VZ, y
 		sta	<work2b
-		lda	transform2DWork0+5, y
+		lda	transform2DWork0+VZ+1, y
 		sta	<work2b+1
 
 		jsr	rotation8
 
 		lda	<work2a
-		sta	transform2DWork0, y
+		sta	transform2DWork0+VX, y
 		lda	<work2a+1
-		sta	transform2DWork0+1, y
+		sta	transform2DWork0+VX+1, y
 
 		lda	<work2b
-		sta	transform2DWork0+4, y
+		sta	transform2DWork0+VZ, y
 		lda	<work2b+1
-		sta	transform2DWork0+5, y
+		sta	transform2DWork0+VZ+1, y
 
 		ady2	#6
 
@@ -1565,27 +1877,27 @@ vertexRotationX8:
 		ldx	<vertexCount
 
 .loop0:
-		lda	transform2DWork0+4, y
+		lda	transform2DWork0+VZ, y
 		sta	<work2a
-		lda	transform2DWork0+5, y
+		lda	transform2DWork0+VZ+1, y
 		sta	<work2a+1
 
-		lda	transform2DWork0+2, y
+		lda	transform2DWork0+VY, y
 		sta	<work2b
-		lda	transform2DWork0+3, y
+		lda	transform2DWork0+VY+1, y
 		sta	<work2b+1
 
 		jsr	rotation8
 
 		lda	<work2a
-		sta	transform2DWork0+4, y
+		sta	transform2DWork0+VZ, y
 		lda	<work2a+1
-		sta	transform2DWork0+5, y
+		sta	transform2DWork0+VZ+1, y
 
 		lda	<work2b
-		sta	transform2DWork0+2, y
+		sta	transform2DWork0+VY, y
 		lda	<work2b+1
-		sta	transform2DWork0+3, y
+		sta	transform2DWork0+VY+1, y
 
 		ady2	#6
 
@@ -1604,6 +1916,8 @@ vertexRotationX8:
 ;----------------------------
 selectVertexRotation8:
 ;
+		phx
+
 		and	#3
 		beq	.rotationSelectX
 
@@ -1613,22 +1927,30 @@ selectVertexRotation8:
 .rotationSelectZ:
 		ldx	<rotationZ
 		jsr	vertexRotationZ8
+
+		plx
 		rts
 
 .rotationSelectX:
 		ldx	<rotationX
 		jsr	vertexRotationX8
+
+		plx
 		rts
 
 .rotationSelectY:
 		ldx	<rotationY
 		jsr	vertexRotationY8
+
+		plx
 		rts
 
 
 ;----------------------------
 selectVertexRotation:
 ;
+		phx
+
 		and	#3
 		beq	.rotationSelectX
 
@@ -1638,16 +1960,22 @@ selectVertexRotation:
 .rotationSelectZ:
 		ldx	<rotationZ
 		jsr	vertexRotationZ
+
+		plx
 		rts
 
 .rotationSelectX:
 		ldx	<rotationX
 		jsr	vertexRotationX
+
+		plx
 		rts
 
 .rotationSelectY:
 		ldx	<rotationY
 		jsr	vertexRotationY
+
+		plx
 		rts
 
 
@@ -1682,9 +2010,9 @@ vertexRotationZ:
 
 .vertexRotationZLoop:
 ;----------------
-		lda	transform2DWork0, y		;X0
+		lda	transform2DWork0+VX, y		;X0
 		sta	<mul16a
-		lda	transform2DWork0+1, y
+		lda	transform2DWork0+VX+1, y
 		sta	<mul16a+1
 
 		movw	<mul16b, <vertexRotationCos	;cos
@@ -1693,9 +2021,9 @@ vertexRotationZ:
 
 		movq	<work8a, <mul16c
 
-		lda	transform2DWork0+2, y		;Y0
+		lda	transform2DWork0+VY, y		;Y0
 		sta	<mul16a
-		lda	transform2DWork0+3, y
+		lda	transform2DWork0+VY+1, y
 		sta	<mul16a+1
 
 		movw	<mul16b, <vertexRotationSin	;sin
@@ -1717,9 +2045,9 @@ vertexRotationZ:
 		pha
 
 ;----------------
-		lda	transform2DWork0, y		;X0
+		lda	transform2DWork0+VX, y		;X0
 		sta	<mul16a
-		lda	transform2DWork0+1, y
+		lda	transform2DWork0+VX+1, y
 		sta	<mul16a+1
 
 		movw	<mul16b, <vertexRotationSin	;sin
@@ -1728,9 +2056,9 @@ vertexRotationZ:
 
 		movq	<work8a, <mul16c
 
-		lda	transform2DWork0+2, y		;Y0
+		lda	transform2DWork0+VY, y		;Y0
 		sta	<mul16a
-		lda	transform2DWork0+3, y
+		lda	transform2DWork0+VY+1, y
 		sta	<mul16a+1
 
 		movw	<mul16b, <vertexRotationCos	;cos
@@ -1747,15 +2075,15 @@ vertexRotationZ:
 		rol	a
 		rol	<mul16d+1
 
-		sta	transform2DWork0+2, y
+		sta	transform2DWork0+VY, y
 		lda	<mul16d+1
-		sta	transform2DWork0+3, y
+		sta	transform2DWork0+VY+1, y
 
 ;----------------
 		pla
-		sta	transform2DWork0, y
+		sta	transform2DWork0+VX, y
 		pla
-		sta	transform2DWork0+1, y
+		sta	transform2DWork0+VX+1, y
 
 ;----------------
 		ady2	#6
@@ -1800,9 +2128,9 @@ vertexRotationY:
 
 .vertexRotationYLoop:
 ;----------------
-		lda	transform2DWork0+4, y		;Z0
+		lda	transform2DWork0+VZ, y		;Z0
 		sta	<mul16a
-		lda	transform2DWork0+5, y
+		lda	transform2DWork0+VZ+1, y
 		sta	<mul16a+1
 
 		movw	<mul16b, <vertexRotationSin	;sin
@@ -1811,9 +2139,9 @@ vertexRotationY:
 
 		movq	<work8a, <mul16c
 
-		lda	transform2DWork0, y		;X0
+		lda	transform2DWork0+VX, y		;X0
 		sta	<mul16a
-		lda	transform2DWork0+1, y
+		lda	transform2DWork0+VX+1, y
 		sta	<mul16a+1
 
 		movw	<mul16b, <vertexRotationCos	;cos
@@ -1835,9 +2163,9 @@ vertexRotationY:
 		pha
 
 ;----------------------------
-		lda	transform2DWork0+4, y		;Z0
+		lda	transform2DWork0+VZ, y		;Z0
 		sta	<mul16a
-		lda	transform2DWork0+5, y
+		lda	transform2DWork0+VZ+1, y
 		sta	<mul16a+1
 
 		movw	<mul16b, <vertexRotationCos	;cos
@@ -1846,9 +2174,9 @@ vertexRotationY:
 
 		movq	<work8a, <mul16c
 
-		lda	transform2DWork0, y		;X0
+		lda	transform2DWork0+VX, y		;X0
 		sta	<mul16a
-		lda	transform2DWork0+1, y
+		lda	transform2DWork0+VX+1, y
 		sta	<mul16a+1
 
 		movw	<mul16b, <vertexRotationSin	;sin
@@ -1865,15 +2193,15 @@ vertexRotationY:
 		rol	a
 		rol	<mul16d+1
 
-		sta	transform2DWork0+4, y
+		sta	transform2DWork0+VZ, y
 		lda	<mul16d+1
-		sta	transform2DWork0+5, y
+		sta	transform2DWork0+VZ+1, y
 
 ;----------------
 		pla
-		sta	transform2DWork0, y
+		sta	transform2DWork0+VX, y
 		pla
-		sta	transform2DWork0+1, y
+		sta	transform2DWork0+VX+1, y
 
 ;----------------
 		ady2	#6
@@ -1918,9 +2246,9 @@ vertexRotationX:
 
 .vertexRotationXLoop:
 ;----------------
-		lda	transform2DWork0+2, y		;Y0
+		lda	transform2DWork0+VY, y		;Y0
 		sta	<mul16a
-		lda	transform2DWork0+3, y
+		lda	transform2DWork0+VY+1, y
 		sta	<mul16a+1
 
 		movw	<mul16b, <vertexRotationCos	;cos
@@ -1929,9 +2257,9 @@ vertexRotationX:
 
 		movq	<work8a, <mul16c
 
-		lda	transform2DWork0+4, y		;Z0
+		lda	transform2DWork0+VZ, y		;Z0
 		sta	<mul16a
-		lda	transform2DWork0+5, y
+		lda	transform2DWork0+VZ+1, y
 		sta	<mul16a+1
 
 		movw	<mul16b, <vertexRotationSin	;sin
@@ -1953,9 +2281,9 @@ vertexRotationX:
 		pha
 
 ;----------------
-		lda	transform2DWork0+2, y	;Y0
+		lda	transform2DWork0+VY, y	;Y0
 		sta	<mul16a
-		lda	transform2DWork0+3, y
+		lda	transform2DWork0+VY+1, y
 		sta	<mul16a+1
 
 		movw	<mul16b, <vertexRotationSin	;sin
@@ -1964,9 +2292,9 @@ vertexRotationX:
 
 		movq	<work8a, <mul16c
 
-		lda	transform2DWork0+4, y		;Z0
+		lda	transform2DWork0+VZ, y		;Z0
 		sta	<mul16a
-		lda	transform2DWork0+5, y
+		lda	transform2DWork0+VZ+1, y
 		sta	<mul16a+1
 
 		movw	<mul16b, <vertexRotationCos	;cos
@@ -1983,15 +2311,15 @@ vertexRotationX:
 		rol	a
 		rol	<mul16d+1
 
-		sta	transform2DWork0+4, y
+		sta	transform2DWork0+VZ, y
 		lda	<mul16d+1
-		sta	transform2DWork0+5, y
+		sta	transform2DWork0+VZ+1, y
 
 ;----------------
 		pla
-		sta	transform2DWork0+2, y
+		sta	transform2DWork0+VY, y
 		pla
-		sta	transform2DWork0+3, y
+		sta	transform2DWork0+VY+1, y
 
 ;----------------
 		ady2	#6
@@ -2018,28 +2346,28 @@ vertexTranslationDatas:
 
 .vertexTranslationLoop:
 		clc
-		lda	transform2DWork0, y
+		lda	transform2DWork0+VX, y
 		adc	<translationX
-		sta	transform2DWork0, y
-		lda	transform2DWork0+1, y
+		sta	transform2DWork0+VX, y
+		lda	transform2DWork0+VX+1, y
 		adc	<translationX+1
-		sta	transform2DWork0+1, y
+		sta	transform2DWork0+VX+1, y
 
 		clc
-		lda	transform2DWork0+2, y
+		lda	transform2DWork0+VY, y
 		adc	<translationY
-		sta	transform2DWork0+2, y
-		lda	transform2DWork0+3, y
+		sta	transform2DWork0+VY, y
+		lda	transform2DWork0+VY+1, y
 		adc	<translationY+1
-		sta	transform2DWork0+3, y
+		sta	transform2DWork0+VY+1, y
 
 		clc
-		lda	transform2DWork0+4, y
+		lda	transform2DWork0+VZ, y
 		adc	<translationZ
-		sta	transform2DWork0+4, y
-		lda	transform2DWork0+5, y
+		sta	transform2DWork0+VZ, y
+		lda	transform2DWork0+VZ+1, y
 		adc	<translationZ+1
-		sta	transform2DWork0+5, y
+		sta	transform2DWork0+VZ+1, y
 
 		ady2	#6
 
@@ -2068,11 +2396,11 @@ transform2D:
 .transform2DLoop0:
 ;Z0 < 128 check
 		sec
-		lda	transform2DWork0+4, x	;Z0
-		sta	transform2DWork1+4, x
+		lda	transform2DWork0+VZ, x	;Z0
+		sta	transform2DWork1+VZ, x
 		sbc	#SCREEN_Z
-		lda	transform2DWork0+5, x
-		sta	transform2DWork1+5, x
+		lda	transform2DWork0+VZ+1, x
+		sta	transform2DWork1+VZ+1, x
 		sbc	#0
 
 		bpl	.transform2DJump05
@@ -2080,17 +2408,17 @@ transform2D:
 
 .transform2DJump05:
 ;X0 to mul16b
-		lda	transform2DWork0, x
-		sta	transform2DWork1, x
+		lda	transform2DWork0+VX, x
+		sta	transform2DWork1+VX, x
 		sta	<mul16b
-		lda	transform2DWork0+1, x
-		sta	transform2DWork1+1, x
+		lda	transform2DWork0+VX+1, x
+		sta	transform2DWork1+VX+1, x
 		sta	<mul16b+1
 
 ;Z0 to mul16a
-		lda	transform2DWork0+4, x
+		lda	transform2DWork0+VZ, x
 		sta	<mul16a
-		lda	transform2DWork0+5, x
+		lda	transform2DWork0+VZ+1, x
 		sta	<mul16a+1
 
 ;X0*128/Z0
@@ -2101,17 +2429,17 @@ transform2D:
 		clc
 		lda	<mul16d
 		adc	<centerX
-		sta	transform2DWork0, x	;X0
+		sta	transform2DWork0+VX, x	;X0
 		lda	<mul16d+1
 		adc	<centerX+1
-		sta	transform2DWork0+1, x
+		sta	transform2DWork0+VX+1, x
 
 ;Y0 to mul16b
-		lda	transform2DWork0+2, x
-		sta	transform2DWork1+2, x
+		lda	transform2DWork0+VY, x
+		sta	transform2DWork1+VY, x
 		sta	<mul16b
-		lda	transform2DWork0+3, x
-		sta	transform2DWork1+3, x
+		lda	transform2DWork0+VY+1, x
+		sta	transform2DWork1+VY+1, x
 		sta	<mul16b+1
 
 ;Y0*128/Z0
@@ -2122,28 +2450,28 @@ transform2D:
 		sec
 		lda	<centerY
 		sbc	<mul16d
-		sta	transform2DWork0+2, x	;Y0
+		sta	transform2DWork0+VY, x	;Y0
 		lda	<centerY+1
 		sbc	<mul16d+1
-		sta	transform2DWork0+3, x
+		sta	transform2DWork0+VY+1, x
 
 		jmp	.transform2DJump01
 
 .transform2DJump00:
-		lda	transform2DWork0, x
-		sta	transform2DWork1, x
-		lda	transform2DWork0+1, x
-		sta	transform2DWork1+1, x
+		lda	transform2DWork0+VX, x
+		sta	transform2DWork1+VX, x
+		lda	transform2DWork0+VX+1, x
+		sta	transform2DWork1+VX+1, x
 
-		lda	transform2DWork0+2, x
-		sta	transform2DWork1+2, x
-		lda	transform2DWork0+3, x
-		sta	transform2DWork1+3, x
+		lda	transform2DWork0+VY, x
+		sta	transform2DWork1+VY, x
+		lda	transform2DWork0+VY+1, x
+		sta	transform2DWork1+VY+1, x
 
 ;Z0<128 flag set
-		stz	transform2DWork0+4, x
+		stz	transform2DWork0+VZ, x
 		lda	#$80
-		sta	transform2DWork0+5, x
+		sta	transform2DWork0+VZ+1, x
 
 .transform2DJump01:
 		adx2	#6
@@ -2575,19 +2903,18 @@ setModel:
 		iny
 		lda	[modelAddrWork], y
 		tax
-		lda	transform2DWork0+5, x	;Z0<128 flag
+		lda	transform2DWork0+VZ+1, x	;Z0<128 flag
 		jmi	.setModelJump0
 
 ;SAMPLE Z
-		ldy	#2
-		lda	transform2DWork0+4, x
-		sta	[polyBufferAddr], y
-		sta	<mul16a
-
-		iny
-		lda	transform2DWork0+5, x
+		ldy	#3
 		sta	[polyBufferAddr], y
 		sta	<mul16a+1
+
+		dey
+		lda	transform2DWork0+VZ, x
+		sta	[polyBufferAddr], y
+		sta	<mul16a
 
 		lda	<setModelBackColor
 		sta	<mul16b
@@ -2615,17 +2942,18 @@ setModel:
 
 		dey
 		lda	<setModelFrontColor
-
+		clc
+		adc	<polygonColorIndex
 		sta	[polyBufferAddr], y	;COLOR
 
-		lda	transform2DWork0+0, x	;X
+		lda	transform2DWork0+VX, x	;X
 		sta	clip2D0
-		lda	transform2DWork0+1, x
+		lda	transform2DWork0+VX+1, x
 		sta	clip2D0+2
 
-		lda	transform2DWork0+2, x	;Y
+		lda	transform2DWork0+VY, x	;Y
 		sta	clip2D0+4
-		lda	transform2DWork0+3, x
+		lda	transform2DWork0+VY+1, x
 		sta	clip2D0+6
 
 		mov	<clip2D0Count, #3
@@ -2658,41 +2986,41 @@ setModel:
 .setModelLoop5:
 		lda	[modelAddrWork], y
 		tax
-		lda	transform2DWork0+5, x	;Z0<128 flag
+		lda	transform2DWork0+VZ+1, x	;Z0<128 flag
 		bmi	.setModelJump7
 
 		phy
 
 		ldy	<model2DClipIndexWork
 
-		lda	transform2DWork0, x
+		lda	transform2DWork0+VX, x
 		sta	clip2D0, y
 		iny
 
-		lda	transform2DWork0+1, x
+		lda	transform2DWork0+VX+1, x
 		sta	clip2D0, y
 		iny
 
-		lda	transform2DWork0+2, x
+		lda	transform2DWork0+VY, x
 		sta	clip2D0, y
 		iny
 
-		lda	transform2DWork0+3, x
+		lda	transform2DWork0+VY+1, x
 		sta	clip2D0, y
 		iny
 
 ;check Z sample
 		sec
 		lda	<polyBufferZ0Work0
-		sbc	transform2DWork0+4, x
+		sbc	transform2DWork0+VZ, x
 		lda	<polyBufferZ0Work0+1
-		sbc	transform2DWork0+5, x
+		sbc	transform2DWork0+VZ+1, x
 
 		bpl	.setModelJump9
 
-		lda	transform2DWork0+4, x
+		lda	transform2DWork0+VZ, x
 		sta	<polyBufferZ0Work0
-		lda	transform2DWork0+5, x
+		lda	transform2DWork0+VZ+1, x
 		sta	<polyBufferZ0Work0+1
 
 .setModelJump9:
@@ -2955,11 +3283,11 @@ clipFront:
 		ldx	<frontClipData0
 		ldy	<frontClipData1
 
-		lda	transform2DWork0+5, x	;Z0<128 flag
+		lda	transform2DWork0+VZ+1, x	;Z0<128 flag
 		and	#$80
 		lsr	a
 		sta	<frontClipFlag
-		lda	transform2DWork0+5, y	;Z0<128 flag
+		lda	transform2DWork0+VZ+1, y	;Z0<128 flag
 		and	#$80
 		ora	<frontClipFlag
 		sta	<frontClipFlag
@@ -2974,10 +3302,10 @@ clipFront:
 ;(128-Z0) => mul16d
 		sec
 		lda	#SCREEN_Z
-		sbc	transform2DWork1+4, x
+		sbc	transform2DWork1+VZ, x
 		sta	<mul16d
 		cla
-		sbc	transform2DWork1+5, x
+		sbc	transform2DWork1+VZ+1, x
 		sta	<mul16d+1
 
 ;(128-Z0) * 32768 => mul16d:mul16c
@@ -2989,11 +3317,11 @@ clipFront:
 
 ;(Z1-Z0) => mul16a
 		sec
-		lda	transform2DWork1+4, y
-		sbc	transform2DWork1+4, x
+		lda	transform2DWork1+VZ, y
+		sbc	transform2DWork1+VZ, x
 		sta	<mul16a
-		lda	transform2DWork1+5, y
-		sbc	transform2DWork1+5, x
+		lda	transform2DWork1+VZ+1, y
+		sbc	transform2DWork1+VZ+1, x
 		sta	<mul16a+1
 
 ;(128-Z0)*32768/(Z1-Z0) => mul16a
@@ -3006,11 +3334,11 @@ clipFront:
 
 ;(X1-X0) => mul16b
 		sec
-		lda	transform2DWork1+0, y
-		sbc	transform2DWork1+0, x
+		lda	transform2DWork1+VX, y
+		sbc	transform2DWork1+VX, x
 		sta	<mul16b
-		lda	transform2DWork1+1, y
-		sbc	transform2DWork1+1, x
+		lda	transform2DWork1+VX+1, y
+		sbc	transform2DWork1+VX+1, x
 		sta	<mul16b+1
 
 ;(128-Z0)*32768/(Z1-Z0)*(X1-X0) => mul16d:mul16c
@@ -3024,10 +3352,10 @@ clipFront:
 ;(128-Z0)*32768/(Z1-Z0)*(X1-X0)*2+X0 => mul16a
 		clc
 		lda	<mul16d
-		adc	transform2DWork1+0, x
+		adc	transform2DWork1+VX, x
 		sta	<mul16a
 		lda	<mul16d+1
-		adc	transform2DWork1+1, x
+		adc	transform2DWork1+VX+1, x
 		sta	<mul16a+1
 
 ;mul16a+centerX
@@ -3041,11 +3369,11 @@ clipFront:
 
 ;(Y1-Y0) to mul16b
 		sec
-		lda	transform2DWork1+2, y
-		sbc	transform2DWork1+2, x
+		lda	transform2DWork1+VY, y
+		sbc	transform2DWork1+VY, x
 		sta	<mul16b
-		lda	transform2DWork1+3, y
-		sbc	transform2DWork1+3, x
+		lda	transform2DWork1+VY+1, y
+		sbc	transform2DWork1+VY+1, x
 		sta	<mul16b+1
 
 ;(128-Z0)*32768/(Z1-Z0)*(Y1-Y0) => mul16d:mul16c
@@ -3059,10 +3387,10 @@ clipFront:
 ;(128-Z0)*32768/(Z1-Z0)*(Y1-Y0)*2+Y0 => mul16a
 		clc
 		lda	<mul16d
-		adc	transform2DWork1+2, x
+		adc	transform2DWork1+VY, x
 		sta	<mul16a
 		lda	<mul16d+1
-		adc	transform2DWork1+3, x
+		adc	transform2DWork1+VY+1, x
 		sta	<mul16a+1
 
 ;centerY-mul16a
@@ -3099,17 +3427,17 @@ clipFront:
 .clipFrontJump10:
 		ldy	<model2DClipIndexWork
 
-		lda	transform2DWork0, x
+		lda	transform2DWork0+VX, x
 		sta	clip2D0, y
 		iny
-		lda	transform2DWork0+1, x
+		lda	transform2DWork0+VX+1, x
 		sta	clip2D0, y
 		iny
 
-		lda	transform2DWork0+2, x
+		lda	transform2DWork0+VY, x
 		sta	clip2D0, y
 		iny
-		lda	transform2DWork0+3, x
+		lda	transform2DWork0+VY+1, x
 		sta	clip2D0, y
 		iny
 
@@ -3129,9 +3457,9 @@ clipFront:
 
 		sty	<model2DClipIndexWork
 
-		lda	transform2DWork0+4, x
+		lda	transform2DWork0+VZ, x
 		sta	polyBufferZ0Work1
-		lda	transform2DWork0+5, x
+		lda	transform2DWork0+VZ+1, x
 		sta	polyBufferZ0Work1+1
 
 		inc	<frontClipCount
@@ -3142,25 +3470,25 @@ clipFront:
 .clipFrontJump8:
 		ldy	<model2DClipIndexWork
 
-		lda	transform2DWork0, x
+		lda	transform2DWork0+VX, x
 		sta	clip2D0, y
 		iny
-		lda	transform2DWork0+1, x
+		lda	transform2DWork0+VX+1, x
 		sta	clip2D0, y
 		iny
 
-		lda	transform2DWork0+2, x
+		lda	transform2DWork0+VY, x
 		sta	clip2D0, y
 		iny
-		lda	transform2DWork0+3, x
+		lda	transform2DWork0+VY+1, x
 		sta	clip2D0, y
 		iny
 
 		sty	<model2DClipIndexWork
 
-		lda	transform2DWork0+4, x
+		lda	transform2DWork0+VZ, x
 		sta	polyBufferZ0Work1
-		lda	transform2DWork0+5, x
+		lda	transform2DWork0+VZ+1, x
 		sta	polyBufferZ0Work1+1
 
 		inc	<frontClipCount
@@ -3958,17 +4286,28 @@ getAngle:
 		inc	a
 		sta	<ansAngleY
 
-		subw	transform2DWork0, <angleX1, <angleX0
-		subw	transform2DWork0+2, <angleY1, <angleY0
-		subw	transform2DWork0+4, <angleZ1, <angleZ0
+		subw	transform2DWork0+VX, <angleX1, <angleX0
+		subw	transform2DWork0+VY, <angleY1, <angleY0
+		subw	transform2DWork0+VZ, <angleZ1, <angleZ0
 		mov	vertexCount, #1
 		jsr	vertexRotationY
 
-		movw	<mul16a, transform2DWork0+4
-		movw	<mul16b, transform2DWork0+2
+		movw	<mul16a, transform2DWork0+VZ
+		movw	<mul16b, transform2DWork0+VY
 		jsr	atan
 		sta	<ansAngleX
 
+;ansAngleX <= $40
+		cmp	#$41
+		bcc	.jpAtan00
+
+;ansAngleX >= $C0
+		cmp	#$C0
+		bcs	.jpAtan00
+
+		stz	<ansAngleX
+
+.jpAtan00:
 		ply
 		plx
 		rts
@@ -4109,7 +4448,6 @@ romToVram:
 
 		movw	tiaCnt, <argw2
 
-
 		jsr	tiaFunction
 
 		rts
@@ -4163,6 +4501,8 @@ setCgCharData:
 ;----------------------------
 setSgCharData:
 ;argw0: rom address, argw1: SG No(0-1022), argw2: SG No(0-1022), argw3: character count(0-511)
+		phx
+
 		ldx	<argw1
 		lda	<argw1+1
 
@@ -4205,6 +4545,7 @@ setSgCharData:
 
 		jsr	romToVram
 
+		plx
 		rts
 
 
@@ -4299,6 +4640,9 @@ setAllPalette:
 ;----------------------------
 initializeVdc:
 ;
+		phx
+		phy
+
 ;disable interrupts
 		sei
 
@@ -4341,12 +4685,16 @@ initializeVdc:
 
 		st012	#$05, #$0000
 
+		ply
+		plx
 		rts
 
 
 ;----------------------------
 setBat:
 ;set BAT
+		phx
+
 ;BAT0
 		st012	#$00, #$0000
 		st0	#$02
@@ -4403,6 +4751,7 @@ setBat:
 		inx
 		bne	.clearbatloop5
 
+		plx
 		rts
 
 
@@ -4435,10 +4784,10 @@ irq1PolygonFunction:
 
 		bbr5	<vdpStatus, .jp00
 
-		bbr7	<vsyncFlag, .jp00
+		lda	<vsyncFlag
+		sta	<vsyncFlagTemp
 
-;set VRAM_SAT DMA
-		st012	#$13, #$0800
+		bbr7	<vsyncFlag, .jp00
 
 		stz	<vsyncFlag
 
@@ -4448,11 +4797,17 @@ irq1PolygonFunction:
 
 		beq	.jp01
 
+;set VRAM_SAT DMA
+		st012	#$13, #$0800
+
 ;set scroll y
 		st012	#$08, #$0000
 		bra	.jp00
 
 .jp01:
+;set VRAM_SAT DMA
+		st012	#$13, #$0900
+
 ;set scroll y
 		st012	#$08, #$0100
 
@@ -4463,6 +4818,8 @@ irq1PolygonFunction:
 ;----------------------------
 clearSatBuffer:
 ;
+		phx
+
 		cla
 		clc
 
@@ -4480,6 +4837,7 @@ clearSatBuffer:
 
 		movw	satBufferAddr, #satBuffer
 
+		plx
 		rts
 
 
@@ -4761,8 +5119,15 @@ waitScreenVsync:
 setSatToVram:
 ;
 ;set vram addr
-		st012	#$00, #$0800
+		bbs0	<drawingNo, .jp00
 
+		st012	#$00, #$0800
+		bra	.jp01
+
+.jp00:
+		st012	#$00, #$0900
+
+.jp01:
 ;transfer sat to VRAM
 		st0	#$02
 		tia	satBuffer, VDC_2, 512
@@ -4817,6 +5182,8 @@ numToChar:
 ;----------------------------
 setCgToSgData:
 ;argw0: rom address, argw1: src CG No(0-2047), argw2: dist SG No(0-1022), arg6: top or bottom left or right
+		phx
+		phy
 
 ;CG address
 		asl	<argw1
@@ -4912,6 +5279,8 @@ setCgToSgData:
 		bra	.loop00
 
 .funcEnd:
+		ply
+		plx
 		rts
 
 

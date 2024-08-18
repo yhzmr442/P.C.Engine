@@ -42,6 +42,7 @@ padState2		.ds	1
 
 ;---------------------
 vsyncFlag		.ds	1
+vsyncFlagTemp		.ds	1
 vdpStatus		.ds	1
 vdcR05			.ds	2
 drawingNo		.ds	1

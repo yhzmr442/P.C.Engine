@@ -166,3 +166,9 @@ VCE0_INIT_DATA		.equ	$0002
 			IFNDEF VCE0_INIT_DATA
 VCE0_INIT_DATA		.equ	$0000
 			ENDIF
+
+;----------------------------
+			.rsset	0
+VX			.rs	2
+VY			.rs	2
+VZ			.rs	2

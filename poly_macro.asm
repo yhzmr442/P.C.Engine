@@ -1,6 +1,15 @@
 ;poly_macro.asm
 ;//////////////////////////////////
 ;----------------------------
+SET_POLYGON_FUNCTION	.macro
+
+		lda	#POLYGON_FUNC_BANK
+		tam	#POLYGON_FUNC_MAP
+
+		.endm
+
+
+;----------------------------
 RESET_PROCESS	.macro
 ;
 		sei

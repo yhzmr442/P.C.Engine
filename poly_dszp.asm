@@ -213,8 +213,8 @@ polygonColorIndex	.ds	1
 polyAttribute		.ds	1
 
 ;---------------------
-centerX			.ds	2
-centerY			.ds	2
+centerX			.ds	1
+centerY			.ds	1
 
 ;---------------------
 translationX		.ds	2

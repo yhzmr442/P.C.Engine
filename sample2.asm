@@ -1,5 +1,14 @@
 ;sample2.asm
 ;///////////////////////////
+;////////  DEFINE   ////////
+;///////////////////////////
+;---------------------
+SCREEN_256_240_B	;screen 256 * 240 dot
+VCE_5M			;VCE Clock 5M
+DISPLAY_BOTTOM_192	;polygon screen 192 line
+
+
+;///////////////////////////
 ;////////  INCLUDE  ////////
 ;///////////////////////////
 ;---------------------
@@ -42,8 +51,7 @@ rot_z		.ds	1
 ;----------------------------
 main:
 ;
-		lda	#POLYGON_FUNC_BANK
-		tam	#POLYGON_FUNC_MAP
+		SET_POLYGON_FUNCTION
 
 		jsr	initializePolygonFunction
 

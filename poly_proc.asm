@@ -1,7 +1,7 @@
 ;poly_proc.asm
 ;//////////////////////////////////
 ;----------------------------
-;polygon display area is 256 * 192 pixels.
+;polygon display area is 256 * 192 or 256 * 144 pixels.
 
 ;----------------------------
 ;palette number used by the system is 15.
@@ -420,6 +420,11 @@ initializePolygonFunction:
 
 ;initialize PSG
 		jsr	initializePsg
+
+;clear BAT
+		cla
+		ldx	#$01
+		jsr	clearBat
 
 ;set BAT
 		jsr	setBat
@@ -2431,7 +2436,7 @@ transform2D:
 		adc	<centerX
 		sta	transform2DWork0+VX, x	;X0
 		lda	<mul16d+1
-		adc	<centerX+1
+		adc	#0
 		sta	transform2DWork0+VX+1, x
 
 ;Y0 to mul16b
@@ -2451,7 +2456,7 @@ transform2D:
 		lda	<centerY
 		sbc	<mul16d
 		sta	transform2DWork0+VY, x	;Y0
-		lda	<centerY+1
+		lda	#0
 		sbc	<mul16d+1
 		sta	transform2DWork0+VY+1, x
 
@@ -3359,7 +3364,14 @@ clipFront:
 		sta	<mul16a+1
 
 ;mul16a+centerX
-		addw	<clipFrontX, <mul16a, <centerX
+		clc
+		lda	<mul16a
+		adc	<centerX
+		sta	<clipFrontX
+
+		lda	<mul16a+1
+		adc	#0
+		sta	<clipFrontX+1
 
 ;(128-Z0)*32768/(Z1-Z0) => mul16a
 		pla
@@ -3394,7 +3406,14 @@ clipFront:
 		sta	<mul16a+1
 
 ;centerY-mul16a
-		subw	<clipFrontY, <centerY, <mul16a
+		sec
+		lda	<centerY
+		sbc	<mul16a
+		sta	<clipFrontY
+
+		lda	#0
+		sbc	<mul16a+1
+		sta	<clipFrontY+1
 
 		bbs7	<frontClipFlag, .clipFrontJump10
 
@@ -3537,7 +3556,7 @@ checkClip2D:
 .jp02:
 		sec
 		lda	clip2D0+2, x
-		sbc	#192
+		sbc	#DISPLAY_BOTTOM
 		lda	clip2D0+3, x
 		sbc	#0
 		bmi	.jp03
@@ -3996,7 +4015,7 @@ clip2DY255:
 
 		sec
 		lda	clip2D1+2, y	;Y0
-		sbc	#192
+		sbc	#DISPLAY_BOTTOM
 		lda	clip2D1+3, y
 		sbc	#0
 		bmi	.clip2DY255Jump00
@@ -4005,7 +4024,7 @@ clip2DY255:
 .clip2DY255Jump00:
 		sec
 		lda	clip2D1+6, y	;Y1
-		sbc	#192
+		sbc	#DISPLAY_BOTTOM
 		lda	clip2D1+7, y
 		sbc	#0
 		bmi	.clip2DY255Jump01
@@ -4020,7 +4039,7 @@ clip2DY255:
 
 ;(191-Y0) to mul16a
 		sec
-		lda	#191
+		lda	#DISPLAY_BOTTOM - 1
 		sbc	clip2D1+2, y	;Y0
 		sta	<mul16a
 		cla
@@ -4067,7 +4086,7 @@ clip2DY255:
 		lda	<mul16a+1
 		sta	clip2D0+1, x
 
-		lda	#191
+		lda	#DISPLAY_BOTTOM - 1
 		sta	clip2D0+2, x	;Y0
 		stz	clip2D0+3, x
 
@@ -4097,7 +4116,7 @@ clip2DY255:
 		lda	<mul16a+1
 		sta	clip2D0+5, x
 
-		lda	#191
+		lda	#DISPLAY_BOTTOM - 1
 		sta	clip2D0+6, x	;Y1
 		stz	clip2D0+7, x
 
@@ -4600,7 +4619,12 @@ clearBuffer:
 
 		jsr	clearBufferSub
 		jsr	clearBufferSub
+
+			IFDEF DISPLAY_BOTTOM_144
+		jsr	clearBufferSub + (8192 - 2048)
+			ELSE
 		jsr	clearBufferSub
+			ENDIF
 
 		pla
 		tam	#POLYGON_EDGE_FUNC_MAP
@@ -4691,6 +4715,37 @@ initializeVdc:
 
 
 ;----------------------------
+clearBat:
+;x:a CG
+		phx
+		phy
+
+		st012	#$00, #$0000
+		st0	#$02
+		sta	VDC_2
+
+		cly
+.loop0:
+		lda	#8
+.loop1:
+		stx	VDC_3
+		dec	a
+		bne	.loop1
+
+		dey
+		bne	.loop0
+
+		ply
+		plx
+		rts
+
+
+;----------------------------
+			IFDEF DISPLAY_BOTTOM_144
+SETBAT_DATA_COUNT	.equ	$0240
+			ELSE
+SETBAT_DATA_COUNT	.equ	$0300
+			ENDIF
 setBat:
 ;set BAT
 		phx
@@ -4704,7 +4759,7 @@ setBat:
 		movw	VDC_2, setBatWork
 
 		addw	setBatWork, #$0002
-		cmpw	setBatWork, #$F200+$0300
+		cmpw	setBatWork, #$F200 + SETBAT_DATA_COUNT
 		bcc	.clearbatloop0
 
 		movw	setBatWork, #$F201
@@ -4712,16 +4767,8 @@ setBat:
 		movw	VDC_2, setBatWork
 
 		addw	setBatWork, #$0002
-		cmpw	setBatWork, #$F201+$0300
+		cmpw	setBatWork, #$F201 + SETBAT_DATA_COUNT
 		bcc	.clearbatloop1
-
-		clx
-		st1	#$00
-.clearbatloop2:
-		st2	#$01
-
-		inx
-		bne	.clearbatloop2
 
 ;BAT1
 		st012	#$00, #$0400
@@ -4732,7 +4779,7 @@ setBat:
 		movw	VDC_2, setBatWork
 
 		addw	setBatWork, #$0002
-		cmpw	setBatWork, #$F500+$0300
+		cmpw	setBatWork, #$F500 + SETBAT_DATA_COUNT
 		bcc	.clearbatloop3
 
 		movw	setBatWork, #$F501
@@ -4740,16 +4787,8 @@ setBat:
 		movw	VDC_2, setBatWork
 
 		addw	setBatWork, #$0002
-		cmpw	setBatWork, #$F501+$0300
+		cmpw	setBatWork, #$F501 + SETBAT_DATA_COUNT
 		bcc	.clearbatloop4
-
-		clx
-		st1	#$00
-.clearbatloop5:
-		st2	#$01
-
-		inx
-		bne	.clearbatloop5
 
 		plx
 		rts
@@ -4868,7 +4907,7 @@ setSatBuffer:
 
 ;----------------------------
 setScreenCenter:
-;
+;centerX:0 to 255, centerY:0 to 255
 		stx	<centerX
 		sty	<centerY
 		rts
@@ -5455,7 +5494,7 @@ calcCircle_putPoly:
 
 .jp10:
 		lda	<minEdgeY
-		cmp	#192
+		cmp	#DISPLAY_BOTTOM
 		bcc	.jp11
 ;top >= 192 then
 		rts
@@ -5587,7 +5626,7 @@ calcCircle_putPoly:
 
 		bne	.jp102
 
-		cpy	#192
+		cpy	#DISPLAY_BOTTOM
 		bcs	.jp102
 
 		cpy	<minEdgeY
@@ -5618,7 +5657,7 @@ calcCircle_putPoly:
 
 		bne	.jp04
 
-		cpy	#192
+		cpy	#DISPLAY_BOTTOM
 		bcs	.jp04
 
 		cpy	<minEdgeY
@@ -5669,7 +5708,7 @@ calcCircle_putPoly:
 
 		bne	.jp302
 
-		cpy	#192
+		cpy	#DISPLAY_BOTTOM
 		bcs	.jp302
 
 		cpy	<minEdgeY
@@ -5700,7 +5739,7 @@ calcCircle_putPoly:
 
 		bne	.jp05
 
-		cpy	#192
+		cpy	#DISPLAY_BOTTOM
 		bcs	.jp05
 
 		cpy	<minEdgeY
@@ -6828,6 +6867,55 @@ putPolyLineProc1:
 
 
 ;----------------------------
+			IFDEF DISPLAY_BOTTOM_144
+;----------------------------
+polyLineAddrConvYHigh0:
+		.db	$20, $20, $20, $20, $20, $20, $20, $20, $24, $24, $24, $24, $24, $24, $24, $24,\
+			$28, $28, $28, $28, $28, $28, $28, $28, $2C, $2C, $2C, $2C, $2C, $2C, $2C, $2C,\
+			$30, $30, $30, $30, $30, $30, $30, $30, $34, $34, $34, $34, $34, $34, $34, $34,\
+			$38, $38, $38, $38, $38, $38, $38, $38, $3C, $3C, $3C, $3C, $3C, $3C, $3C, $3C,\
+			$40, $40, $40, $40, $40, $40, $40, $40
+
+		.db	$20, $20, $20, $20, $20, $20, $20, $20, $24, $24, $24, $24, $24, $24, $24, $24,\
+			$28, $28, $28, $28, $28, $28, $28, $28, $2C, $2C, $2C, $2C, $2C, $2C, $2C, $2C,\
+			$30, $30, $30, $30, $30, $30, $30, $30, $34, $34, $34, $34, $34, $34, $34, $34,\
+			$38, $38, $38, $38, $38, $38, $38, $38, $3C, $3C, $3C, $3C, $3C, $3C, $3C, $3C,\
+			$40, $40, $40, $40, $40, $40, $40, $40
+
+
+;----------------------------
+polyLineAddrConvYHigh1:
+		.db	$50, $50, $50, $50, $50, $50, $50, $50, $54, $54, $54, $54, $54, $54, $54, $54,\
+			$58, $58, $58, $58, $58, $58, $58, $58, $5C, $5C, $5C, $5C, $5C, $5C, $5C, $5C,\
+			$60, $60, $60, $60, $60, $60, $60, $60, $64, $64, $64, $64, $64, $64, $64, $64,\
+			$68, $68, $68, $68, $68, $68, $68, $68, $6C, $6C, $6C, $6C, $6C, $6C, $6C, $6C,\
+			$70, $70, $70, $70, $70, $70, $70, $70
+
+		.db	$50, $50, $50, $50, $50, $50, $50, $50, $54, $54, $54, $54, $54, $54, $54, $54,\
+			$58, $58, $58, $58, $58, $58, $58, $58, $5C, $5C, $5C, $5C, $5C, $5C, $5C, $5C,\
+			$60, $60, $60, $60, $60, $60, $60, $60, $64, $64, $64, $64, $64, $64, $64, $64,\
+			$68, $68, $68, $68, $68, $68, $68, $68, $6C, $6C, $6C, $6C, $6C, $6C, $6C, $6C,\
+			$70, $70, $70, $70, $70, $70, $70, $70
+
+
+;----------------------------
+polyLineAddrConvYLow:
+		.db	$00, $01, $02, $03, $04, $05, $06, $07, $00, $01, $02, $03, $04, $05, $06, $07,\
+			$00, $01, $02, $03, $04, $05, $06, $07, $00, $01, $02, $03, $04, $05, $06, $07,\
+			$00, $01, $02, $03, $04, $05, $06, $07, $00, $01, $02, $03, $04, $05, $06, $07,\
+			$00, $01, $02, $03, $04, $05, $06, $07, $00, $01, $02, $03, $04, $05, $06, $07,\
+			$00, $01, $02, $03, $04, $05, $06, $07
+
+		.db	$10, $11, $12, $13, $14, $15, $16, $17, $10, $11, $12, $13, $14, $15, $16, $17,\
+			$10, $11, $12, $13, $14, $15, $16, $17, $10, $11, $12, $13, $14, $15, $16, $17,\
+			$10, $11, $12, $13, $14, $15, $16, $17, $10, $11, $12, $13, $14, $15, $16, $17,\
+			$10, $11, $12, $13, $14, $15, $16, $17, $10, $11, $12, $13, $14, $15, $16, $17,\
+			$10, $11, $12, $13, $14, $15, $16, $17
+
+
+;----------------------------
+			ELSE
+;----------------------------
 polyLineAddrConvYHigh0:
 		.db	$20, $20, $20, $20, $20, $20, $20, $20, $24, $24, $24, $24, $24, $24, $24, $24,\
 			$28, $28, $28, $28, $28, $28, $28, $28, $2C, $2C, $2C, $2C, $2C, $2C, $2C, $2C,\
@@ -6873,6 +6961,9 @@ polyLineAddrConvYLow:
 			$10, $11, $12, $13, $14, $15, $16, $17, $10, $11, $12, $13, $14, $15, $16, $17,\
 			$10, $11, $12, $13, $14, $15, $16, $17, $10, $11, $12, $13, $14, $15, $16, $17,\
 			$10, $11, $12, $13, $14, $15, $16, $17, $10, $11, $12, $13, $14, $15, $16, $17
+;----------------------------
+			ENDIF
+;----------------------------
 
 
 ;----------------------------

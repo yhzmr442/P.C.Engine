@@ -168,6 +168,14 @@ VCE0_INIT_DATA		.equ	$0000
 			ENDIF
 
 ;----------------------------
+;DISPLAY_BOTTOM_144
+			IFDEF DISPLAY_BOTTOM_144
+DISPLAY_BOTTOM		.equ	144
+			ELSE
+DISPLAY_BOTTOM		.equ	192
+			ENDIF
+
+;----------------------------
 			.rsset	0
 VX			.rs	2
 VY			.rs	2

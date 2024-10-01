@@ -2855,11 +2855,11 @@ setModelRotation:
 		lsr	a
 		jsr	selectVertexRotation8
 
-		jsr	setModel
-
-		ply
-		plx
-		rts
+		bra	setModel+2
+		;;;jsr	setModel
+		;;;ply
+		;;;plx
+		;;;rts
 
 
 ;----------------------------
@@ -2871,10 +2871,9 @@ setModel:
 ;transform 2D
 		jsr	transform2D
 
-		cly
-		lda	[modelAddress], y
+		lda	[modelAddress]
 		sta	<modelAddrWork		;ModelData Polygon Addr
-		iny
+		ldy	#1
 		lda	[modelAddress], y
 		sta	<modelAddrWork+1
 
@@ -3172,27 +3171,19 @@ setModel:
 		movw	<polyBufferNow, #polyBufferStart
 
 .setBufferLoop:
-		cly				;NEXT ADDR
-		lda	[polyBufferNow], y
+		lda	[polyBufferNow]		;NEXT ADDR
 		sta	<polyBufferNext
-		iny
+		ldy	#1
 		lda	[polyBufferNow], y
 		sta	<polyBufferNext+1
 
-		ldy	#2			;NEXT SAMPLE Z
-		lda	[polyBufferNext], y
-		sta	<polyBufferZ0Work0
-		iny
-		lda	[polyBufferNext], y
-		sta	<polyBufferZ0Work0+1
-
-		ldy	#2			;SAMPLE Z
+		iny				;SAMPLE Z and NEXT SAMPLE Z
 		sec
-		lda	[polyBufferAddr], y
-		sbc	<polyBufferZ0Work0
+		lda	[polyBufferAddr], y	;SAMPLE Z
+		sbc	[polyBufferNext], y	;NEXT SAMPLE Z
 		iny
 		lda	[polyBufferAddr], y
-		sbc	<polyBufferZ0Work0+1
+		sbc	[polyBufferNext], y
 
 		bpl	.setBufferJump		;SAMPLE Z >= NEXT SAMPLE Z
 
@@ -3201,17 +3192,13 @@ setModel:
 		bra	.setBufferLoop
 
 .setBufferJump:
-		cly				;BUFFER -> NEXT
-		lda	<polyBufferNext
-		sta	[polyBufferAddr], y
-		iny
+		lda	<polyBufferNext		;BUFFER -> NEXT
+		sta	[polyBufferAddr]
+		lda	<polyBufferAddr		;NOW -> BUFFER
+		sta	[polyBufferNow]
+		ldy	#1
 		lda	<polyBufferNext+1
 		sta	[polyBufferAddr], y
-
-		cly				;NOW -> BUFFER
-		lda	<polyBufferAddr
-		sta	[polyBufferNow], y
-		iny
 		lda	<polyBufferAddr+1
 		sta	[polyBufferNow], y
 

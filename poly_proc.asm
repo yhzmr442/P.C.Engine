@@ -4861,20 +4861,90 @@ clearSatBuffer:
 		adc	#8
 		bne	.loop0
 
-		movw	satBufferAddr, #satBuffer
+		clc
+		lda	<setBufferFirstNo
+		adc	#13
+		and	#63
+		sta	<setBufferFirstNo
+		sta	<setBufferSetNo
 
 		plx
 		rts
 
 
 ;----------------------------
-setSatBuffer:
+initializeSatBuffer:
 ;
+		mov	<setBufferSkipNo, #$FF
+
+		cla
+		sta	<setBufferFirstNo
+		sta	<setBufferSetNo
+
+		rts
+
+
+;----------------------------
+setSatBufferSkipNo:
+;
+;A:skip max No.
+		and	#63
+		sta	<setBufferSkipNo
+		rts
+
+
+;----------------------------
+setSatBufferAutoNo:
+;set sprite data
 ;argw0:Y, argw1:X, argw2:pattern No., argw3:attribute
+		bra	.startJp
+
+.skipJp:
+		clc
+		lda	<setBufferSetNo
+		adc	#7
+		and	#63
+		sta	<setBufferSetNo
+
+.startJp:
+		lda	<setBufferSetNo
+		cmp	<setBufferSkipNo
+		bmi	.skipJp
+		beq	.skipJp
+
+		jsr	setSatBuffer
+
+		clc
+		lda	<setBufferSetNo
+		adc	#7
+		and	#63
+		sta	<setBufferSetNo
+
+		rts
+
+
+;----------------------------
+setSatBuffer:
+;set sprite data
+;A:sprinte No., argw0:Y, argw1:X, argw2:pattern No., argw3:attribute
 		phy
 
-		cmpw	<satBufferAddr, #satBuffer+512
-		bcs	.setEnd
+		and	#63
+
+		asl	a
+		asl	a
+		asl	a
+
+		stz	<satBufferAddr+1
+		rol	<satBufferAddr+1
+
+		clc
+		adc	#LOW(satBuffer)
+		sta	<satBufferAddr
+
+		lda	<satBufferAddr+1
+		adc	#HIGH(satBuffer)
+		sta	<satBufferAddr+1
 
 		cly
 .loop:
@@ -4885,9 +4955,6 @@ setSatBuffer:
 		cpy	#8
 		bne	.loop
 
-		addwb	<satBufferAddr, #8
-
-.setEnd:
 		ply
 		rts
 
@@ -5208,6 +5275,7 @@ numToChar:
 ;----------------------------
 setCgToSgData:
 ;argw0: rom address, argw1: src CG No(0-2047), argw2: dist SG No(0-1022), arg6: top or bottom left or right
+;arg6 $00:left top, $02:left bottom, $01:right top, $03:right bottom
 		phx
 		phy
 
@@ -6412,12 +6480,10 @@ putPolyLineProc1:
 .jpSwap:
 ;swap left and right
 		beq	.jp0
-		tax
-		lda	edgeRight, y
-		sta	edgeLeft, y
-		sax
+		ldx	edgeRight, y
 		sta	edgeRight, y
 		sax
+		sta	edgeLeft, y
 		bra	.jp0
 
 .jpCount0:

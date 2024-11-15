@@ -261,6 +261,9 @@ model2DClipIndexWork	.ds	1
 
 ;---------------------
 satBufferAddr		.ds	2
+setBufferSkipNo		.ds	1
+setBufferFirstNo	.ds	1
+setBufferSetNo		.ds	1
 
 ;---------------------
 dda0No			.ds	1

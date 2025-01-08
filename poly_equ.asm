@@ -99,10 +99,18 @@ DRAWING_NO_0_ADDR	.equ	$20
 DRAWING_NO_1_ADDR	.equ	$50
 
 ;----------------------------
+			IFDEF SCREEN_Z192
+SCREEN_Z		.equ	192
+			ELSE
 SCREEN_Z		.equ	128
+			ENDIF
 
 ;----------------------------
 SIN_COS_ONE		.equ	$4000
+
+;----------------------------
+ATTR_SYSTEM_Z_MAX	.equ	%00000000
+ATTR_SYSTEM_Z_AVG	.equ	%10000000
 
 ;----------------------------
 ATTR_CIRCLE		.equ	%10000000

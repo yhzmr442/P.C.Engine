@@ -60,7 +60,7 @@
 
 ;----------------------------
 ;screen position
-;--------------- Z:+128
+;--------------- Z:+128 or +192
 ;\      |      /
 ; \     |     /
 ;  \    |    /
@@ -448,6 +448,10 @@ initializePolygonFunction:
 
 ;initialize random
 		jsr	initializeRandom
+
+;initialize systen config
+		lda	#ATTR_SYSTEM_Z_MAX
+		jsr	setSystemConfig
 
 ;disable interrupt IRQ2
 		lda	#%00000001
@@ -1271,7 +1275,7 @@ calcDistance:
 initializePad:
 ;
 		stz	<padLast
-		stz	<padNow
+		mov	<padNow, #$FF
 		stz	<padState
 		rts
 
@@ -1336,8 +1340,6 @@ getPadData:
 
 		sec
 checkEnd:
-
-;get pad data end
 		rts
 
 
@@ -2980,9 +2982,6 @@ setModel:
 
 		stz	<frontClipCount
 
-		stz	<polyBufferZ0Work0
-		stz	<polyBufferZ0Work0+1
-
 ;push ModelData index for initialize front clip calculation
 		phy
 
@@ -3013,21 +3012,6 @@ setModel:
 		sta	clip2D0, y
 		iny
 
-;check Z sample
-		sec
-		lda	<polyBufferZ0Work0
-		sbc	transform2DWork0+VZ, x
-		lda	<polyBufferZ0Work0+1
-		sbc	transform2DWork0+VZ+1, x
-
-		bpl	.setModelJump9
-
-		lda	transform2DWork0+VZ, x
-		sta	<polyBufferZ0Work0
-		lda	transform2DWork0+VZ+1, x
-		sta	<polyBufferZ0Work0+1
-
-.setModelJump9:
 		sty	<model2DClipIndexWork
 
 		ply
@@ -3051,9 +3035,6 @@ setModel:
 
 		stz	<model2DClipIndexWork
 
-		stz	<polyBufferZ0Work0
-		stz	<polyBufferZ0Work0+1
-
 ;cancel front clip calculation
 		bbr2	<setModelAttr, .setModelLoop4
 		jmp	.setModelJump0
@@ -3061,14 +3042,13 @@ setModel:
 ;front clip calculation
 .setModelLoop4:
 		lda	[modelAddrWork], y
-		sta	<frontClipData0
+		tax
 
 		iny
-
 		lda	[modelAddrWork], y
-		sta	<frontClipData1
 
 		phy
+		tay
 		jsr	clipFront
 		ply
 
@@ -3077,10 +3057,10 @@ setModel:
 
 ;--------
 		lda	[modelAddrWork], y
-		sta	<frontClipData0
+		tax
 
 		lda	<frontClipDataWork
-		sta	<frontClipData1
+		tay
 
 		jsr	clipFront
 
@@ -3158,13 +3138,151 @@ setModel:
 		ldy	#5
 		sta	[polyBufferAddr], y	;COUNT
 
-;SAMPLE Z
-		ldy	#2
-		lda	<polyBufferZ0Work0	;SAMPLE Z
-		sta	[polyBufferAddr], y
+;compare z
+		bbs7	<systemConfig, .compareZAvg
+		jmp	.compareZMax
+
+.compareZAvg:
+		ply
+		phy
+
+		stz	<sampleZWork
+		stz	<sampleZWork+1
+		stz	<sampleZWork+2
+
 		iny
-		lda	<polyBufferZ0Work0+1
+		iny
+		iny
+
+		lda	[modelAddrWork], y	;ModelData Count
+		sta	<setModelCount
+
+		pha
+
+.compareZLoop1:
+		iny
+		lda	[modelAddrWork], y
+		tax
+
+		clc
+		lda	transform2DWork1+VZ, x
+		adc	<sampleZWork
+		sta	<sampleZWork
+
+		lda	transform2DWork1+VZ+1, x
+		adc	<sampleZWork+1
+		sta	<sampleZWork+1
+
+		lda	transform2DWork1+VZ+1, x
+		jsr	signExt
+		adc	<sampleZWork+2
+		sta	<sampleZWork+2
+
+		dec	<setModelCount
+		bne	.compareZLoop1
+
+
+		pla
+
+		cmp	#4
+		bne	.compareZJp01
+
+		lsr	<sampleZWork+2
+		ror	<sampleZWork+1
+		ror	<sampleZWork
+
+		lsr	<sampleZWork+2
+		lda	<sampleZWork+1
+		ror	a
+		sta	<sampleZ+1
+		lda	<sampleZWork
+		ror	a
+		sta	<sampleZ
+
+		jmp	.compareZEnd
+
+.compareZJp01:
+		movw	<sampleZ, <sampleZWork+1
+
+		lsr	<sampleZWork+2
+		ror	<sampleZWork+1
+		ror	<sampleZWork
+
+		lsr	<sampleZWork+2
+		ror	<sampleZWork+1
+		ror	<sampleZWork
+
+		addw	<sampleZ, <sampleZWork
+
+		lsr	<sampleZWork+2
+		ror	<sampleZWork+1
+		ror	<sampleZWork
+
+		lsr	<sampleZWork+2
+		ror	<sampleZWork+1
+		ror	<sampleZWork
+
+		addw	<sampleZ, <sampleZWork
+
+		lsr	<sampleZWork+2
+		ror	<sampleZWork+1
+		ror	<sampleZWork
+
+		lsr	<sampleZWork+2
+		ror	<sampleZWork+1
+		ror	<sampleZWork
+
+		addw	<sampleZ, <sampleZWork
+
+		bra	.compareZEnd
+
+.compareZMax:
+		ply
+		phy
+
+		stzw	<sampleZ
+
+		iny
+		iny
+		iny
+
+		lda	[modelAddrWork], y	;ModelData Count
+		sta	<setModelCount
+
+.compareZLoop0:
+		iny
+		lda	[modelAddrWork], y
+		tax
+
+		sec
+		lda	<sampleZ
+		sbc	transform2DWork1+VZ, x
+		lda	<sampleZ+1
+		sbc	transform2DWork1+VZ+1, x
+
+		bpl	.compareZJp00
+
+		lda	transform2DWork1+VZ, x
+		sta	<sampleZ
+		lda	transform2DWork1+VZ+1, x
+		sta	<sampleZ+1
+
+.compareZJp00:
+		dec	<setModelCount
+		bne	.compareZLoop0
+
+.compareZEnd:
+		ldy	#3
+		lda	<sampleZ+1	;SAMPLE Z
+		asl	a
+		lda	<sampleZ+1	;SAMPLE Z
+		ror	a
 		sta	[polyBufferAddr], y
+		dey
+		lda	<sampleZ
+		ror	a
+		sta	[polyBufferAddr], y
+
 
 ;set buffer
 .setBuffer:
@@ -3272,9 +3390,6 @@ setModel:
 ;----------------------------
 clipFront:
 ;
-		ldx	<frontClipData0
-		ldy	<frontClipData1
-
 		lda	transform2DWork0+VZ+1, x	;Z0<128 flag
 		and	#$80
 		lsr	a
@@ -3422,13 +3537,9 @@ clipFront:
 
 		sty	<model2DClipIndexWork
 
-		lda	#SCREEN_Z
-		sta	polyBufferZ0Work1
-		stz	polyBufferZ0Work1+1
-
 		inc	<frontClipCount
 
-		bra	.clipFrontJump11
+		bra	.clipFrontJump9
 
 .clipFrontJump10:
 		ldy	<model2DClipIndexWork
@@ -3463,15 +3574,10 @@ clipFront:
 
 		sty	<model2DClipIndexWork
 
-		lda	transform2DWork0+VZ, x
-		sta	polyBufferZ0Work1
-		lda	transform2DWork0+VZ+1, x
-		sta	polyBufferZ0Work1+1
-
 		inc	<frontClipCount
 		inc	<frontClipCount
 
-		bra	.clipFrontJump11
+		bra	.clipFrontJump9
 
 .clipFrontJump8:
 		ldy	<model2DClipIndexWork
@@ -3492,20 +3598,7 @@ clipFront:
 
 		sty	<model2DClipIndexWork
 
-		lda	transform2DWork0+VZ, x
-		sta	polyBufferZ0Work1
-		lda	transform2DWork0+VZ+1, x
-		sta	polyBufferZ0Work1+1
-
 		inc	<frontClipCount
-
-.clipFrontJump11:
-;check Z sample
-		cmpw	<polyBufferZ0Work0, <polyBufferZ0Work1
-
-		bpl	.clipFrontJump9
-
-		movw	<polyBufferZ0Work0, <polyBufferZ0Work1
 
 .clipFrontJump9:
 		rts
@@ -5148,11 +5241,12 @@ initializePolygonBuffer:
 ;polyBufferStart NEXT ADDR = polyBufferEnd
 		movw	polyBufferStart, #polyBufferEnd
 
-;polyBufferStart SAMPLE Z = $7FFF
-		movw	polyBufferStart+2, #$7FFF
 
-;polyBufferEnd SAMPLE Z = $0000
-		stzw	polyBufferEnd+2
+;polyBufferStart SAMPLE Z = 16384
+		movw	polyBufferStart+2, #16384
+
+;polyBufferEnd SAMPLE Z = -16384
+		movw	polyBufferEnd+2, #-16384
 
 ;polyBufferEnd COLOR = $00
 		stz	polyBufferEnd+4
@@ -5160,6 +5254,13 @@ initializePolygonBuffer:
 ;polyBufferEnd COUNT = $00
 		stz	polyBufferEnd+5
 
+		rts
+
+
+;----------------------------
+setSystemConfig:
+;
+		sta	<systemConfig
 		rts
 
 
@@ -7111,4 +7212,8 @@ clearBufferSub:
 
 ;////////////////////////////
 		.bank	DIV_DATA_BANK
+			IFDEF SCREEN_Z192
+		INCBIN	"div_z192.dat"		; 64K
+			ELSE
 		INCBIN	"div.dat"		; 64K
+			ENDIF

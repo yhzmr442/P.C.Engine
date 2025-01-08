@@ -61,6 +61,9 @@ clip2DFlag		.ds	1
 clip2DCheckFlag		.ds	1
 
 ;---------------------
+systemConfig		.ds	1
+
+;---------------------
 ;---------------------
 ;share area start
 ;---------------------
@@ -129,8 +132,6 @@ clipFrontX		.ds	2
 clipFrontY		.ds	2
 frontClipFlag		.ds	1
 frontClipCount		.ds	1
-frontClipData0		.ds	1
-frontClipData1		.ds	1
 frontClipDataWork	.ds	1
 clipCountX0		.ds	1
 clipCountX255		.ds	1
@@ -243,8 +244,11 @@ eyeRotationSelect	.ds	1
 
 ;---------------------
 polyBufferAddr		.ds	2
-polyBufferZ0Work0	.ds	2
-polyBufferZ0Work1	.ds	2
+;;;<--polyBufferZ0Work0	.ds	2
+;;;<--polyBufferZ0Work1	.ds	2
+
+sampleZ			.ds	2
+sampleZWork		.ds	3
 
 polyBufferNow		.ds	2
 polyBufferNext		.ds	2

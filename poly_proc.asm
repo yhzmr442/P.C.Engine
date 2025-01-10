@@ -2914,13 +2914,15 @@ setModel:
 
 ;SAMPLE Z
 		ldy	#3
-		sta	[polyBufferAddr], y
 		sta	<mul16a+1
+		lsr	a
+		sta	[polyBufferAddr], y
 
 		dey
 		lda	transform2DWork0+VZ, x
-		sta	[polyBufferAddr], y
 		sta	<mul16a
+		ror	a
+		sta	[polyBufferAddr], y
 
 		lda	<setModelBackColor
 		sta	<mul16b
@@ -3180,7 +3182,6 @@ setModel:
 
 		dec	<setModelCount
 		bne	.compareZLoop1
-
 
 		pla
 

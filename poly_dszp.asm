@@ -244,8 +244,6 @@ eyeRotationSelect	.ds	1
 
 ;---------------------
 polyBufferAddr		.ds	2
-;;;<--polyBufferZ0Work0	.ds	2
-;;;<--polyBufferZ0Work1	.ds	2
 
 sampleZ			.ds	2
 sampleZWork		.ds	3

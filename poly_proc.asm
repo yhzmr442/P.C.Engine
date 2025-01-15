@@ -2913,6 +2913,22 @@ setModel:
 		jmi	.setModelJump0
 
 ;SAMPLE Z
+;--------
+			IFDEF SAMPLE_Z_MAX_ONLY
+
+		ldy	#3
+		sta	<mul16a+1
+		sta	[polyBufferAddr], y
+
+		dey
+		lda	transform2DWork0+VZ, x
+		sta	<mul16a
+		sta	[polyBufferAddr], y
+
+;--------
+			ELSE
+;--------
+
 		ldy	#3
 		sta	<mul16a+1
 		lsr	a
@@ -2923,6 +2939,9 @@ setModel:
 		sta	<mul16a
 		ror	a
 		sta	[polyBufferAddr], y
+
+			ENDIF
+;--------
 
 		lda	<setModelBackColor
 		sta	<mul16b
@@ -3140,9 +3159,58 @@ setModel:
 		ldy	#5
 		sta	[polyBufferAddr], y	;COUNT
 
-;compare z
-		bbs7	<systemConfig, .compareZAvg
-		jmp	.compareZMax
+;--------
+			IFDEF SAMPLE_Z_MAX_ONLY
+
+.compareZMax:
+		ply
+		phy
+
+		stzw	<sampleZ
+
+		iny
+		iny
+		iny
+
+		lda	[modelAddrWork], y	;ModelData Count
+		sta	<setModelCount
+
+.compareZLoop0:
+		iny
+		lda	[modelAddrWork], y
+		tax
+
+		sec
+		lda	<sampleZ
+		sbc	transform2DWork1+VZ, x
+		lda	<sampleZ+1
+		sbc	transform2DWork1+VZ+1, x
+
+		bpl	.compareZJp00
+
+		lda	transform2DWork1+VZ, x
+		sta	<sampleZ
+		lda	transform2DWork1+VZ+1, x
+		sta	<sampleZ+1
+
+.compareZJp00:
+		dec	<setModelCount
+		bne	.compareZLoop0
+
+		ldy	#2
+		lda	<sampleZ
+		sta	[polyBufferAddr], y
+
+		iny
+		lda	<sampleZ+1
+		sta	[polyBufferAddr], y
+
+;--------
+			ELSE
+;--------
+
+		tst	#ATTR_SYSTEM_Z_MAX + ATTR_SYSTEM_Z_MIN, <systemConfig
+		jne	.compareZMinMax
 
 .compareZAvg:
 		ply
@@ -3186,7 +3254,7 @@ setModel:
 		pla
 
 		cmp	#4
-		bne	.compareZJp01
+		bne	.compareZJp02
 
 		lsr	<sampleZWork+2
 		ror	<sampleZWork+1
@@ -3200,9 +3268,9 @@ setModel:
 		ror	a
 		sta	<sampleZ
 
-		jmp	.compareZEnd
+		bra	.compareAvgEnd
 
-.compareZJp01:
+.compareZJp02:
 		movw	<sampleZ, <sampleZWork+1
 
 		lsr	<sampleZWork+2
@@ -3235,14 +3303,32 @@ setModel:
 
 		addw	<sampleZ, <sampleZWork
 
-		bra	.compareZEnd
+.compareAvgEnd:
+		ldy	#3
+		lda	<sampleZ+1
+		asl	a
+		lda	<sampleZ+1
+		ror	a
+		sta	[polyBufferAddr], y
+		dey
+		lda	<sampleZ
+		ror	a
+		sta	[polyBufferAddr], y
 
-.compareZMax:
+		bra	.compareEnd
+
+.compareZMinMax:
 		ply
 		phy
 
-		stzw	<sampleZ
+		bbr7	<systemConfig, .compareZMinInit
+		movw	<sampleZ, #-16384
+		bra	.compareZJp03
 
+.compareZMinInit:
+		movw	<sampleZ, #16384
+
+.compareZJp03:
 		iny
 		iny
 		iny
@@ -3255,35 +3341,48 @@ setModel:
 		lda	[modelAddrWork], y
 		tax
 
+		lda	transform2DWork1+VZ+1, x
+		asl	a
+		lda	transform2DWork1+VZ+1, x
+		ror	a
+		sta	<sampleZWork+1
+		lda	transform2DWork1+VZ, x
+		ror	a
+		sta	<sampleZWork
+
 		sec
 		lda	<sampleZ
-		sbc	transform2DWork1+VZ, x
+		sbc	<sampleZWork
 		lda	<sampleZ+1
-		sbc	transform2DWork1+VZ+1, x
+		sbc	<sampleZWork+1
 
+		bbr7	<systemConfig, .compareZMinJp
 		bpl	.compareZJp00
+		bra	.compareZJp01
 
-		lda	transform2DWork1+VZ, x
+.compareZMinJp:
+		bmi	.compareZJp00
+
+.compareZJp01:
+		lda	<sampleZWork
 		sta	<sampleZ
-		lda	transform2DWork1+VZ+1, x
+		lda	<sampleZWork+1
 		sta	<sampleZ+1
 
 .compareZJp00:
 		dec	<setModelCount
 		bne	.compareZLoop0
 
-.compareZEnd:
-		ldy	#3
-		lda	<sampleZ+1	;SAMPLE Z
-		asl	a
-		lda	<sampleZ+1	;SAMPLE Z
-		ror	a
-		sta	[polyBufferAddr], y
-		dey
+		ldy	#2
 		lda	<sampleZ
-		ror	a
+		sta	[polyBufferAddr], y
+		iny
+		lda	<sampleZ+1
 		sta	[polyBufferAddr], y
 
+.compareEnd:
+			ENDIF
+;--------
 
 ;set buffer
 .setBuffer:
@@ -5243,11 +5342,27 @@ initializePolygonBuffer:
 		movw	polyBufferStart, #polyBufferEnd
 
 
+;--------
+			IFDEF SAMPLE_Z_MAX_ONLY
+
+;polyBufferStart SAMPLE Z = $7FFF
+		movw	polyBufferStart+2, #$7FFF
+
+;polyBufferEnd SAMPLE Z = 0
+		movw	polyBufferEnd+2, #0
+
+;--------
+			ELSE
+;--------
+
 ;polyBufferStart SAMPLE Z = 16384
 		movw	polyBufferStart+2, #16384
 
 ;polyBufferEnd SAMPLE Z = -16384
 		movw	polyBufferEnd+2, #-16384
+
+			ENDIF
+;--------
 
 ;polyBufferEnd COLOR = $00
 		stz	polyBufferEnd+4

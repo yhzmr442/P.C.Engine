@@ -109,8 +109,9 @@ SCREEN_Z		.equ	128
 SIN_COS_ONE		.equ	$4000
 
 ;----------------------------
-ATTR_SYSTEM_Z_MAX	.equ	%00000000
-ATTR_SYSTEM_Z_AVG	.equ	%10000000
+ATTR_SYSTEM_Z_MAX	.equ	%10000000
+ATTR_SYSTEM_Z_MIN	.equ	%01000000
+ATTR_SYSTEM_Z_AVG	.equ	%00000000
 
 ;----------------------------
 ATTR_CIRCLE		.equ	%10000000

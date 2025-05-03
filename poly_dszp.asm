@@ -88,6 +88,7 @@ shareAreaBottom
 ;---------------------
 			.org	shareAreaTop
 polyLineCount		.ds	1
+polyLineJumpIndex	.ds	1
 polyLineColorDataWork0	.ds	1
 polyLineColorDataWork1	.ds	1
 polyLineColorDataWork2	.ds	1

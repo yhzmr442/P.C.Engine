@@ -6249,7 +6249,7 @@ putPolyLineProc0:
 		beq	.jp0
 		ldx	edgeRight, y
 		sta	edgeRight, y
-		sax
+		txa
 		sta	edgeLeft, y
 		bra	.jp0
 
@@ -6320,7 +6320,7 @@ putPolyLineProc0:
 
 ;center jump index
 		asl	a
-		pha
+		sta	<polyLineJumpIndex
 
 ;right address
 		lda	polyLineAddrConvXLow, x
@@ -6340,8 +6340,6 @@ putPolyLineProc0:
 		sta	<polyLineRightMask
 
 ;put line process
-		plx
-
 ;left CH0 CH1
 		lda	VDC_2
 		and	<polyLineLeftMask
@@ -6366,6 +6364,8 @@ putPolyLineProc0:
 		sta	VDC_2
 
 		lda	<polyLineColorDataWork1
+
+		ldx	<polyLineJumpIndex
 
 		jmp	[.centerVDC_01Addr, x]
 
@@ -6434,18 +6434,15 @@ putPolyLineProc0:
 		pla
 		ora	#$08
 
-		phy
-		ldy	<polyLineLeftAddr+1
+		ldx	<polyLineLeftAddr+1
 
 		st0	#$00
 		sta	VDC_2
-		sty	VDC_3
+		stx	VDC_3
 
 		st0	#$01
 		sta	VDC_2
-		sty	VDC_3
-
-		ply
+		stx	VDC_3
 
 		st0	#$02
 
@@ -6472,6 +6469,8 @@ putPolyLineProc0:
 		sta	VDC_2
 
 		lda	<polyLineColorDataWork3
+
+		ldx	<polyLineJumpIndex
 
 		jmp	[.centerVDC_02Addr, x]
 
@@ -6699,7 +6698,7 @@ putPolyLineProc1:
 		beq	.jp0
 		ldx	edgeRight, y
 		sta	edgeRight, y
-		sax
+		txa
 		sta	edgeLeft, y
 		bra	.jp0
 
@@ -6770,7 +6769,7 @@ putPolyLineProc1:
 
 ;center jump index
 		asl	a
-		pha
+		sta	<polyLineJumpIndex
 
 ;right address
 		lda	polyLineAddrConvXLow, x
@@ -6790,8 +6789,6 @@ putPolyLineProc1:
 		sta	<polyLineRightMask
 
 ;put line process
-		plx
-
 ;left CH0 CH1
 		lda	VDC_2
 		and	<polyLineLeftMask
@@ -6816,6 +6813,8 @@ putPolyLineProc1:
 		sta	VDC_2
 
 		lda	<polyLineColorDataWork1
+
+		ldx	<polyLineJumpIndex
 
 		jmp	[.centerVDC_01Addr, x]
 
@@ -6884,18 +6883,15 @@ putPolyLineProc1:
 		pla
 		ora	#$08
 
-		phy
-		ldy	<polyLineLeftAddr+1
+		ldx	<polyLineLeftAddr+1
 
 		st0	#$00
 		sta	VDC_2
-		sty	VDC_3
+		stx	VDC_3
 
 		st0	#$01
 		sta	VDC_2
-		sty	VDC_3
-
-		ply
+		stx	VDC_3
 
 		st0	#$02
 
@@ -6922,6 +6918,8 @@ putPolyLineProc1:
 		sta	VDC_2
 
 		lda	<polyLineColorDataWork3
+
+		ldx	<polyLineJumpIndex
 
 		jmp	[.centerVDC_02Addr, x]
 
@@ -7331,5 +7329,5 @@ clearBufferSub:
 			IFDEF SCREEN_Z192
 		INCBIN	"div_z192.dat"		; 64K
 			ELSE
-		INCBIN	"div.dat"		; 64K
+		INCBIN	"div_z128.dat"		; 64K
 			ENDIF

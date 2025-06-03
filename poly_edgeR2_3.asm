@@ -248,392 +248,392 @@ calcEdgeREX:
 		rts
 
 .jpAddrLow
-		.db	.jp0 % 256
-		.db	.jp1 % 256
-		.db	.jp2 % 256
-		.db	.jp3 % 256
-		.db	.jp4 % 256
-		.db	.jp5 % 256
-		.db	.jp6 % 256
-		.db	.jp7 % 256
-		.db	.jp8 % 256
-		.db	.jp9 % 256
-		.db	.jp10 % 256
-		.db	.jp11 % 256
-		.db	.jp12 % 256
-		.db	.jp13 % 256
-		.db	.jp14 % 256
-		.db	.jp15 % 256
-		.db	.jp16 % 256
-		.db	.jp17 % 256
-		.db	.jp18 % 256
-		.db	.jp19 % 256
-		.db	.jp20 % 256
-		.db	.jp21 % 256
-		.db	.jp22 % 256
-		.db	.jp23 % 256
-		.db	.jp24 % 256
-		.db	.jp25 % 256
-		.db	.jp26 % 256
-		.db	.jp27 % 256
-		.db	.jp28 % 256
-		.db	.jp29 % 256
-		.db	.jp30 % 256
-		.db	.jp31 % 256
-		.db	.jp32 % 256
-		.db	.jp33 % 256
-		.db	.jp34 % 256
-		.db	.jp35 % 256
-		.db	.jp36 % 256
-		.db	.jp37 % 256
-		.db	.jp38 % 256
-		.db	.jp39 % 256
-		.db	.jp40 % 256
-		.db	.jp41 % 256
-		.db	.jp42 % 256
-		.db	.jp43 % 256
-		.db	.jp44 % 256
-		.db	.jp45 % 256
-		.db	.jp46 % 256
-		.db	.jp47 % 256
-		.db	.jp48 % 256
-		.db	.jp49 % 256
-		.db	.jp50 % 256
-		.db	.jp51 % 256
-		.db	.jp52 % 256
-		.db	.jp53 % 256
-		.db	.jp54 % 256
-		.db	.jp55 % 256
-		.db	.jp56 % 256
-		.db	.jp57 % 256
-		.db	.jp58 % 256
-		.db	.jp59 % 256
-		.db	.jp60 % 256
-		.db	.jp61 % 256
-		.db	.jp62 % 256
-		.db	.jp63 % 256
-		.db	.jp64 % 256
-		.db	.jp65 % 256
-		.db	.jp66 % 256
-		.db	.jp67 % 256
-		.db	.jp68 % 256
-		.db	.jp69 % 256
-		.db	.jp70 % 256
-		.db	.jp71 % 256
-		.db	.jp72 % 256
-		.db	.jp73 % 256
-		.db	.jp74 % 256
-		.db	.jp75 % 256
-		.db	.jp76 % 256
-		.db	.jp77 % 256
-		.db	.jp78 % 256
-		.db	.jp79 % 256
-		.db	.jp80 % 256
-		.db	.jp81 % 256
-		.db	.jp82 % 256
-		.db	.jp83 % 256
-		.db	.jp84 % 256
-		.db	.jp85 % 256
-		.db	.jp86 % 256
-		.db	.jp87 % 256
-		.db	.jp88 % 256
-		.db	.jp89 % 256
-		.db	.jp90 % 256
-		.db	.jp91 % 256
-		.db	.jp92 % 256
-		.db	.jp93 % 256
-		.db	.jp94 % 256
-		.db	.jp95 % 256
-		.db	.jp96 % 256
-		.db	.jp97 % 256
-		.db	.jp98 % 256
-		.db	.jp99 % 256
-		.db	.jp100 % 256
-		.db	.jp101 % 256
-		.db	.jp102 % 256
-		.db	.jp103 % 256
-		.db	.jp104 % 256
-		.db	.jp105 % 256
-		.db	.jp106 % 256
-		.db	.jp107 % 256
-		.db	.jp108 % 256
-		.db	.jp109 % 256
-		.db	.jp110 % 256
-		.db	.jp111 % 256
-		.db	.jp112 % 256
-		.db	.jp113 % 256
-		.db	.jp114 % 256
-		.db	.jp115 % 256
-		.db	.jp116 % 256
-		.db	.jp117 % 256
-		.db	.jp118 % 256
-		.db	.jp119 % 256
-		.db	.jp120 % 256
-		.db	.jp121 % 256
-		.db	.jp122 % 256
-		.db	.jp123 % 256
-		.db	.jp124 % 256
-		.db	.jp125 % 256
-		.db	.jp126 % 256
-		.db	.jp127 % 256
-		.db	.jp128 % 256
-		.db	.jp129 % 256
-		.db	.jp130 % 256
-		.db	.jp131 % 256
-		.db	.jp132 % 256
-		.db	.jp133 % 256
-		.db	.jp134 % 256
-		.db	.jp135 % 256
-		.db	.jp136 % 256
-		.db	.jp137 % 256
-		.db	.jp138 % 256
-		.db	.jp139 % 256
-		.db	.jp140 % 256
-		.db	.jp141 % 256
-		.db	.jp142 % 256
-		.db	.jp143 % 256
-		.db	.jp144 % 256
-		.db	.jp145 % 256
-		.db	.jp146 % 256
-		.db	.jp147 % 256
-		.db	.jp148 % 256
-		.db	.jp149 % 256
-		.db	.jp150 % 256
-		.db	.jp151 % 256
-		.db	.jp152 % 256
-		.db	.jp153 % 256
-		.db	.jp154 % 256
-		.db	.jp155 % 256
-		.db	.jp156 % 256
-		.db	.jp157 % 256
-		.db	.jp158 % 256
-		.db	.jp159 % 256
-		.db	.jp160 % 256
-		.db	.jp161 % 256
-		.db	.jp162 % 256
-		.db	.jp163 % 256
-		.db	.jp164 % 256
-		.db	.jp165 % 256
-		.db	.jp166 % 256
-		.db	.jp167 % 256
-		.db	.jp168 % 256
-		.db	.jp169 % 256
-		.db	.jp170 % 256
-		.db	.jp171 % 256
-		.db	.jp172 % 256
-		.db	.jp173 % 256
-		.db	.jp174 % 256
-		.db	.jp175 % 256
-		.db	.jp176 % 256
-		.db	.jp177 % 256
-		.db	.jp178 % 256
-		.db	.jp179 % 256
-		.db	.jp180 % 256
-		.db	.jp181 % 256
-		.db	.jp182 % 256
-		.db	.jp183 % 256
-		.db	.jp184 % 256
-		.db	.jp185 % 256
-		.db	.jp186 % 256
-		.db	.jp187 % 256
-		.db	.jp188 % 256
-		.db	.jp189 % 256
-		.db	.jp190 % 256
-		.db	.jp191 % 256
+		.db	LOW(.jp0)
+		.db	LOW(.jp1)
+		.db	LOW(.jp2)
+		.db	LOW(.jp3)
+		.db	LOW(.jp4)
+		.db	LOW(.jp5)
+		.db	LOW(.jp6)
+		.db	LOW(.jp7)
+		.db	LOW(.jp8)
+		.db	LOW(.jp9)
+		.db	LOW(.jp10)
+		.db	LOW(.jp11)
+		.db	LOW(.jp12)
+		.db	LOW(.jp13)
+		.db	LOW(.jp14)
+		.db	LOW(.jp15)
+		.db	LOW(.jp16)
+		.db	LOW(.jp17)
+		.db	LOW(.jp18)
+		.db	LOW(.jp19)
+		.db	LOW(.jp20)
+		.db	LOW(.jp21)
+		.db	LOW(.jp22)
+		.db	LOW(.jp23)
+		.db	LOW(.jp24)
+		.db	LOW(.jp25)
+		.db	LOW(.jp26)
+		.db	LOW(.jp27)
+		.db	LOW(.jp28)
+		.db	LOW(.jp29)
+		.db	LOW(.jp30)
+		.db	LOW(.jp31)
+		.db	LOW(.jp32)
+		.db	LOW(.jp33)
+		.db	LOW(.jp34)
+		.db	LOW(.jp35)
+		.db	LOW(.jp36)
+		.db	LOW(.jp37)
+		.db	LOW(.jp38)
+		.db	LOW(.jp39)
+		.db	LOW(.jp40)
+		.db	LOW(.jp41)
+		.db	LOW(.jp42)
+		.db	LOW(.jp43)
+		.db	LOW(.jp44)
+		.db	LOW(.jp45)
+		.db	LOW(.jp46)
+		.db	LOW(.jp47)
+		.db	LOW(.jp48)
+		.db	LOW(.jp49)
+		.db	LOW(.jp50)
+		.db	LOW(.jp51)
+		.db	LOW(.jp52)
+		.db	LOW(.jp53)
+		.db	LOW(.jp54)
+		.db	LOW(.jp55)
+		.db	LOW(.jp56)
+		.db	LOW(.jp57)
+		.db	LOW(.jp58)
+		.db	LOW(.jp59)
+		.db	LOW(.jp60)
+		.db	LOW(.jp61)
+		.db	LOW(.jp62)
+		.db	LOW(.jp63)
+		.db	LOW(.jp64)
+		.db	LOW(.jp65)
+		.db	LOW(.jp66)
+		.db	LOW(.jp67)
+		.db	LOW(.jp68)
+		.db	LOW(.jp69)
+		.db	LOW(.jp70)
+		.db	LOW(.jp71)
+		.db	LOW(.jp72)
+		.db	LOW(.jp73)
+		.db	LOW(.jp74)
+		.db	LOW(.jp75)
+		.db	LOW(.jp76)
+		.db	LOW(.jp77)
+		.db	LOW(.jp78)
+		.db	LOW(.jp79)
+		.db	LOW(.jp80)
+		.db	LOW(.jp81)
+		.db	LOW(.jp82)
+		.db	LOW(.jp83)
+		.db	LOW(.jp84)
+		.db	LOW(.jp85)
+		.db	LOW(.jp86)
+		.db	LOW(.jp87)
+		.db	LOW(.jp88)
+		.db	LOW(.jp89)
+		.db	LOW(.jp90)
+		.db	LOW(.jp91)
+		.db	LOW(.jp92)
+		.db	LOW(.jp93)
+		.db	LOW(.jp94)
+		.db	LOW(.jp95)
+		.db	LOW(.jp96)
+		.db	LOW(.jp97)
+		.db	LOW(.jp98)
+		.db	LOW(.jp99)
+		.db	LOW(.jp100)
+		.db	LOW(.jp101)
+		.db	LOW(.jp102)
+		.db	LOW(.jp103)
+		.db	LOW(.jp104)
+		.db	LOW(.jp105)
+		.db	LOW(.jp106)
+		.db	LOW(.jp107)
+		.db	LOW(.jp108)
+		.db	LOW(.jp109)
+		.db	LOW(.jp110)
+		.db	LOW(.jp111)
+		.db	LOW(.jp112)
+		.db	LOW(.jp113)
+		.db	LOW(.jp114)
+		.db	LOW(.jp115)
+		.db	LOW(.jp116)
+		.db	LOW(.jp117)
+		.db	LOW(.jp118)
+		.db	LOW(.jp119)
+		.db	LOW(.jp120)
+		.db	LOW(.jp121)
+		.db	LOW(.jp122)
+		.db	LOW(.jp123)
+		.db	LOW(.jp124)
+		.db	LOW(.jp125)
+		.db	LOW(.jp126)
+		.db	LOW(.jp127)
+		.db	LOW(.jp128)
+		.db	LOW(.jp129)
+		.db	LOW(.jp130)
+		.db	LOW(.jp131)
+		.db	LOW(.jp132)
+		.db	LOW(.jp133)
+		.db	LOW(.jp134)
+		.db	LOW(.jp135)
+		.db	LOW(.jp136)
+		.db	LOW(.jp137)
+		.db	LOW(.jp138)
+		.db	LOW(.jp139)
+		.db	LOW(.jp140)
+		.db	LOW(.jp141)
+		.db	LOW(.jp142)
+		.db	LOW(.jp143)
+		.db	LOW(.jp144)
+		.db	LOW(.jp145)
+		.db	LOW(.jp146)
+		.db	LOW(.jp147)
+		.db	LOW(.jp148)
+		.db	LOW(.jp149)
+		.db	LOW(.jp150)
+		.db	LOW(.jp151)
+		.db	LOW(.jp152)
+		.db	LOW(.jp153)
+		.db	LOW(.jp154)
+		.db	LOW(.jp155)
+		.db	LOW(.jp156)
+		.db	LOW(.jp157)
+		.db	LOW(.jp158)
+		.db	LOW(.jp159)
+		.db	LOW(.jp160)
+		.db	LOW(.jp161)
+		.db	LOW(.jp162)
+		.db	LOW(.jp163)
+		.db	LOW(.jp164)
+		.db	LOW(.jp165)
+		.db	LOW(.jp166)
+		.db	LOW(.jp167)
+		.db	LOW(.jp168)
+		.db	LOW(.jp169)
+		.db	LOW(.jp170)
+		.db	LOW(.jp171)
+		.db	LOW(.jp172)
+		.db	LOW(.jp173)
+		.db	LOW(.jp174)
+		.db	LOW(.jp175)
+		.db	LOW(.jp176)
+		.db	LOW(.jp177)
+		.db	LOW(.jp178)
+		.db	LOW(.jp179)
+		.db	LOW(.jp180)
+		.db	LOW(.jp181)
+		.db	LOW(.jp182)
+		.db	LOW(.jp183)
+		.db	LOW(.jp184)
+		.db	LOW(.jp185)
+		.db	LOW(.jp186)
+		.db	LOW(.jp187)
+		.db	LOW(.jp188)
+		.db	LOW(.jp189)
+		.db	LOW(.jp190)
+		.db	LOW(.jp191)
 
 .jpAddrHigh
-		.db	.jp0 / 256
-		.db	.jp1 / 256
-		.db	.jp2 / 256
-		.db	.jp3 / 256
-		.db	.jp4 / 256
-		.db	.jp5 / 256
-		.db	.jp6 / 256
-		.db	.jp7 / 256
-		.db	.jp8 / 256
-		.db	.jp9 / 256
-		.db	.jp10 / 256
-		.db	.jp11 / 256
-		.db	.jp12 / 256
-		.db	.jp13 / 256
-		.db	.jp14 / 256
-		.db	.jp15 / 256
-		.db	.jp16 / 256
-		.db	.jp17 / 256
-		.db	.jp18 / 256
-		.db	.jp19 / 256
-		.db	.jp20 / 256
-		.db	.jp21 / 256
-		.db	.jp22 / 256
-		.db	.jp23 / 256
-		.db	.jp24 / 256
-		.db	.jp25 / 256
-		.db	.jp26 / 256
-		.db	.jp27 / 256
-		.db	.jp28 / 256
-		.db	.jp29 / 256
-		.db	.jp30 / 256
-		.db	.jp31 / 256
-		.db	.jp32 / 256
-		.db	.jp33 / 256
-		.db	.jp34 / 256
-		.db	.jp35 / 256
-		.db	.jp36 / 256
-		.db	.jp37 / 256
-		.db	.jp38 / 256
-		.db	.jp39 / 256
-		.db	.jp40 / 256
-		.db	.jp41 / 256
-		.db	.jp42 / 256
-		.db	.jp43 / 256
-		.db	.jp44 / 256
-		.db	.jp45 / 256
-		.db	.jp46 / 256
-		.db	.jp47 / 256
-		.db	.jp48 / 256
-		.db	.jp49 / 256
-		.db	.jp50 / 256
-		.db	.jp51 / 256
-		.db	.jp52 / 256
-		.db	.jp53 / 256
-		.db	.jp54 / 256
-		.db	.jp55 / 256
-		.db	.jp56 / 256
-		.db	.jp57 / 256
-		.db	.jp58 / 256
-		.db	.jp59 / 256
-		.db	.jp60 / 256
-		.db	.jp61 / 256
-		.db	.jp62 / 256
-		.db	.jp63 / 256
-		.db	.jp64 / 256
-		.db	.jp65 / 256
-		.db	.jp66 / 256
-		.db	.jp67 / 256
-		.db	.jp68 / 256
-		.db	.jp69 / 256
-		.db	.jp70 / 256
-		.db	.jp71 / 256
-		.db	.jp72 / 256
-		.db	.jp73 / 256
-		.db	.jp74 / 256
-		.db	.jp75 / 256
-		.db	.jp76 / 256
-		.db	.jp77 / 256
-		.db	.jp78 / 256
-		.db	.jp79 / 256
-		.db	.jp80 / 256
-		.db	.jp81 / 256
-		.db	.jp82 / 256
-		.db	.jp83 / 256
-		.db	.jp84 / 256
-		.db	.jp85 / 256
-		.db	.jp86 / 256
-		.db	.jp87 / 256
-		.db	.jp88 / 256
-		.db	.jp89 / 256
-		.db	.jp90 / 256
-		.db	.jp91 / 256
-		.db	.jp92 / 256
-		.db	.jp93 / 256
-		.db	.jp94 / 256
-		.db	.jp95 / 256
-		.db	.jp96 / 256
-		.db	.jp97 / 256
-		.db	.jp98 / 256
-		.db	.jp99 / 256
-		.db	.jp100 / 256
-		.db	.jp101 / 256
-		.db	.jp102 / 256
-		.db	.jp103 / 256
-		.db	.jp104 / 256
-		.db	.jp105 / 256
-		.db	.jp106 / 256
-		.db	.jp107 / 256
-		.db	.jp108 / 256
-		.db	.jp109 / 256
-		.db	.jp110 / 256
-		.db	.jp111 / 256
-		.db	.jp112 / 256
-		.db	.jp113 / 256
-		.db	.jp114 / 256
-		.db	.jp115 / 256
-		.db	.jp116 / 256
-		.db	.jp117 / 256
-		.db	.jp118 / 256
-		.db	.jp119 / 256
-		.db	.jp120 / 256
-		.db	.jp121 / 256
-		.db	.jp122 / 256
-		.db	.jp123 / 256
-		.db	.jp124 / 256
-		.db	.jp125 / 256
-		.db	.jp126 / 256
-		.db	.jp127 / 256
-		.db	.jp128 / 256
-		.db	.jp129 / 256
-		.db	.jp130 / 256
-		.db	.jp131 / 256
-		.db	.jp132 / 256
-		.db	.jp133 / 256
-		.db	.jp134 / 256
-		.db	.jp135 / 256
-		.db	.jp136 / 256
-		.db	.jp137 / 256
-		.db	.jp138 / 256
-		.db	.jp139 / 256
-		.db	.jp140 / 256
-		.db	.jp141 / 256
-		.db	.jp142 / 256
-		.db	.jp143 / 256
-		.db	.jp144 / 256
-		.db	.jp145 / 256
-		.db	.jp146 / 256
-		.db	.jp147 / 256
-		.db	.jp148 / 256
-		.db	.jp149 / 256
-		.db	.jp150 / 256
-		.db	.jp151 / 256
-		.db	.jp152 / 256
-		.db	.jp153 / 256
-		.db	.jp154 / 256
-		.db	.jp155 / 256
-		.db	.jp156 / 256
-		.db	.jp157 / 256
-		.db	.jp158 / 256
-		.db	.jp159 / 256
-		.db	.jp160 / 256
-		.db	.jp161 / 256
-		.db	.jp162 / 256
-		.db	.jp163 / 256
-		.db	.jp164 / 256
-		.db	.jp165 / 256
-		.db	.jp166 / 256
-		.db	.jp167 / 256
-		.db	.jp168 / 256
-		.db	.jp169 / 256
-		.db	.jp170 / 256
-		.db	.jp171 / 256
-		.db	.jp172 / 256
-		.db	.jp173 / 256
-		.db	.jp174 / 256
-		.db	.jp175 / 256
-		.db	.jp176 / 256
-		.db	.jp177 / 256
-		.db	.jp178 / 256
-		.db	.jp179 / 256
-		.db	.jp180 / 256
-		.db	.jp181 / 256
-		.db	.jp182 / 256
-		.db	.jp183 / 256
-		.db	.jp184 / 256
-		.db	.jp185 / 256
-		.db	.jp186 / 256
-		.db	.jp187 / 256
-		.db	.jp188 / 256
-		.db	.jp189 / 256
-		.db	.jp190 / 256
-		.db	.jp191 / 256
+		.db	HIGH(.jp0)
+		.db	HIGH(.jp1)
+		.db	HIGH(.jp2)
+		.db	HIGH(.jp3)
+		.db	HIGH(.jp4)
+		.db	HIGH(.jp5)
+		.db	HIGH(.jp6)
+		.db	HIGH(.jp7)
+		.db	HIGH(.jp8)
+		.db	HIGH(.jp9)
+		.db	HIGH(.jp10)
+		.db	HIGH(.jp11)
+		.db	HIGH(.jp12)
+		.db	HIGH(.jp13)
+		.db	HIGH(.jp14)
+		.db	HIGH(.jp15)
+		.db	HIGH(.jp16)
+		.db	HIGH(.jp17)
+		.db	HIGH(.jp18)
+		.db	HIGH(.jp19)
+		.db	HIGH(.jp20)
+		.db	HIGH(.jp21)
+		.db	HIGH(.jp22)
+		.db	HIGH(.jp23)
+		.db	HIGH(.jp24)
+		.db	HIGH(.jp25)
+		.db	HIGH(.jp26)
+		.db	HIGH(.jp27)
+		.db	HIGH(.jp28)
+		.db	HIGH(.jp29)
+		.db	HIGH(.jp30)
+		.db	HIGH(.jp31)
+		.db	HIGH(.jp32)
+		.db	HIGH(.jp33)
+		.db	HIGH(.jp34)
+		.db	HIGH(.jp35)
+		.db	HIGH(.jp36)
+		.db	HIGH(.jp37)
+		.db	HIGH(.jp38)
+		.db	HIGH(.jp39)
+		.db	HIGH(.jp40)
+		.db	HIGH(.jp41)
+		.db	HIGH(.jp42)
+		.db	HIGH(.jp43)
+		.db	HIGH(.jp44)
+		.db	HIGH(.jp45)
+		.db	HIGH(.jp46)
+		.db	HIGH(.jp47)
+		.db	HIGH(.jp48)
+		.db	HIGH(.jp49)
+		.db	HIGH(.jp50)
+		.db	HIGH(.jp51)
+		.db	HIGH(.jp52)
+		.db	HIGH(.jp53)
+		.db	HIGH(.jp54)
+		.db	HIGH(.jp55)
+		.db	HIGH(.jp56)
+		.db	HIGH(.jp57)
+		.db	HIGH(.jp58)
+		.db	HIGH(.jp59)
+		.db	HIGH(.jp60)
+		.db	HIGH(.jp61)
+		.db	HIGH(.jp62)
+		.db	HIGH(.jp63)
+		.db	HIGH(.jp64)
+		.db	HIGH(.jp65)
+		.db	HIGH(.jp66)
+		.db	HIGH(.jp67)
+		.db	HIGH(.jp68)
+		.db	HIGH(.jp69)
+		.db	HIGH(.jp70)
+		.db	HIGH(.jp71)
+		.db	HIGH(.jp72)
+		.db	HIGH(.jp73)
+		.db	HIGH(.jp74)
+		.db	HIGH(.jp75)
+		.db	HIGH(.jp76)
+		.db	HIGH(.jp77)
+		.db	HIGH(.jp78)
+		.db	HIGH(.jp79)
+		.db	HIGH(.jp80)
+		.db	HIGH(.jp81)
+		.db	HIGH(.jp82)
+		.db	HIGH(.jp83)
+		.db	HIGH(.jp84)
+		.db	HIGH(.jp85)
+		.db	HIGH(.jp86)
+		.db	HIGH(.jp87)
+		.db	HIGH(.jp88)
+		.db	HIGH(.jp89)
+		.db	HIGH(.jp90)
+		.db	HIGH(.jp91)
+		.db	HIGH(.jp92)
+		.db	HIGH(.jp93)
+		.db	HIGH(.jp94)
+		.db	HIGH(.jp95)
+		.db	HIGH(.jp96)
+		.db	HIGH(.jp97)
+		.db	HIGH(.jp98)
+		.db	HIGH(.jp99)
+		.db	HIGH(.jp100)
+		.db	HIGH(.jp101)
+		.db	HIGH(.jp102)
+		.db	HIGH(.jp103)
+		.db	HIGH(.jp104)
+		.db	HIGH(.jp105)
+		.db	HIGH(.jp106)
+		.db	HIGH(.jp107)
+		.db	HIGH(.jp108)
+		.db	HIGH(.jp109)
+		.db	HIGH(.jp110)
+		.db	HIGH(.jp111)
+		.db	HIGH(.jp112)
+		.db	HIGH(.jp113)
+		.db	HIGH(.jp114)
+		.db	HIGH(.jp115)
+		.db	HIGH(.jp116)
+		.db	HIGH(.jp117)
+		.db	HIGH(.jp118)
+		.db	HIGH(.jp119)
+		.db	HIGH(.jp120)
+		.db	HIGH(.jp121)
+		.db	HIGH(.jp122)
+		.db	HIGH(.jp123)
+		.db	HIGH(.jp124)
+		.db	HIGH(.jp125)
+		.db	HIGH(.jp126)
+		.db	HIGH(.jp127)
+		.db	HIGH(.jp128)
+		.db	HIGH(.jp129)
+		.db	HIGH(.jp130)
+		.db	HIGH(.jp131)
+		.db	HIGH(.jp132)
+		.db	HIGH(.jp133)
+		.db	HIGH(.jp134)
+		.db	HIGH(.jp135)
+		.db	HIGH(.jp136)
+		.db	HIGH(.jp137)
+		.db	HIGH(.jp138)
+		.db	HIGH(.jp139)
+		.db	HIGH(.jp140)
+		.db	HIGH(.jp141)
+		.db	HIGH(.jp142)
+		.db	HIGH(.jp143)
+		.db	HIGH(.jp144)
+		.db	HIGH(.jp145)
+		.db	HIGH(.jp146)
+		.db	HIGH(.jp147)
+		.db	HIGH(.jp148)
+		.db	HIGH(.jp149)
+		.db	HIGH(.jp150)
+		.db	HIGH(.jp151)
+		.db	HIGH(.jp152)
+		.db	HIGH(.jp153)
+		.db	HIGH(.jp154)
+		.db	HIGH(.jp155)
+		.db	HIGH(.jp156)
+		.db	HIGH(.jp157)
+		.db	HIGH(.jp158)
+		.db	HIGH(.jp159)
+		.db	HIGH(.jp160)
+		.db	HIGH(.jp161)
+		.db	HIGH(.jp162)
+		.db	HIGH(.jp163)
+		.db	HIGH(.jp164)
+		.db	HIGH(.jp165)
+		.db	HIGH(.jp166)
+		.db	HIGH(.jp167)
+		.db	HIGH(.jp168)
+		.db	HIGH(.jp169)
+		.db	HIGH(.jp170)
+		.db	HIGH(.jp171)
+		.db	HIGH(.jp172)
+		.db	HIGH(.jp173)
+		.db	HIGH(.jp174)
+		.db	HIGH(.jp175)
+		.db	HIGH(.jp176)
+		.db	HIGH(.jp177)
+		.db	HIGH(.jp178)
+		.db	HIGH(.jp179)
+		.db	HIGH(.jp180)
+		.db	HIGH(.jp181)
+		.db	HIGH(.jp182)
+		.db	HIGH(.jp183)
+		.db	HIGH(.jp184)
+		.db	HIGH(.jp185)
+		.db	HIGH(.jp186)
+		.db	HIGH(.jp187)
+		.db	HIGH(.jp188)
+		.db	HIGH(.jp189)
+		.db	HIGH(.jp190)
+		.db	HIGH(.jp191)
 
 
 ;----------------------------
@@ -853,392 +853,392 @@ calcEdgeR2:
 		rts
 
 .jpAddrLow
-		.db	.jp0 % 256
-		.db	.jp1 % 256
-		.db	.jp2 % 256
-		.db	.jp3 % 256
-		.db	.jp4 % 256
-		.db	.jp5 % 256
-		.db	.jp6 % 256
-		.db	.jp7 % 256
-		.db	.jp8 % 256
-		.db	.jp9 % 256
-		.db	.jp10 % 256
-		.db	.jp11 % 256
-		.db	.jp12 % 256
-		.db	.jp13 % 256
-		.db	.jp14 % 256
-		.db	.jp15 % 256
-		.db	.jp16 % 256
-		.db	.jp17 % 256
-		.db	.jp18 % 256
-		.db	.jp19 % 256
-		.db	.jp20 % 256
-		.db	.jp21 % 256
-		.db	.jp22 % 256
-		.db	.jp23 % 256
-		.db	.jp24 % 256
-		.db	.jp25 % 256
-		.db	.jp26 % 256
-		.db	.jp27 % 256
-		.db	.jp28 % 256
-		.db	.jp29 % 256
-		.db	.jp30 % 256
-		.db	.jp31 % 256
-		.db	.jp32 % 256
-		.db	.jp33 % 256
-		.db	.jp34 % 256
-		.db	.jp35 % 256
-		.db	.jp36 % 256
-		.db	.jp37 % 256
-		.db	.jp38 % 256
-		.db	.jp39 % 256
-		.db	.jp40 % 256
-		.db	.jp41 % 256
-		.db	.jp42 % 256
-		.db	.jp43 % 256
-		.db	.jp44 % 256
-		.db	.jp45 % 256
-		.db	.jp46 % 256
-		.db	.jp47 % 256
-		.db	.jp48 % 256
-		.db	.jp49 % 256
-		.db	.jp50 % 256
-		.db	.jp51 % 256
-		.db	.jp52 % 256
-		.db	.jp53 % 256
-		.db	.jp54 % 256
-		.db	.jp55 % 256
-		.db	.jp56 % 256
-		.db	.jp57 % 256
-		.db	.jp58 % 256
-		.db	.jp59 % 256
-		.db	.jp60 % 256
-		.db	.jp61 % 256
-		.db	.jp62 % 256
-		.db	.jp63 % 256
-		.db	.jp64 % 256
-		.db	.jp65 % 256
-		.db	.jp66 % 256
-		.db	.jp67 % 256
-		.db	.jp68 % 256
-		.db	.jp69 % 256
-		.db	.jp70 % 256
-		.db	.jp71 % 256
-		.db	.jp72 % 256
-		.db	.jp73 % 256
-		.db	.jp74 % 256
-		.db	.jp75 % 256
-		.db	.jp76 % 256
-		.db	.jp77 % 256
-		.db	.jp78 % 256
-		.db	.jp79 % 256
-		.db	.jp80 % 256
-		.db	.jp81 % 256
-		.db	.jp82 % 256
-		.db	.jp83 % 256
-		.db	.jp84 % 256
-		.db	.jp85 % 256
-		.db	.jp86 % 256
-		.db	.jp87 % 256
-		.db	.jp88 % 256
-		.db	.jp89 % 256
-		.db	.jp90 % 256
-		.db	.jp91 % 256
-		.db	.jp92 % 256
-		.db	.jp93 % 256
-		.db	.jp94 % 256
-		.db	.jp95 % 256
-		.db	.jp96 % 256
-		.db	.jp97 % 256
-		.db	.jp98 % 256
-		.db	.jp99 % 256
-		.db	.jp100 % 256
-		.db	.jp101 % 256
-		.db	.jp102 % 256
-		.db	.jp103 % 256
-		.db	.jp104 % 256
-		.db	.jp105 % 256
-		.db	.jp106 % 256
-		.db	.jp107 % 256
-		.db	.jp108 % 256
-		.db	.jp109 % 256
-		.db	.jp110 % 256
-		.db	.jp111 % 256
-		.db	.jp112 % 256
-		.db	.jp113 % 256
-		.db	.jp114 % 256
-		.db	.jp115 % 256
-		.db	.jp116 % 256
-		.db	.jp117 % 256
-		.db	.jp118 % 256
-		.db	.jp119 % 256
-		.db	.jp120 % 256
-		.db	.jp121 % 256
-		.db	.jp122 % 256
-		.db	.jp123 % 256
-		.db	.jp124 % 256
-		.db	.jp125 % 256
-		.db	.jp126 % 256
-		.db	.jp127 % 256
-		.db	.jp128 % 256
-		.db	.jp129 % 256
-		.db	.jp130 % 256
-		.db	.jp131 % 256
-		.db	.jp132 % 256
-		.db	.jp133 % 256
-		.db	.jp134 % 256
-		.db	.jp135 % 256
-		.db	.jp136 % 256
-		.db	.jp137 % 256
-		.db	.jp138 % 256
-		.db	.jp139 % 256
-		.db	.jp140 % 256
-		.db	.jp141 % 256
-		.db	.jp142 % 256
-		.db	.jp143 % 256
-		.db	.jp144 % 256
-		.db	.jp145 % 256
-		.db	.jp146 % 256
-		.db	.jp147 % 256
-		.db	.jp148 % 256
-		.db	.jp149 % 256
-		.db	.jp150 % 256
-		.db	.jp151 % 256
-		.db	.jp152 % 256
-		.db	.jp153 % 256
-		.db	.jp154 % 256
-		.db	.jp155 % 256
-		.db	.jp156 % 256
-		.db	.jp157 % 256
-		.db	.jp158 % 256
-		.db	.jp159 % 256
-		.db	.jp160 % 256
-		.db	.jp161 % 256
-		.db	.jp162 % 256
-		.db	.jp163 % 256
-		.db	.jp164 % 256
-		.db	.jp165 % 256
-		.db	.jp166 % 256
-		.db	.jp167 % 256
-		.db	.jp168 % 256
-		.db	.jp169 % 256
-		.db	.jp170 % 256
-		.db	.jp171 % 256
-		.db	.jp172 % 256
-		.db	.jp173 % 256
-		.db	.jp174 % 256
-		.db	.jp175 % 256
-		.db	.jp176 % 256
-		.db	.jp177 % 256
-		.db	.jp178 % 256
-		.db	.jp179 % 256
-		.db	.jp180 % 256
-		.db	.jp181 % 256
-		.db	.jp182 % 256
-		.db	.jp183 % 256
-		.db	.jp184 % 256
-		.db	.jp185 % 256
-		.db	.jp186 % 256
-		.db	.jp187 % 256
-		.db	.jp188 % 256
-		.db	.jp189 % 256
-		.db	.jp190 % 256
-		.db	.jp191 % 256
+		.db	LOW(.jp0)
+		.db	LOW(.jp1)
+		.db	LOW(.jp2)
+		.db	LOW(.jp3)
+		.db	LOW(.jp4)
+		.db	LOW(.jp5)
+		.db	LOW(.jp6)
+		.db	LOW(.jp7)
+		.db	LOW(.jp8)
+		.db	LOW(.jp9)
+		.db	LOW(.jp10)
+		.db	LOW(.jp11)
+		.db	LOW(.jp12)
+		.db	LOW(.jp13)
+		.db	LOW(.jp14)
+		.db	LOW(.jp15)
+		.db	LOW(.jp16)
+		.db	LOW(.jp17)
+		.db	LOW(.jp18)
+		.db	LOW(.jp19)
+		.db	LOW(.jp20)
+		.db	LOW(.jp21)
+		.db	LOW(.jp22)
+		.db	LOW(.jp23)
+		.db	LOW(.jp24)
+		.db	LOW(.jp25)
+		.db	LOW(.jp26)
+		.db	LOW(.jp27)
+		.db	LOW(.jp28)
+		.db	LOW(.jp29)
+		.db	LOW(.jp30)
+		.db	LOW(.jp31)
+		.db	LOW(.jp32)
+		.db	LOW(.jp33)
+		.db	LOW(.jp34)
+		.db	LOW(.jp35)
+		.db	LOW(.jp36)
+		.db	LOW(.jp37)
+		.db	LOW(.jp38)
+		.db	LOW(.jp39)
+		.db	LOW(.jp40)
+		.db	LOW(.jp41)
+		.db	LOW(.jp42)
+		.db	LOW(.jp43)
+		.db	LOW(.jp44)
+		.db	LOW(.jp45)
+		.db	LOW(.jp46)
+		.db	LOW(.jp47)
+		.db	LOW(.jp48)
+		.db	LOW(.jp49)
+		.db	LOW(.jp50)
+		.db	LOW(.jp51)
+		.db	LOW(.jp52)
+		.db	LOW(.jp53)
+		.db	LOW(.jp54)
+		.db	LOW(.jp55)
+		.db	LOW(.jp56)
+		.db	LOW(.jp57)
+		.db	LOW(.jp58)
+		.db	LOW(.jp59)
+		.db	LOW(.jp60)
+		.db	LOW(.jp61)
+		.db	LOW(.jp62)
+		.db	LOW(.jp63)
+		.db	LOW(.jp64)
+		.db	LOW(.jp65)
+		.db	LOW(.jp66)
+		.db	LOW(.jp67)
+		.db	LOW(.jp68)
+		.db	LOW(.jp69)
+		.db	LOW(.jp70)
+		.db	LOW(.jp71)
+		.db	LOW(.jp72)
+		.db	LOW(.jp73)
+		.db	LOW(.jp74)
+		.db	LOW(.jp75)
+		.db	LOW(.jp76)
+		.db	LOW(.jp77)
+		.db	LOW(.jp78)
+		.db	LOW(.jp79)
+		.db	LOW(.jp80)
+		.db	LOW(.jp81)
+		.db	LOW(.jp82)
+		.db	LOW(.jp83)
+		.db	LOW(.jp84)
+		.db	LOW(.jp85)
+		.db	LOW(.jp86)
+		.db	LOW(.jp87)
+		.db	LOW(.jp88)
+		.db	LOW(.jp89)
+		.db	LOW(.jp90)
+		.db	LOW(.jp91)
+		.db	LOW(.jp92)
+		.db	LOW(.jp93)
+		.db	LOW(.jp94)
+		.db	LOW(.jp95)
+		.db	LOW(.jp96)
+		.db	LOW(.jp97)
+		.db	LOW(.jp98)
+		.db	LOW(.jp99)
+		.db	LOW(.jp100)
+		.db	LOW(.jp101)
+		.db	LOW(.jp102)
+		.db	LOW(.jp103)
+		.db	LOW(.jp104)
+		.db	LOW(.jp105)
+		.db	LOW(.jp106)
+		.db	LOW(.jp107)
+		.db	LOW(.jp108)
+		.db	LOW(.jp109)
+		.db	LOW(.jp110)
+		.db	LOW(.jp111)
+		.db	LOW(.jp112)
+		.db	LOW(.jp113)
+		.db	LOW(.jp114)
+		.db	LOW(.jp115)
+		.db	LOW(.jp116)
+		.db	LOW(.jp117)
+		.db	LOW(.jp118)
+		.db	LOW(.jp119)
+		.db	LOW(.jp120)
+		.db	LOW(.jp121)
+		.db	LOW(.jp122)
+		.db	LOW(.jp123)
+		.db	LOW(.jp124)
+		.db	LOW(.jp125)
+		.db	LOW(.jp126)
+		.db	LOW(.jp127)
+		.db	LOW(.jp128)
+		.db	LOW(.jp129)
+		.db	LOW(.jp130)
+		.db	LOW(.jp131)
+		.db	LOW(.jp132)
+		.db	LOW(.jp133)
+		.db	LOW(.jp134)
+		.db	LOW(.jp135)
+		.db	LOW(.jp136)
+		.db	LOW(.jp137)
+		.db	LOW(.jp138)
+		.db	LOW(.jp139)
+		.db	LOW(.jp140)
+		.db	LOW(.jp141)
+		.db	LOW(.jp142)
+		.db	LOW(.jp143)
+		.db	LOW(.jp144)
+		.db	LOW(.jp145)
+		.db	LOW(.jp146)
+		.db	LOW(.jp147)
+		.db	LOW(.jp148)
+		.db	LOW(.jp149)
+		.db	LOW(.jp150)
+		.db	LOW(.jp151)
+		.db	LOW(.jp152)
+		.db	LOW(.jp153)
+		.db	LOW(.jp154)
+		.db	LOW(.jp155)
+		.db	LOW(.jp156)
+		.db	LOW(.jp157)
+		.db	LOW(.jp158)
+		.db	LOW(.jp159)
+		.db	LOW(.jp160)
+		.db	LOW(.jp161)
+		.db	LOW(.jp162)
+		.db	LOW(.jp163)
+		.db	LOW(.jp164)
+		.db	LOW(.jp165)
+		.db	LOW(.jp166)
+		.db	LOW(.jp167)
+		.db	LOW(.jp168)
+		.db	LOW(.jp169)
+		.db	LOW(.jp170)
+		.db	LOW(.jp171)
+		.db	LOW(.jp172)
+		.db	LOW(.jp173)
+		.db	LOW(.jp174)
+		.db	LOW(.jp175)
+		.db	LOW(.jp176)
+		.db	LOW(.jp177)
+		.db	LOW(.jp178)
+		.db	LOW(.jp179)
+		.db	LOW(.jp180)
+		.db	LOW(.jp181)
+		.db	LOW(.jp182)
+		.db	LOW(.jp183)
+		.db	LOW(.jp184)
+		.db	LOW(.jp185)
+		.db	LOW(.jp186)
+		.db	LOW(.jp187)
+		.db	LOW(.jp188)
+		.db	LOW(.jp189)
+		.db	LOW(.jp190)
+		.db	LOW(.jp191)
 
 .jpAddrHigh
-		.db	.jp0 / 256
-		.db	.jp1 / 256
-		.db	.jp2 / 256
-		.db	.jp3 / 256
-		.db	.jp4 / 256
-		.db	.jp5 / 256
-		.db	.jp6 / 256
-		.db	.jp7 / 256
-		.db	.jp8 / 256
-		.db	.jp9 / 256
-		.db	.jp10 / 256
-		.db	.jp11 / 256
-		.db	.jp12 / 256
-		.db	.jp13 / 256
-		.db	.jp14 / 256
-		.db	.jp15 / 256
-		.db	.jp16 / 256
-		.db	.jp17 / 256
-		.db	.jp18 / 256
-		.db	.jp19 / 256
-		.db	.jp20 / 256
-		.db	.jp21 / 256
-		.db	.jp22 / 256
-		.db	.jp23 / 256
-		.db	.jp24 / 256
-		.db	.jp25 / 256
-		.db	.jp26 / 256
-		.db	.jp27 / 256
-		.db	.jp28 / 256
-		.db	.jp29 / 256
-		.db	.jp30 / 256
-		.db	.jp31 / 256
-		.db	.jp32 / 256
-		.db	.jp33 / 256
-		.db	.jp34 / 256
-		.db	.jp35 / 256
-		.db	.jp36 / 256
-		.db	.jp37 / 256
-		.db	.jp38 / 256
-		.db	.jp39 / 256
-		.db	.jp40 / 256
-		.db	.jp41 / 256
-		.db	.jp42 / 256
-		.db	.jp43 / 256
-		.db	.jp44 / 256
-		.db	.jp45 / 256
-		.db	.jp46 / 256
-		.db	.jp47 / 256
-		.db	.jp48 / 256
-		.db	.jp49 / 256
-		.db	.jp50 / 256
-		.db	.jp51 / 256
-		.db	.jp52 / 256
-		.db	.jp53 / 256
-		.db	.jp54 / 256
-		.db	.jp55 / 256
-		.db	.jp56 / 256
-		.db	.jp57 / 256
-		.db	.jp58 / 256
-		.db	.jp59 / 256
-		.db	.jp60 / 256
-		.db	.jp61 / 256
-		.db	.jp62 / 256
-		.db	.jp63 / 256
-		.db	.jp64 / 256
-		.db	.jp65 / 256
-		.db	.jp66 / 256
-		.db	.jp67 / 256
-		.db	.jp68 / 256
-		.db	.jp69 / 256
-		.db	.jp70 / 256
-		.db	.jp71 / 256
-		.db	.jp72 / 256
-		.db	.jp73 / 256
-		.db	.jp74 / 256
-		.db	.jp75 / 256
-		.db	.jp76 / 256
-		.db	.jp77 / 256
-		.db	.jp78 / 256
-		.db	.jp79 / 256
-		.db	.jp80 / 256
-		.db	.jp81 / 256
-		.db	.jp82 / 256
-		.db	.jp83 / 256
-		.db	.jp84 / 256
-		.db	.jp85 / 256
-		.db	.jp86 / 256
-		.db	.jp87 / 256
-		.db	.jp88 / 256
-		.db	.jp89 / 256
-		.db	.jp90 / 256
-		.db	.jp91 / 256
-		.db	.jp92 / 256
-		.db	.jp93 / 256
-		.db	.jp94 / 256
-		.db	.jp95 / 256
-		.db	.jp96 / 256
-		.db	.jp97 / 256
-		.db	.jp98 / 256
-		.db	.jp99 / 256
-		.db	.jp100 / 256
-		.db	.jp101 / 256
-		.db	.jp102 / 256
-		.db	.jp103 / 256
-		.db	.jp104 / 256
-		.db	.jp105 / 256
-		.db	.jp106 / 256
-		.db	.jp107 / 256
-		.db	.jp108 / 256
-		.db	.jp109 / 256
-		.db	.jp110 / 256
-		.db	.jp111 / 256
-		.db	.jp112 / 256
-		.db	.jp113 / 256
-		.db	.jp114 / 256
-		.db	.jp115 / 256
-		.db	.jp116 / 256
-		.db	.jp117 / 256
-		.db	.jp118 / 256
-		.db	.jp119 / 256
-		.db	.jp120 / 256
-		.db	.jp121 / 256
-		.db	.jp122 / 256
-		.db	.jp123 / 256
-		.db	.jp124 / 256
-		.db	.jp125 / 256
-		.db	.jp126 / 256
-		.db	.jp127 / 256
-		.db	.jp128 / 256
-		.db	.jp129 / 256
-		.db	.jp130 / 256
-		.db	.jp131 / 256
-		.db	.jp132 / 256
-		.db	.jp133 / 256
-		.db	.jp134 / 256
-		.db	.jp135 / 256
-		.db	.jp136 / 256
-		.db	.jp137 / 256
-		.db	.jp138 / 256
-		.db	.jp139 / 256
-		.db	.jp140 / 256
-		.db	.jp141 / 256
-		.db	.jp142 / 256
-		.db	.jp143 / 256
-		.db	.jp144 / 256
-		.db	.jp145 / 256
-		.db	.jp146 / 256
-		.db	.jp147 / 256
-		.db	.jp148 / 256
-		.db	.jp149 / 256
-		.db	.jp150 / 256
-		.db	.jp151 / 256
-		.db	.jp152 / 256
-		.db	.jp153 / 256
-		.db	.jp154 / 256
-		.db	.jp155 / 256
-		.db	.jp156 / 256
-		.db	.jp157 / 256
-		.db	.jp158 / 256
-		.db	.jp159 / 256
-		.db	.jp160 / 256
-		.db	.jp161 / 256
-		.db	.jp162 / 256
-		.db	.jp163 / 256
-		.db	.jp164 / 256
-		.db	.jp165 / 256
-		.db	.jp166 / 256
-		.db	.jp167 / 256
-		.db	.jp168 / 256
-		.db	.jp169 / 256
-		.db	.jp170 / 256
-		.db	.jp171 / 256
-		.db	.jp172 / 256
-		.db	.jp173 / 256
-		.db	.jp174 / 256
-		.db	.jp175 / 256
-		.db	.jp176 / 256
-		.db	.jp177 / 256
-		.db	.jp178 / 256
-		.db	.jp179 / 256
-		.db	.jp180 / 256
-		.db	.jp181 / 256
-		.db	.jp182 / 256
-		.db	.jp183 / 256
-		.db	.jp184 / 256
-		.db	.jp185 / 256
-		.db	.jp186 / 256
-		.db	.jp187 / 256
-		.db	.jp188 / 256
-		.db	.jp189 / 256
-		.db	.jp190 / 256
-		.db	.jp191 / 256
+		.db	HIGH(.jp0)
+		.db	HIGH(.jp1)
+		.db	HIGH(.jp2)
+		.db	HIGH(.jp3)
+		.db	HIGH(.jp4)
+		.db	HIGH(.jp5)
+		.db	HIGH(.jp6)
+		.db	HIGH(.jp7)
+		.db	HIGH(.jp8)
+		.db	HIGH(.jp9)
+		.db	HIGH(.jp10)
+		.db	HIGH(.jp11)
+		.db	HIGH(.jp12)
+		.db	HIGH(.jp13)
+		.db	HIGH(.jp14)
+		.db	HIGH(.jp15)
+		.db	HIGH(.jp16)
+		.db	HIGH(.jp17)
+		.db	HIGH(.jp18)
+		.db	HIGH(.jp19)
+		.db	HIGH(.jp20)
+		.db	HIGH(.jp21)
+		.db	HIGH(.jp22)
+		.db	HIGH(.jp23)
+		.db	HIGH(.jp24)
+		.db	HIGH(.jp25)
+		.db	HIGH(.jp26)
+		.db	HIGH(.jp27)
+		.db	HIGH(.jp28)
+		.db	HIGH(.jp29)
+		.db	HIGH(.jp30)
+		.db	HIGH(.jp31)
+		.db	HIGH(.jp32)
+		.db	HIGH(.jp33)
+		.db	HIGH(.jp34)
+		.db	HIGH(.jp35)
+		.db	HIGH(.jp36)
+		.db	HIGH(.jp37)
+		.db	HIGH(.jp38)
+		.db	HIGH(.jp39)
+		.db	HIGH(.jp40)
+		.db	HIGH(.jp41)
+		.db	HIGH(.jp42)
+		.db	HIGH(.jp43)
+		.db	HIGH(.jp44)
+		.db	HIGH(.jp45)
+		.db	HIGH(.jp46)
+		.db	HIGH(.jp47)
+		.db	HIGH(.jp48)
+		.db	HIGH(.jp49)
+		.db	HIGH(.jp50)
+		.db	HIGH(.jp51)
+		.db	HIGH(.jp52)
+		.db	HIGH(.jp53)
+		.db	HIGH(.jp54)
+		.db	HIGH(.jp55)
+		.db	HIGH(.jp56)
+		.db	HIGH(.jp57)
+		.db	HIGH(.jp58)
+		.db	HIGH(.jp59)
+		.db	HIGH(.jp60)
+		.db	HIGH(.jp61)
+		.db	HIGH(.jp62)
+		.db	HIGH(.jp63)
+		.db	HIGH(.jp64)
+		.db	HIGH(.jp65)
+		.db	HIGH(.jp66)
+		.db	HIGH(.jp67)
+		.db	HIGH(.jp68)
+		.db	HIGH(.jp69)
+		.db	HIGH(.jp70)
+		.db	HIGH(.jp71)
+		.db	HIGH(.jp72)
+		.db	HIGH(.jp73)
+		.db	HIGH(.jp74)
+		.db	HIGH(.jp75)
+		.db	HIGH(.jp76)
+		.db	HIGH(.jp77)
+		.db	HIGH(.jp78)
+		.db	HIGH(.jp79)
+		.db	HIGH(.jp80)
+		.db	HIGH(.jp81)
+		.db	HIGH(.jp82)
+		.db	HIGH(.jp83)
+		.db	HIGH(.jp84)
+		.db	HIGH(.jp85)
+		.db	HIGH(.jp86)
+		.db	HIGH(.jp87)
+		.db	HIGH(.jp88)
+		.db	HIGH(.jp89)
+		.db	HIGH(.jp90)
+		.db	HIGH(.jp91)
+		.db	HIGH(.jp92)
+		.db	HIGH(.jp93)
+		.db	HIGH(.jp94)
+		.db	HIGH(.jp95)
+		.db	HIGH(.jp96)
+		.db	HIGH(.jp97)
+		.db	HIGH(.jp98)
+		.db	HIGH(.jp99)
+		.db	HIGH(.jp100)
+		.db	HIGH(.jp101)
+		.db	HIGH(.jp102)
+		.db	HIGH(.jp103)
+		.db	HIGH(.jp104)
+		.db	HIGH(.jp105)
+		.db	HIGH(.jp106)
+		.db	HIGH(.jp107)
+		.db	HIGH(.jp108)
+		.db	HIGH(.jp109)
+		.db	HIGH(.jp110)
+		.db	HIGH(.jp111)
+		.db	HIGH(.jp112)
+		.db	HIGH(.jp113)
+		.db	HIGH(.jp114)
+		.db	HIGH(.jp115)
+		.db	HIGH(.jp116)
+		.db	HIGH(.jp117)
+		.db	HIGH(.jp118)
+		.db	HIGH(.jp119)
+		.db	HIGH(.jp120)
+		.db	HIGH(.jp121)
+		.db	HIGH(.jp122)
+		.db	HIGH(.jp123)
+		.db	HIGH(.jp124)
+		.db	HIGH(.jp125)
+		.db	HIGH(.jp126)
+		.db	HIGH(.jp127)
+		.db	HIGH(.jp128)
+		.db	HIGH(.jp129)
+		.db	HIGH(.jp130)
+		.db	HIGH(.jp131)
+		.db	HIGH(.jp132)
+		.db	HIGH(.jp133)
+		.db	HIGH(.jp134)
+		.db	HIGH(.jp135)
+		.db	HIGH(.jp136)
+		.db	HIGH(.jp137)
+		.db	HIGH(.jp138)
+		.db	HIGH(.jp139)
+		.db	HIGH(.jp140)
+		.db	HIGH(.jp141)
+		.db	HIGH(.jp142)
+		.db	HIGH(.jp143)
+		.db	HIGH(.jp144)
+		.db	HIGH(.jp145)
+		.db	HIGH(.jp146)
+		.db	HIGH(.jp147)
+		.db	HIGH(.jp148)
+		.db	HIGH(.jp149)
+		.db	HIGH(.jp150)
+		.db	HIGH(.jp151)
+		.db	HIGH(.jp152)
+		.db	HIGH(.jp153)
+		.db	HIGH(.jp154)
+		.db	HIGH(.jp155)
+		.db	HIGH(.jp156)
+		.db	HIGH(.jp157)
+		.db	HIGH(.jp158)
+		.db	HIGH(.jp159)
+		.db	HIGH(.jp160)
+		.db	HIGH(.jp161)
+		.db	HIGH(.jp162)
+		.db	HIGH(.jp163)
+		.db	HIGH(.jp164)
+		.db	HIGH(.jp165)
+		.db	HIGH(.jp166)
+		.db	HIGH(.jp167)
+		.db	HIGH(.jp168)
+		.db	HIGH(.jp169)
+		.db	HIGH(.jp170)
+		.db	HIGH(.jp171)
+		.db	HIGH(.jp172)
+		.db	HIGH(.jp173)
+		.db	HIGH(.jp174)
+		.db	HIGH(.jp175)
+		.db	HIGH(.jp176)
+		.db	HIGH(.jp177)
+		.db	HIGH(.jp178)
+		.db	HIGH(.jp179)
+		.db	HIGH(.jp180)
+		.db	HIGH(.jp181)
+		.db	HIGH(.jp182)
+		.db	HIGH(.jp183)
+		.db	HIGH(.jp184)
+		.db	HIGH(.jp185)
+		.db	HIGH(.jp186)
+		.db	HIGH(.jp187)
+		.db	HIGH(.jp188)
+		.db	HIGH(.jp189)
+		.db	HIGH(.jp190)
+		.db	HIGH(.jp191)
 
 
 ;----------------------------
@@ -1458,389 +1458,389 @@ calcEdgeR3:
 		rts
 
 .jpAddrLow
-		.db	.jp0 % 256
-		.db	.jp1 % 256
-		.db	.jp2 % 256
-		.db	.jp3 % 256
-		.db	.jp4 % 256
-		.db	.jp5 % 256
-		.db	.jp6 % 256
-		.db	.jp7 % 256
-		.db	.jp8 % 256
-		.db	.jp9 % 256
-		.db	.jp10 % 256
-		.db	.jp11 % 256
-		.db	.jp12 % 256
-		.db	.jp13 % 256
-		.db	.jp14 % 256
-		.db	.jp15 % 256
-		.db	.jp16 % 256
-		.db	.jp17 % 256
-		.db	.jp18 % 256
-		.db	.jp19 % 256
-		.db	.jp20 % 256
-		.db	.jp21 % 256
-		.db	.jp22 % 256
-		.db	.jp23 % 256
-		.db	.jp24 % 256
-		.db	.jp25 % 256
-		.db	.jp26 % 256
-		.db	.jp27 % 256
-		.db	.jp28 % 256
-		.db	.jp29 % 256
-		.db	.jp30 % 256
-		.db	.jp31 % 256
-		.db	.jp32 % 256
-		.db	.jp33 % 256
-		.db	.jp34 % 256
-		.db	.jp35 % 256
-		.db	.jp36 % 256
-		.db	.jp37 % 256
-		.db	.jp38 % 256
-		.db	.jp39 % 256
-		.db	.jp40 % 256
-		.db	.jp41 % 256
-		.db	.jp42 % 256
-		.db	.jp43 % 256
-		.db	.jp44 % 256
-		.db	.jp45 % 256
-		.db	.jp46 % 256
-		.db	.jp47 % 256
-		.db	.jp48 % 256
-		.db	.jp49 % 256
-		.db	.jp50 % 256
-		.db	.jp51 % 256
-		.db	.jp52 % 256
-		.db	.jp53 % 256
-		.db	.jp54 % 256
-		.db	.jp55 % 256
-		.db	.jp56 % 256
-		.db	.jp57 % 256
-		.db	.jp58 % 256
-		.db	.jp59 % 256
-		.db	.jp60 % 256
-		.db	.jp61 % 256
-		.db	.jp62 % 256
-		.db	.jp63 % 256
-		.db	.jp64 % 256
-		.db	.jp65 % 256
-		.db	.jp66 % 256
-		.db	.jp67 % 256
-		.db	.jp68 % 256
-		.db	.jp69 % 256
-		.db	.jp70 % 256
-		.db	.jp71 % 256
-		.db	.jp72 % 256
-		.db	.jp73 % 256
-		.db	.jp74 % 256
-		.db	.jp75 % 256
-		.db	.jp76 % 256
-		.db	.jp77 % 256
-		.db	.jp78 % 256
-		.db	.jp79 % 256
-		.db	.jp80 % 256
-		.db	.jp81 % 256
-		.db	.jp82 % 256
-		.db	.jp83 % 256
-		.db	.jp84 % 256
-		.db	.jp85 % 256
-		.db	.jp86 % 256
-		.db	.jp87 % 256
-		.db	.jp88 % 256
-		.db	.jp89 % 256
-		.db	.jp90 % 256
-		.db	.jp91 % 256
-		.db	.jp92 % 256
-		.db	.jp93 % 256
-		.db	.jp94 % 256
-		.db	.jp95 % 256
-		.db	.jp96 % 256
-		.db	.jp97 % 256
-		.db	.jp98 % 256
-		.db	.jp99 % 256
-		.db	.jp100 % 256
-		.db	.jp101 % 256
-		.db	.jp102 % 256
-		.db	.jp103 % 256
-		.db	.jp104 % 256
-		.db	.jp105 % 256
-		.db	.jp106 % 256
-		.db	.jp107 % 256
-		.db	.jp108 % 256
-		.db	.jp109 % 256
-		.db	.jp110 % 256
-		.db	.jp111 % 256
-		.db	.jp112 % 256
-		.db	.jp113 % 256
-		.db	.jp114 % 256
-		.db	.jp115 % 256
-		.db	.jp116 % 256
-		.db	.jp117 % 256
-		.db	.jp118 % 256
-		.db	.jp119 % 256
-		.db	.jp120 % 256
-		.db	.jp121 % 256
-		.db	.jp122 % 256
-		.db	.jp123 % 256
-		.db	.jp124 % 256
-		.db	.jp125 % 256
-		.db	.jp126 % 256
-		.db	.jp127 % 256
-		.db	.jp128 % 256
-		.db	.jp129 % 256
-		.db	.jp130 % 256
-		.db	.jp131 % 256
-		.db	.jp132 % 256
-		.db	.jp133 % 256
-		.db	.jp134 % 256
-		.db	.jp135 % 256
-		.db	.jp136 % 256
-		.db	.jp137 % 256
-		.db	.jp138 % 256
-		.db	.jp139 % 256
-		.db	.jp140 % 256
-		.db	.jp141 % 256
-		.db	.jp142 % 256
-		.db	.jp143 % 256
-		.db	.jp144 % 256
-		.db	.jp145 % 256
-		.db	.jp146 % 256
-		.db	.jp147 % 256
-		.db	.jp148 % 256
-		.db	.jp149 % 256
-		.db	.jp150 % 256
-		.db	.jp151 % 256
-		.db	.jp152 % 256
-		.db	.jp153 % 256
-		.db	.jp154 % 256
-		.db	.jp155 % 256
-		.db	.jp156 % 256
-		.db	.jp157 % 256
-		.db	.jp158 % 256
-		.db	.jp159 % 256
-		.db	.jp160 % 256
-		.db	.jp161 % 256
-		.db	.jp162 % 256
-		.db	.jp163 % 256
-		.db	.jp164 % 256
-		.db	.jp165 % 256
-		.db	.jp166 % 256
-		.db	.jp167 % 256
-		.db	.jp168 % 256
-		.db	.jp169 % 256
-		.db	.jp170 % 256
-		.db	.jp171 % 256
-		.db	.jp172 % 256
-		.db	.jp173 % 256
-		.db	.jp174 % 256
-		.db	.jp175 % 256
-		.db	.jp176 % 256
-		.db	.jp177 % 256
-		.db	.jp178 % 256
-		.db	.jp179 % 256
-		.db	.jp180 % 256
-		.db	.jp181 % 256
-		.db	.jp182 % 256
-		.db	.jp183 % 256
-		.db	.jp184 % 256
-		.db	.jp185 % 256
-		.db	.jp186 % 256
-		.db	.jp187 % 256
-		.db	.jp188 % 256
-		.db	.jp189 % 256
-		.db	.jp190 % 256
-		.db	.jp191 % 256
+		.db	LOW(.jp0)
+		.db	LOW(.jp1)
+		.db	LOW(.jp2)
+		.db	LOW(.jp3)
+		.db	LOW(.jp4)
+		.db	LOW(.jp5)
+		.db	LOW(.jp6)
+		.db	LOW(.jp7)
+		.db	LOW(.jp8)
+		.db	LOW(.jp9)
+		.db	LOW(.jp10)
+		.db	LOW(.jp11)
+		.db	LOW(.jp12)
+		.db	LOW(.jp13)
+		.db	LOW(.jp14)
+		.db	LOW(.jp15)
+		.db	LOW(.jp16)
+		.db	LOW(.jp17)
+		.db	LOW(.jp18)
+		.db	LOW(.jp19)
+		.db	LOW(.jp20)
+		.db	LOW(.jp21)
+		.db	LOW(.jp22)
+		.db	LOW(.jp23)
+		.db	LOW(.jp24)
+		.db	LOW(.jp25)
+		.db	LOW(.jp26)
+		.db	LOW(.jp27)
+		.db	LOW(.jp28)
+		.db	LOW(.jp29)
+		.db	LOW(.jp30)
+		.db	LOW(.jp31)
+		.db	LOW(.jp32)
+		.db	LOW(.jp33)
+		.db	LOW(.jp34)
+		.db	LOW(.jp35)
+		.db	LOW(.jp36)
+		.db	LOW(.jp37)
+		.db	LOW(.jp38)
+		.db	LOW(.jp39)
+		.db	LOW(.jp40)
+		.db	LOW(.jp41)
+		.db	LOW(.jp42)
+		.db	LOW(.jp43)
+		.db	LOW(.jp44)
+		.db	LOW(.jp45)
+		.db	LOW(.jp46)
+		.db	LOW(.jp47)
+		.db	LOW(.jp48)
+		.db	LOW(.jp49)
+		.db	LOW(.jp50)
+		.db	LOW(.jp51)
+		.db	LOW(.jp52)
+		.db	LOW(.jp53)
+		.db	LOW(.jp54)
+		.db	LOW(.jp55)
+		.db	LOW(.jp56)
+		.db	LOW(.jp57)
+		.db	LOW(.jp58)
+		.db	LOW(.jp59)
+		.db	LOW(.jp60)
+		.db	LOW(.jp61)
+		.db	LOW(.jp62)
+		.db	LOW(.jp63)
+		.db	LOW(.jp64)
+		.db	LOW(.jp65)
+		.db	LOW(.jp66)
+		.db	LOW(.jp67)
+		.db	LOW(.jp68)
+		.db	LOW(.jp69)
+		.db	LOW(.jp70)
+		.db	LOW(.jp71)
+		.db	LOW(.jp72)
+		.db	LOW(.jp73)
+		.db	LOW(.jp74)
+		.db	LOW(.jp75)
+		.db	LOW(.jp76)
+		.db	LOW(.jp77)
+		.db	LOW(.jp78)
+		.db	LOW(.jp79)
+		.db	LOW(.jp80)
+		.db	LOW(.jp81)
+		.db	LOW(.jp82)
+		.db	LOW(.jp83)
+		.db	LOW(.jp84)
+		.db	LOW(.jp85)
+		.db	LOW(.jp86)
+		.db	LOW(.jp87)
+		.db	LOW(.jp88)
+		.db	LOW(.jp89)
+		.db	LOW(.jp90)
+		.db	LOW(.jp91)
+		.db	LOW(.jp92)
+		.db	LOW(.jp93)
+		.db	LOW(.jp94)
+		.db	LOW(.jp95)
+		.db	LOW(.jp96)
+		.db	LOW(.jp97)
+		.db	LOW(.jp98)
+		.db	LOW(.jp99)
+		.db	LOW(.jp100)
+		.db	LOW(.jp101)
+		.db	LOW(.jp102)
+		.db	LOW(.jp103)
+		.db	LOW(.jp104)
+		.db	LOW(.jp105)
+		.db	LOW(.jp106)
+		.db	LOW(.jp107)
+		.db	LOW(.jp108)
+		.db	LOW(.jp109)
+		.db	LOW(.jp110)
+		.db	LOW(.jp111)
+		.db	LOW(.jp112)
+		.db	LOW(.jp113)
+		.db	LOW(.jp114)
+		.db	LOW(.jp115)
+		.db	LOW(.jp116)
+		.db	LOW(.jp117)
+		.db	LOW(.jp118)
+		.db	LOW(.jp119)
+		.db	LOW(.jp120)
+		.db	LOW(.jp121)
+		.db	LOW(.jp122)
+		.db	LOW(.jp123)
+		.db	LOW(.jp124)
+		.db	LOW(.jp125)
+		.db	LOW(.jp126)
+		.db	LOW(.jp127)
+		.db	LOW(.jp128)
+		.db	LOW(.jp129)
+		.db	LOW(.jp130)
+		.db	LOW(.jp131)
+		.db	LOW(.jp132)
+		.db	LOW(.jp133)
+		.db	LOW(.jp134)
+		.db	LOW(.jp135)
+		.db	LOW(.jp136)
+		.db	LOW(.jp137)
+		.db	LOW(.jp138)
+		.db	LOW(.jp139)
+		.db	LOW(.jp140)
+		.db	LOW(.jp141)
+		.db	LOW(.jp142)
+		.db	LOW(.jp143)
+		.db	LOW(.jp144)
+		.db	LOW(.jp145)
+		.db	LOW(.jp146)
+		.db	LOW(.jp147)
+		.db	LOW(.jp148)
+		.db	LOW(.jp149)
+		.db	LOW(.jp150)
+		.db	LOW(.jp151)
+		.db	LOW(.jp152)
+		.db	LOW(.jp153)
+		.db	LOW(.jp154)
+		.db	LOW(.jp155)
+		.db	LOW(.jp156)
+		.db	LOW(.jp157)
+		.db	LOW(.jp158)
+		.db	LOW(.jp159)
+		.db	LOW(.jp160)
+		.db	LOW(.jp161)
+		.db	LOW(.jp162)
+		.db	LOW(.jp163)
+		.db	LOW(.jp164)
+		.db	LOW(.jp165)
+		.db	LOW(.jp166)
+		.db	LOW(.jp167)
+		.db	LOW(.jp168)
+		.db	LOW(.jp169)
+		.db	LOW(.jp170)
+		.db	LOW(.jp171)
+		.db	LOW(.jp172)
+		.db	LOW(.jp173)
+		.db	LOW(.jp174)
+		.db	LOW(.jp175)
+		.db	LOW(.jp176)
+		.db	LOW(.jp177)
+		.db	LOW(.jp178)
+		.db	LOW(.jp179)
+		.db	LOW(.jp180)
+		.db	LOW(.jp181)
+		.db	LOW(.jp182)
+		.db	LOW(.jp183)
+		.db	LOW(.jp184)
+		.db	LOW(.jp185)
+		.db	LOW(.jp186)
+		.db	LOW(.jp187)
+		.db	LOW(.jp188)
+		.db	LOW(.jp189)
+		.db	LOW(.jp190)
+		.db	LOW(.jp191)
 
 .jpAddrHigh
-		.db	.jp0 / 256
-		.db	.jp1 / 256
-		.db	.jp2 / 256
-		.db	.jp3 / 256
-		.db	.jp4 / 256
-		.db	.jp5 / 256
-		.db	.jp6 / 256
-		.db	.jp7 / 256
-		.db	.jp8 / 256
-		.db	.jp9 / 256
-		.db	.jp10 / 256
-		.db	.jp11 / 256
-		.db	.jp12 / 256
-		.db	.jp13 / 256
-		.db	.jp14 / 256
-		.db	.jp15 / 256
-		.db	.jp16 / 256
-		.db	.jp17 / 256
-		.db	.jp18 / 256
-		.db	.jp19 / 256
-		.db	.jp20 / 256
-		.db	.jp21 / 256
-		.db	.jp22 / 256
-		.db	.jp23 / 256
-		.db	.jp24 / 256
-		.db	.jp25 / 256
-		.db	.jp26 / 256
-		.db	.jp27 / 256
-		.db	.jp28 / 256
-		.db	.jp29 / 256
-		.db	.jp30 / 256
-		.db	.jp31 / 256
-		.db	.jp32 / 256
-		.db	.jp33 / 256
-		.db	.jp34 / 256
-		.db	.jp35 / 256
-		.db	.jp36 / 256
-		.db	.jp37 / 256
-		.db	.jp38 / 256
-		.db	.jp39 / 256
-		.db	.jp40 / 256
-		.db	.jp41 / 256
-		.db	.jp42 / 256
-		.db	.jp43 / 256
-		.db	.jp44 / 256
-		.db	.jp45 / 256
-		.db	.jp46 / 256
-		.db	.jp47 / 256
-		.db	.jp48 / 256
-		.db	.jp49 / 256
-		.db	.jp50 / 256
-		.db	.jp51 / 256
-		.db	.jp52 / 256
-		.db	.jp53 / 256
-		.db	.jp54 / 256
-		.db	.jp55 / 256
-		.db	.jp56 / 256
-		.db	.jp57 / 256
-		.db	.jp58 / 256
-		.db	.jp59 / 256
-		.db	.jp60 / 256
-		.db	.jp61 / 256
-		.db	.jp62 / 256
-		.db	.jp63 / 256
-		.db	.jp64 / 256
-		.db	.jp65 / 256
-		.db	.jp66 / 256
-		.db	.jp67 / 256
-		.db	.jp68 / 256
-		.db	.jp69 / 256
-		.db	.jp70 / 256
-		.db	.jp71 / 256
-		.db	.jp72 / 256
-		.db	.jp73 / 256
-		.db	.jp74 / 256
-		.db	.jp75 / 256
-		.db	.jp76 / 256
-		.db	.jp77 / 256
-		.db	.jp78 / 256
-		.db	.jp79 / 256
-		.db	.jp80 / 256
-		.db	.jp81 / 256
-		.db	.jp82 / 256
-		.db	.jp83 / 256
-		.db	.jp84 / 256
-		.db	.jp85 / 256
-		.db	.jp86 / 256
-		.db	.jp87 / 256
-		.db	.jp88 / 256
-		.db	.jp89 / 256
-		.db	.jp90 / 256
-		.db	.jp91 / 256
-		.db	.jp92 / 256
-		.db	.jp93 / 256
-		.db	.jp94 / 256
-		.db	.jp95 / 256
-		.db	.jp96 / 256
-		.db	.jp97 / 256
-		.db	.jp98 / 256
-		.db	.jp99 / 256
-		.db	.jp100 / 256
-		.db	.jp101 / 256
-		.db	.jp102 / 256
-		.db	.jp103 / 256
-		.db	.jp104 / 256
-		.db	.jp105 / 256
-		.db	.jp106 / 256
-		.db	.jp107 / 256
-		.db	.jp108 / 256
-		.db	.jp109 / 256
-		.db	.jp110 / 256
-		.db	.jp111 / 256
-		.db	.jp112 / 256
-		.db	.jp113 / 256
-		.db	.jp114 / 256
-		.db	.jp115 / 256
-		.db	.jp116 / 256
-		.db	.jp117 / 256
-		.db	.jp118 / 256
-		.db	.jp119 / 256
-		.db	.jp120 / 256
-		.db	.jp121 / 256
-		.db	.jp122 / 256
-		.db	.jp123 / 256
-		.db	.jp124 / 256
-		.db	.jp125 / 256
-		.db	.jp126 / 256
-		.db	.jp127 / 256
-		.db	.jp128 / 256
-		.db	.jp129 / 256
-		.db	.jp130 / 256
-		.db	.jp131 / 256
-		.db	.jp132 / 256
-		.db	.jp133 / 256
-		.db	.jp134 / 256
-		.db	.jp135 / 256
-		.db	.jp136 / 256
-		.db	.jp137 / 256
-		.db	.jp138 / 256
-		.db	.jp139 / 256
-		.db	.jp140 / 256
-		.db	.jp141 / 256
-		.db	.jp142 / 256
-		.db	.jp143 / 256
-		.db	.jp144 / 256
-		.db	.jp145 / 256
-		.db	.jp146 / 256
-		.db	.jp147 / 256
-		.db	.jp148 / 256
-		.db	.jp149 / 256
-		.db	.jp150 / 256
-		.db	.jp151 / 256
-		.db	.jp152 / 256
-		.db	.jp153 / 256
-		.db	.jp154 / 256
-		.db	.jp155 / 256
-		.db	.jp156 / 256
-		.db	.jp157 / 256
-		.db	.jp158 / 256
-		.db	.jp159 / 256
-		.db	.jp160 / 256
-		.db	.jp161 / 256
-		.db	.jp162 / 256
-		.db	.jp163 / 256
-		.db	.jp164 / 256
-		.db	.jp165 / 256
-		.db	.jp166 / 256
-		.db	.jp167 / 256
-		.db	.jp168 / 256
-		.db	.jp169 / 256
-		.db	.jp170 / 256
-		.db	.jp171 / 256
-		.db	.jp172 / 256
-		.db	.jp173 / 256
-		.db	.jp174 / 256
-		.db	.jp175 / 256
-		.db	.jp176 / 256
-		.db	.jp177 / 256
-		.db	.jp178 / 256
-		.db	.jp179 / 256
-		.db	.jp180 / 256
-		.db	.jp181 / 256
-		.db	.jp182 / 256
-		.db	.jp183 / 256
-		.db	.jp184 / 256
-		.db	.jp185 / 256
-		.db	.jp186 / 256
-		.db	.jp187 / 256
-		.db	.jp188 / 256
-		.db	.jp189 / 256
-		.db	.jp190 / 256
-		.db	.jp191 / 256
+		.db	HIGH(.jp0)
+		.db	HIGH(.jp1)
+		.db	HIGH(.jp2)
+		.db	HIGH(.jp3)
+		.db	HIGH(.jp4)
+		.db	HIGH(.jp5)
+		.db	HIGH(.jp6)
+		.db	HIGH(.jp7)
+		.db	HIGH(.jp8)
+		.db	HIGH(.jp9)
+		.db	HIGH(.jp10)
+		.db	HIGH(.jp11)
+		.db	HIGH(.jp12)
+		.db	HIGH(.jp13)
+		.db	HIGH(.jp14)
+		.db	HIGH(.jp15)
+		.db	HIGH(.jp16)
+		.db	HIGH(.jp17)
+		.db	HIGH(.jp18)
+		.db	HIGH(.jp19)
+		.db	HIGH(.jp20)
+		.db	HIGH(.jp21)
+		.db	HIGH(.jp22)
+		.db	HIGH(.jp23)
+		.db	HIGH(.jp24)
+		.db	HIGH(.jp25)
+		.db	HIGH(.jp26)
+		.db	HIGH(.jp27)
+		.db	HIGH(.jp28)
+		.db	HIGH(.jp29)
+		.db	HIGH(.jp30)
+		.db	HIGH(.jp31)
+		.db	HIGH(.jp32)
+		.db	HIGH(.jp33)
+		.db	HIGH(.jp34)
+		.db	HIGH(.jp35)
+		.db	HIGH(.jp36)
+		.db	HIGH(.jp37)
+		.db	HIGH(.jp38)
+		.db	HIGH(.jp39)
+		.db	HIGH(.jp40)
+		.db	HIGH(.jp41)
+		.db	HIGH(.jp42)
+		.db	HIGH(.jp43)
+		.db	HIGH(.jp44)
+		.db	HIGH(.jp45)
+		.db	HIGH(.jp46)
+		.db	HIGH(.jp47)
+		.db	HIGH(.jp48)
+		.db	HIGH(.jp49)
+		.db	HIGH(.jp50)
+		.db	HIGH(.jp51)
+		.db	HIGH(.jp52)
+		.db	HIGH(.jp53)
+		.db	HIGH(.jp54)
+		.db	HIGH(.jp55)
+		.db	HIGH(.jp56)
+		.db	HIGH(.jp57)
+		.db	HIGH(.jp58)
+		.db	HIGH(.jp59)
+		.db	HIGH(.jp60)
+		.db	HIGH(.jp61)
+		.db	HIGH(.jp62)
+		.db	HIGH(.jp63)
+		.db	HIGH(.jp64)
+		.db	HIGH(.jp65)
+		.db	HIGH(.jp66)
+		.db	HIGH(.jp67)
+		.db	HIGH(.jp68)
+		.db	HIGH(.jp69)
+		.db	HIGH(.jp70)
+		.db	HIGH(.jp71)
+		.db	HIGH(.jp72)
+		.db	HIGH(.jp73)
+		.db	HIGH(.jp74)
+		.db	HIGH(.jp75)
+		.db	HIGH(.jp76)
+		.db	HIGH(.jp77)
+		.db	HIGH(.jp78)
+		.db	HIGH(.jp79)
+		.db	HIGH(.jp80)
+		.db	HIGH(.jp81)
+		.db	HIGH(.jp82)
+		.db	HIGH(.jp83)
+		.db	HIGH(.jp84)
+		.db	HIGH(.jp85)
+		.db	HIGH(.jp86)
+		.db	HIGH(.jp87)
+		.db	HIGH(.jp88)
+		.db	HIGH(.jp89)
+		.db	HIGH(.jp90)
+		.db	HIGH(.jp91)
+		.db	HIGH(.jp92)
+		.db	HIGH(.jp93)
+		.db	HIGH(.jp94)
+		.db	HIGH(.jp95)
+		.db	HIGH(.jp96)
+		.db	HIGH(.jp97)
+		.db	HIGH(.jp98)
+		.db	HIGH(.jp99)
+		.db	HIGH(.jp100)
+		.db	HIGH(.jp101)
+		.db	HIGH(.jp102)
+		.db	HIGH(.jp103)
+		.db	HIGH(.jp104)
+		.db	HIGH(.jp105)
+		.db	HIGH(.jp106)
+		.db	HIGH(.jp107)
+		.db	HIGH(.jp108)
+		.db	HIGH(.jp109)
+		.db	HIGH(.jp110)
+		.db	HIGH(.jp111)
+		.db	HIGH(.jp112)
+		.db	HIGH(.jp113)
+		.db	HIGH(.jp114)
+		.db	HIGH(.jp115)
+		.db	HIGH(.jp116)
+		.db	HIGH(.jp117)
+		.db	HIGH(.jp118)
+		.db	HIGH(.jp119)
+		.db	HIGH(.jp120)
+		.db	HIGH(.jp121)
+		.db	HIGH(.jp122)
+		.db	HIGH(.jp123)
+		.db	HIGH(.jp124)
+		.db	HIGH(.jp125)
+		.db	HIGH(.jp126)
+		.db	HIGH(.jp127)
+		.db	HIGH(.jp128)
+		.db	HIGH(.jp129)
+		.db	HIGH(.jp130)
+		.db	HIGH(.jp131)
+		.db	HIGH(.jp132)
+		.db	HIGH(.jp133)
+		.db	HIGH(.jp134)
+		.db	HIGH(.jp135)
+		.db	HIGH(.jp136)
+		.db	HIGH(.jp137)
+		.db	HIGH(.jp138)
+		.db	HIGH(.jp139)
+		.db	HIGH(.jp140)
+		.db	HIGH(.jp141)
+		.db	HIGH(.jp142)
+		.db	HIGH(.jp143)
+		.db	HIGH(.jp144)
+		.db	HIGH(.jp145)
+		.db	HIGH(.jp146)
+		.db	HIGH(.jp147)
+		.db	HIGH(.jp148)
+		.db	HIGH(.jp149)
+		.db	HIGH(.jp150)
+		.db	HIGH(.jp151)
+		.db	HIGH(.jp152)
+		.db	HIGH(.jp153)
+		.db	HIGH(.jp154)
+		.db	HIGH(.jp155)
+		.db	HIGH(.jp156)
+		.db	HIGH(.jp157)
+		.db	HIGH(.jp158)
+		.db	HIGH(.jp159)
+		.db	HIGH(.jp160)
+		.db	HIGH(.jp161)
+		.db	HIGH(.jp162)
+		.db	HIGH(.jp163)
+		.db	HIGH(.jp164)
+		.db	HIGH(.jp165)
+		.db	HIGH(.jp166)
+		.db	HIGH(.jp167)
+		.db	HIGH(.jp168)
+		.db	HIGH(.jp169)
+		.db	HIGH(.jp170)
+		.db	HIGH(.jp171)
+		.db	HIGH(.jp172)
+		.db	HIGH(.jp173)
+		.db	HIGH(.jp174)
+		.db	HIGH(.jp175)
+		.db	HIGH(.jp176)
+		.db	HIGH(.jp177)
+		.db	HIGH(.jp178)
+		.db	HIGH(.jp179)
+		.db	HIGH(.jp180)
+		.db	HIGH(.jp181)
+		.db	HIGH(.jp182)
+		.db	HIGH(.jp183)
+		.db	HIGH(.jp184)
+		.db	HIGH(.jp185)
+		.db	HIGH(.jp186)
+		.db	HIGH(.jp187)
+		.db	HIGH(.jp188)
+		.db	HIGH(.jp189)
+		.db	HIGH(.jp190)
+		.db	HIGH(.jp191)

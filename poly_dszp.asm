@@ -103,6 +103,8 @@ polyLineRightData	.ds	1
 polyLineRightMask	.ds	1
 polyLineMask0		equ	polyLineLeftMask
 polyLineMask1		equ	polyLineRightMask
+lightVectorWork		.ds	4
+lightVectorColorWork	.ds	1
 
 ;---------------------
 			.org	shareAreaTop
@@ -261,6 +263,19 @@ setModelFrontColor	.ds	1
 setModelBackColor	.ds	1
 setModelAttr		.ds	1
 model2DClipIndexWork	.ds	1
+
+		IFDEF	USE_SHADING
+;---------------------
+modelVectorAddrWork	.ds	2
+
+lightVectorX		.ds	2
+lightVectorY		.ds	2
+lightVectorZ		.ds	2
+
+lightVectorRotX		.ds	2
+lightVectorRotY		.ds	2
+lightVectorRotZ		.ds	2
+		ENDIF
 
 ;---------------------
 satBufferAddr		.ds	2

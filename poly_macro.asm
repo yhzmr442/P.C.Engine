@@ -935,6 +935,17 @@ rmb		.macro
 		.endm
 
 
+		IFDEF	USE_SHADING
+;----------------------------
+MODEL_DATA	.macro
+;
+				.dw	\1	;POLYGON_DATA ADDRESS
+				.db	\2	;POLYGON_DATA COUNTS(1 to 32)
+				.dw	\3	;VERTEX_DATA ADDRESS
+				.db	\4	;VERTEX_DATA COUNTS(1 to 42)
+				.dw	\5	;POLYGON VECTOR_DATA ADDRESS
+		.endm
+		ELSE
 ;----------------------------
 MODEL_DATA	.macro
 ;
@@ -943,11 +954,12 @@ MODEL_DATA	.macro
 				.dw	\3	;VERTEX_DATA ADDRESS
 				.db	\4	;VERTEX_DATA COUNTS(1 to 42)
 		.endm
+		ENDIF
 
 
 ;----------------------------
 POLYGON_DATA	.macro
-;attribute: circle($80 = circlre) + even line skip($40 = skip) + front clip($04 = cancel) + back draw($01 = not draw : front side = counterclockwise)
+;attribute: circle($80 = circlre) + even line skip($40 = skip) + shading($20 = shading) + front clip($04 = cancel) + back check($02 = cancel) + back draw($01 = not draw : front side = counterclockwise)
 ;front color(0 to 127)
 ;back color(0 to 127) or circle radius(1 to 8192) low byte
 ;vertex count: count(3 to 4) or circle radius(1 to 8192) high byte
@@ -969,6 +981,13 @@ POLYGON_DATA	.macro
 
 ;----------------------------
 VERTEX_DATA	.macro
+;
+				.dw	\1, \2, \3	;X, Y, Z
+		.endm
+
+
+;----------------------------
+VECTOR_DATA	.macro
 ;
 				.dw	\1, \2, \3	;X, Y, Z
 		.endm

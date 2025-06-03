@@ -111,6 +111,33 @@
 ;BANK 8-23	MULTIPLICATION DATAS
 ;BANK24-31	DIVISION DATAS
 
+;----------------------------
+;define
+
+;SAMPLE_Z_AVG		default
+;SAMPLE_Z_MAX_ONLY
+
+;DISPLAY_BOTTOM_192	default
+;DISPLAY_BOTTOM_144
+
+;SCREEN_Z128		default
+;SCREEN_Z192
+
+;VCE_5M			default
+;VCE_7M
+;VCE_10M
+
+;SCREEN_256_240_A
+;SCREEN_256_240_B
+;SCREEN_256_240_7MHZ
+;SCREEN_256_192
+;SCREEN_256_224
+
+;USE_SHADING
+
+;BRIGHT_CONVERT_4_8	default
+;BRIGHT_CONVERT_8_8
+
 
 ;//////////////////////////////////
 		.bank	POLYGON_FUNC_BANK
@@ -182,10 +209,10 @@ setMatrixRotationZ:
 		sta	[matrix0], y
 
 		ldy	#(2*3+2)*2
-		cla
+		lda	#LOW(SIN_COS_ONE)
 		sta	[matrix0], y
 		iny
-		lda	#$40
+		lda	#HIGH(SIN_COS_ONE)
 		sta	[matrix0], y
 
 		ply
@@ -236,10 +263,10 @@ setMatrixRotationY:
 		sta	[matrix0], y
 
 		ldy	#(1*3+1)*2
-		cla
+		lda	#LOW(SIN_COS_ONE)
 		sta	[matrix0], y
 		iny
-		lda	#$40
+		lda	#HIGH(SIN_COS_ONE)
 		sta	[matrix0], y
 
 		ply
@@ -290,10 +317,10 @@ setMatrixRotationX:
 		sta	[matrix0], y
 
 		ldy	#(0*3+0)*2
-		cla
+		lda	#LOW(SIN_COS_ONE)
 		sta	[matrix0], y
 		iny
-		lda	#$40
+		lda	#HIGH(SIN_COS_ONE)
 		sta	[matrix0], y
 
 		ply
@@ -470,42 +497,16 @@ setMainVolume:
 ;----------------------------
 initializePsg:
 ;
-		phx
-		phy
+		tma	#POLYGON_SUB2_FUNC_MAP
+		pha
 
-		stz	PSG_0
-		stz	PSG_1
-		stz	PSG_8
-		stz	PSG_9
+		lda	#POLYGON_SUB2_FUNC_BANK
+		tam	#POLYGON_SUB2_FUNC_MAP
 
-		cly
-.loop0:
-		sty	PSG_0
-		stz	PSG_2
-		stz	PSG_3
-		mov	PSG_4, #$40
-		stz	PSG_4
-		stz	PSG_5
+		jsr	_initializePsg
 
-		clx
-.loop1:
-		stz	PSG_6
-		inx
-		cpx	#32
-		bne	.loop1
-
-		iny
-		cpy	#6
-		bne	.loop0
-
-		mov	PSG_0, #4
-		stz	PSG_7
-
-		mov	PSG_0, #5
-		stz	PSG_7
-
-		ply
-		plx
+		pla
+		tam	#POLYGON_SUB2_FUNC_MAP
 		rts
 
 
@@ -541,42 +542,23 @@ stopDda:
 ;----------------------------
 setDda:
 ;
-		tst	#$FF, <dda0No
-		beq	.jp00
+		tma	#POLYGON_SUB2_FUNC_MAP
+		pha
 
-		ora	#$00
-		bmi	.jp01
+		lda	#POLYGON_SUB2_FUNC_BANK
+		tam	#POLYGON_SUB2_FUNC_MAP
 
-		cmp	<dda0No
-		beq	.jp02
-		bcs	.funcEnd
-		bra	.jp02
+		jsr	_setDda
 
-.jp01:
-		and	#$7F
-		cmp	<dda0No
-		bcs	.funcEnd
-
-.jp00:
-		and	#$7F
-
-.jp02:
-		sei
-
-		sta	<dda0No
-		movw	<dda0Address, #$4000
-
-		jsr	startDda
-
-		cli
-
-.funcEnd:
+		pla
+		tam	#POLYGON_SUB2_FUNC_MAP
 		rts
 
 
 ;----------------------------
 timerPlayDdaFunction:
 ;
+
 		phx
 
 ;set dda data bank
@@ -1954,6 +1936,27 @@ selectVertexRotation8:
 
 
 ;----------------------------
+orderVertexRotation8:
+;
+		lda	<rotationSelect
+		jsr	selectVertexRotation8
+
+		lda	<rotationSelect
+		lsr	a
+		lsr	a
+		jsr	selectVertexRotation8
+
+		lda	<rotationSelect
+		lsr	a
+		lsr	a
+		lsr	a
+		lsr	a
+		jsr	selectVertexRotation8
+
+		rts
+
+
+;----------------------------
 selectVertexRotation:
 ;
 		phx
@@ -1983,6 +1986,27 @@ selectVertexRotation:
 		jsr	vertexRotationY
 
 		plx
+		rts
+
+
+;----------------------------
+orderVertexRotation:
+;
+		lda	<rotationSelect
+		jsr	selectVertexRotation
+
+		lda	<rotationSelect
+		lsr	a
+		lsr	a
+		jsr	selectVertexRotation
+
+		lda	<rotationSelect
+		lsr	a
+		lsr	a
+		lsr	a
+		lsr	a
+		jsr	selectVertexRotation
+
 		rts
 
 
@@ -2593,6 +2617,10 @@ moveToTransform2DWork0:
 
 
 ;----------------------------
+moveToVertexDataWork0	.equ	moveToTransform2DWork0
+
+
+;----------------------------
 setPolygonColorIndex:
 ;
 		sta	<polygonColorIndex
@@ -2664,29 +2692,30 @@ putPolygonBuffer:
 
 ;set polygon pattern
 		tax
+
 		lda	polygonColorP0, x
 		sta	polyLineColorWork_H_P0
+		tay
+		lda	rotation1Data,y
 		sta	polyLineColorWork_L_P0
-		rol	a
-		rol	polyLineColorWork_L_P0
 
 		lda	polygonColorP1, x
 		sta	polyLineColorWork_H_P1
+		tay
+		lda	rotation1Data,y
 		sta	polyLineColorWork_L_P1
-		rol	a
-		rol	polyLineColorWork_L_P1
 
 		lda	polygonColorP2, x
 		sta	polyLineColorWork_H_P2
+		tay
+		lda	rotation1Data,y
 		sta	polyLineColorWork_L_P2
-		rol	a
-		rol	polyLineColorWork_L_P2
 
 		lda	polygonColorP3, x
 		sta	polyLineColorWork_H_P3
+		tay
+		lda	rotation1Data,y
 		sta	polyLineColorWork_L_P3
-		rol	a
-		rol	polyLineColorWork_L_P3
 
 		ldy	#5
 		lda	[polyBufferAddr], y	;COUNT
@@ -2795,10 +2824,63 @@ putPolygonBuffer:
 
 
 ;----------------------------
+getReverseRotation:
+;
+		eor	#$FF
+		inc	a
+
+		rts
+
+
+;----------------------------
 setModelRotation:
 ;
 		phx
 		phy
+
+		IFDEF	USE_SHADING
+		movw	transform2DWork0, <lightVectorX
+		movw	transform2DWork0+2, <lightVectorY
+		movw	transform2DWork0+4, <lightVectorZ
+
+		ldx	<rotationSelect
+		phx
+		lda	reverseRotationSelect, x
+		sta	<rotationSelect
+
+		ldx	<rotationX
+		txa
+		jsr	getReverseRotation
+		sta	<rotationX
+
+		ldy	<rotationY
+		tya
+		jsr	getReverseRotation
+		sta	<rotationY
+
+		lda	<rotationZ
+		pha
+		jsr	getReverseRotation
+		sta	<rotationZ
+
+		mov	<vertexCount, #1
+		jsr	orderVertexRotation8
+
+		movw	<lightVectorRotX, transform2DWork0
+		movw	<lightVectorRotY, transform2DWork0+2
+		movw	<lightVectorRotZ, transform2DWork0+4
+
+		pla
+		sta	<rotationZ
+
+		sty	<rotationY
+
+		stx	<rotationX
+
+		pla
+		sta	<rotationSelect
+		ENDIF
+
 ;rotation
 		ldy	#$03
 		lda	[modelAddress], y		;vertex data address
@@ -2813,20 +2895,7 @@ setModelRotation:
 
 		jsr	moveToTransform2DWork0
 
-		lda	<rotationSelect
-		jsr	selectVertexRotation8
-
-		lda	<rotationSelect
-		lsr	a
-		lsr	a
-		jsr	selectVertexRotation8
-
-		lda	<rotationSelect
-		lsr	a
-		lsr	a
-		lsr	a
-		lsr	a
-		jsr	selectVertexRotation8
+		jsr	orderVertexRotation8
 
 ;translation
 		subw	<translationX, <eyeTranslationX
@@ -2883,6 +2952,19 @@ setModel:
 		lda	[modelAddress], y	;Polygon Count
 		sta	<modelPolygonCount
 
+		IFDEF	USE_SHADING
+		iny
+		iny
+		iny
+		iny
+
+		lda	[modelAddress], y	;Polygon Vector Addr
+		sta	<modelVectorAddrWork
+		iny
+		lda	[modelAddress], y
+		sta	<modelVectorAddrWork+1
+		ENDIF
+
 		cly
 
 .setModelLoop3:
@@ -2914,7 +2996,7 @@ setModel:
 
 ;SAMPLE Z
 ;--------
-			IFDEF SAMPLE_Z_MAX_ONLY
+		IFDEF SAMPLE_Z_MAX_ONLY
 
 		ldy	#3
 		sta	<mul16a+1
@@ -2926,7 +3008,7 @@ setModel:
 		sta	[polyBufferAddr], y
 
 ;--------
-			ELSE
+		ELSE
 ;--------
 
 		ldy	#3
@@ -2940,7 +3022,7 @@ setModel:
 		ror	a
 		sta	[polyBufferAddr], y
 
-			ENDIF
+		ENDIF
 ;--------
 
 		lda	<setModelBackColor
@@ -3140,6 +3222,73 @@ setModel:
 		lda	<setModelFrontColor
 
 .setModelJump10:
+
+
+		IFDEF	USE_SHADING
+;shading
+		bbs5	<setModelAttr, .jpShading00
+		jmp	 .jpShading03
+
+.jpShading00:
+		phy
+
+		sta	<lightVectorColorWork
+
+;----
+		movw	<mul16a, <lightVectorRotX
+
+		cly
+		lda	[modelVectorAddrWork], y
+		sta	<mul16b
+		iny
+		lda	[modelVectorAddrWork], y
+		sta	<mul16b+1
+
+		jsr	smul16
+		movq	<lightVectorWork, <mul16c
+
+;----
+		movw	<mul16a, <lightVectorRotY
+
+		iny
+		lda	[modelVectorAddrWork], y
+		sta	<mul16b
+		iny
+		lda	[modelVectorAddrWork], y
+		sta	<mul16b+1
+
+		jsr	smul16
+		addq	<lightVectorWork, <mul16c
+
+;----
+		movw	<mul16a, <lightVectorRotZ
+
+		iny
+		lda	[modelVectorAddrWork], y
+		sta	<mul16b
+		iny
+		lda	[modelVectorAddrWork], y
+		sta	<mul16b+1
+
+		jsr	smul16
+		addq	<lightVectorWork, <mul16c
+		bpl	.jpShading01
+
+		cla
+		bra	.jpShading02
+
+.jpShading01:
+		ldx	<lightVectorWork+3
+		lda	brightConvertData, x
+
+.jpShading02:
+		ora	<lightVectorColorWork
+
+		ply
+
+.jpShading03:
+		ENDIF
+
 		clc
 		adc	<polygonColorIndex
 
@@ -3160,7 +3309,7 @@ setModel:
 		sta	[polyBufferAddr], y	;COUNT
 
 ;--------
-			IFDEF SAMPLE_Z_MAX_ONLY
+		IFDEF SAMPLE_Z_MAX_ONLY
 
 .compareZMax:
 		ply
@@ -3206,7 +3355,7 @@ setModel:
 		sta	[polyBufferAddr], y
 
 ;--------
-			ELSE
+		ELSE
 ;--------
 
 		tst	#ATTR_SYSTEM_Z_MAX + ATTR_SYSTEM_Z_MIN, <systemConfig
@@ -3381,7 +3530,7 @@ setModel:
 		sta	[polyBufferAddr], y
 
 .compareEnd:
-			ENDIF
+		ENDIF
 ;--------
 
 ;set buffer
@@ -3478,6 +3627,10 @@ setModel:
 		pla
 		add	#8
 		tay
+
+		IFDEF	USE_SHADING
+		addw	<modelVectorAddrWork, #6
+		ENDIF
 
 		dec	<modelPolygonCount
 		jne	.setModelLoop3
@@ -4655,96 +4808,32 @@ romToVram:
 ;----------------------------
 setCgCharData:
 ;argw0: rom address, argw1: src CG No(0-2047), argw2: dist CG No(0-2047), argw3: character count(1-2048)
-		asl	<argw1
-		rol	<argw1+1
-		asl	<argw1
-		rol	<argw1+1
-		asl	<argw1
-		rol	<argw1+1
-		asl	<argw1
-		rol	<argw1+1
-		asl	<argw1
-		rol	<argw1+1
+		tma	#POLYGON_SUB2_FUNC_MAP
+		pha
 
-		addw	<argw0, <argw1
+		lda	#POLYGON_SUB2_FUNC_BANK
+		tam	#POLYGON_SUB2_FUNC_MAP
 
-		asl	<argw2
-		rol	<argw2+1
-		asl	<argw2
-		rol	<argw2+1
-		asl	<argw2
-		rol	<argw2+1
-		asl	<argw2
-		rol	<argw2+1
+		jsr	_setCgCharData
 
-		movw	<argw1, <argw2
-
-		asl	<argw3
-		rol	<argw3+1
-		asl	<argw3
-		rol	<argw3+1
-		asl	<argw3
-		rol	<argw3+1
-		asl	<argw3
-		rol	<argw3+1
-		asl	<argw3
-		rol	<argw3+1
-
-		movw	<argw2, <argw3
-
-		jsr	romToVram
-
+		pla
+		tam	#POLYGON_SUB2_FUNC_MAP
 		rts
 
 
 ;----------------------------
 setSgCharData:
 ;argw0: rom address, argw1: SG No(0-1022), argw2: SG No(0-1022), argw3: character count(0-511)
-		phx
+		tma	#POLYGON_SUB2_FUNC_MAP
+		pha
 
-		ldx	<argw1
-		lda	<argw1+1
+		lda	#POLYGON_SUB2_FUNC_BANK
+		tam	#POLYGON_SUB2_FUNC_MAP
 
-		stz	<argw1
-		stx	<argw1+1
+		jsr	_setSgCharData
 
-		lsr	a
-		ror	<argw1+1
-		ror	<argw1
-		lsr	a
-		ror	<argw1+1
-		ror	<argw1
-
-		addw	<argw0, <argw1
-
-		asl	<argw2
-		rol	<argw2+1
-		asl	<argw2
-		rol	<argw2+1
-		asl	<argw2
-		rol	<argw2+1
-		asl	<argw2
-		rol	<argw2+1
-		asl	<argw2
-		rol	<argw2+1
-
-		movw	<argw1, <argw2
-
-		ldx	<argw3
-		lda	<argw3+1
-
-		stz	<argw3
-		stx	<argw3+1
-
-		lsr	a
-		ror	<argw3+1
-		ror	<argw3
-
-		movw	<argw2, <argw3
-
-		jsr	romToVram
-
-		plx
+		pla
+		tam	#POLYGON_SUB2_FUNC_MAP
 		rts
 
 
@@ -4800,11 +4889,11 @@ clearBuffer:
 		jsr	clearBufferSub
 		jsr	clearBufferSub
 
-			IFDEF DISPLAY_BOTTOM_144
+		IFDEF DISPLAY_BOTTOM_144
 		jsr	clearBufferSub + (8192 - 2048)
-			ELSE
+		ELSE
 		jsr	clearBufferSub
-			ENDIF
+		ENDIF
 
 		pla
 		tam	#POLYGON_EDGE_FUNC_MAP
@@ -4844,53 +4933,16 @@ setAllPalette:
 ;----------------------------
 initializeVdc:
 ;
-		phx
-		phy
+		tma	#POLYGON_SUB3_FUNC_MAP
+		pha
 
-;disable interrupts
-		sei
+		lda	#POLYGON_SUB3_FUNC_BANK
+		tam	#POLYGON_SUB3_FUNC_MAP
 
-;reset wait
-		cly
-.resetWaitloop0:
-		clx
-.resetWaitloop1:
-		dex
-		bne	.resetWaitloop1
-		dey
-		bne	.resetWaitloop0
+		jsr	_initializeVdc
 
-;set vdc
-.vdcdataloop:	lda	vdcData, y
-		cmp	#$FF
-		beq	.vdcdataend
-		sta	VDC_0
-		iny
-
-		lda	vdcData, y
-		sta	VDC_2
-		iny
-
-		lda	vdcData, y
-		sta	VDC_3
-		iny
-		bra	.vdcdataloop
-.vdcdataend:
-
-;set vce
-		movw	VCE_0, #VCE0_INIT_DATA
-
-;wait vsync
-		st012	#$05, #$0008
-
-.resetWait:
-		tst	#$20, VDC_0
-		beq	.resetWait
-
-		st012	#$05, #$0000
-
-		ply
-		plx
+		pla
+		tam	#POLYGON_SUB3_FUNC_MAP
 		rts
 
 
@@ -4921,11 +4973,11 @@ clearBat:
 
 
 ;----------------------------
-			IFDEF DISPLAY_BOTTOM_144
+		IFDEF DISPLAY_BOTTOM_144
 SETBAT_DATA_COUNT	.equ	$0240
-			ELSE
+		ELSE
 SETBAT_DATA_COUNT	.equ	$0300
-			ENDIF
+		ENDIF
 setBat:
 ;set BAT
 		phx
@@ -5343,7 +5395,7 @@ initializePolygonBuffer:
 
 
 ;--------
-			IFDEF SAMPLE_Z_MAX_ONLY
+		IFDEF SAMPLE_Z_MAX_ONLY
 
 ;polyBufferStart SAMPLE Z = $7FFF
 		movw	polyBufferStart+2, #$7FFF
@@ -5352,7 +5404,7 @@ initializePolygonBuffer:
 		movw	polyBufferEnd+2, #0
 
 ;--------
-			ELSE
+		ELSE
 ;--------
 
 ;polyBufferStart SAMPLE Z = 16384
@@ -5361,7 +5413,7 @@ initializePolygonBuffer:
 ;polyBufferEnd SAMPLE Z = -16384
 		movw	polyBufferEnd+2, #-16384
 
-			ENDIF
+		ENDIF
 ;--------
 
 ;polyBufferEnd COLOR = $00
@@ -5411,8 +5463,6 @@ putPolygonWithVsync:
 		jsr	switchClearBuffer
 
 		jsr	putPolygonBuffer
-
-		jsr	setVsyncFlag
 
 		rts
 
@@ -5493,105 +5543,16 @@ numToChar:
 setCgToSgData:
 ;argw0: rom address, argw1: src CG No(0-2047), argw2: dist SG No(0-1022), arg6: top or bottom left or right
 ;arg6 $00:left top, $02:left bottom, $01:right top, $03:right bottom
-		phx
-		phy
+		tma	#POLYGON_SUB2_FUNC_MAP
+		pha
 
-;CG address
-		asl	<argw1
-		rol	<argw1+1
-		asl	<argw1
-		rol	<argw1+1
-		asl	<argw1
-		rol	<argw1+1
-		asl	<argw1
-		rol	<argw1+1
-		asl	<argw1
-		rol	<argw1+1
+		lda	#POLYGON_SUB2_FUNC_BANK
+		tam	#POLYGON_SUB2_FUNC_MAP
 
-		addw	<argw0, <argw1
+		jsr	_setCgToSgData
 
-;SG address
-		asl	<argw2
-		rol	<argw2+1
-		asl	<argw2
-		rol	<argw2+1
-		asl	<argw2
-		rol	<argw2+1
-		asl	<argw2
-		rol	<argw2+1
-		asl	<argw2
-		rol	<argw2+1
-
-;top or bottom
-		bbr1	<arg6, .jp00
-;bottom
-		addw	<argw2, #8
-
-.jp00:
-
-		cly
-
-.loop00:
-		st0	#$00
-		movw	VDC_2, <argw2
-
-		st0	#$01
-		movw	VDC_2, <argw2
-
-		st0	#$02
-
-.loop01:
-;left or right
-		bbs0	<arg6, .jp01
-
-;left
-		ldx	VDC_2
-		lda	VDC_3
-
-		lda	[argw0], y
-		stx	VDC_2
-		sta	VDC_3
-
-		bra	.jp02
-
-.jp01:
-;right
-		lda	VDC_2
-		ldx	VDC_3
-
-		lda	[argw0], y
-		sta	VDC_2
-		stx	VDC_3
-
-.jp02:
-		iny
-		iny
-		cpy	#33
-		beq	.funcEnd
-
-		cpy	#16
-		bne	.jp05
-		ldy	#1
-		bra	.jp07
-
-.jp05:
-		cpy	#17
-		bne	.jp06
-		ldy	#16
-		bra	.jp07
-
-.jp06:
-		cpy	#32
-		bne	.loop01
-		ldy	#17
-
-.jp07:
-		addw	<argw2, #16
-		bra	.loop00
-
-.funcEnd:
-		ply
-		plx
+		pla
+		tam	#POLYGON_SUB2_FUNC_MAP
 		rts
 
 
@@ -5735,6 +5696,26 @@ putHex:
 
 		pla
 		rts
+
+
+		IFDEF	USE_SHADING
+;----------------------------
+reverseRotationSelect
+		.db	$00, $10, $20, $00, $04, $14, $24, $00, $08, $18, $28, $00, $00, $00, $00, $00,\
+			$01, $11, $21, $00, $05, $15, $25, $00, $09, $19, $29, $00, $00, $00, $00, $00,\
+			$02, $12, $22, $00, $06, $16, $26, $00, $0A, $1A, $2A 
+
+		IFDEF	BRIGHT_CONVERT_8_8
+;----------------------------
+brightConvertData
+		.db	 8,  8, 16, 16, 24, 24, 32, 32, 40, 40, 48, 48, 48, 56, 56, 56, 56
+		ELSE
+;----------------------------
+brightConvertData
+		.db	 8,  8,  8,  8,  8, 16, 16, 16, 16, 16, 24, 24, 24, 24, 24, 24, 24
+		ENDIF
+
+		ENDIF
 
 
 ;////////////////////////////
@@ -7135,7 +7116,7 @@ putPolyLineProc1:
 
 
 ;----------------------------
-			IFDEF DISPLAY_BOTTOM_144
+		IFDEF DISPLAY_BOTTOM_144
 ;----------------------------
 polyLineAddrConvYHigh0:
 		.db	$20, $20, $20, $20, $20, $20, $20, $20, $24, $24, $24, $24, $24, $24, $24, $24,\
@@ -7182,7 +7163,7 @@ polyLineAddrConvYLow:
 
 
 ;----------------------------
-			ELSE
+		ELSE
 ;----------------------------
 polyLineAddrConvYHigh0:
 		.db	$20, $20, $20, $20, $20, $20, $20, $20, $24, $24, $24, $24, $24, $24, $24, $24,\
@@ -7230,7 +7211,7 @@ polyLineAddrConvYLow:
 			$10, $11, $12, $13, $14, $15, $16, $17, $10, $11, $12, $13, $14, $15, $16, $17,\
 			$10, $11, $12, $13, $14, $15, $16, $17, $10, $11, $12, $13, $14, $15, $16, $17
 ;----------------------------
-			ENDIF
+		ENDIF
 ;----------------------------
 
 
@@ -7326,8 +7307,8 @@ clearBufferSub:
 
 ;////////////////////////////
 		.bank	DIV_DATA_BANK
-			IFDEF SCREEN_Z192
+		IFDEF SCREEN_Z192
 		INCBIN	"div_z192.dat"		; 64K
-			ELSE
+		ELSE
 		INCBIN	"div_z128.dat"		; 64K
-			ENDIF
+		ENDIF

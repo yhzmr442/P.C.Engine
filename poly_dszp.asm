@@ -264,7 +264,7 @@ setModelBackColor	.ds	1
 setModelAttr		.ds	1
 model2DClipIndexWork	.ds	1
 
-		IFDEF	USE_SHADING
+		IFDEF	ENABLE_SHADING
 ;---------------------
 modelVectorAddrWork	.ds	2
 

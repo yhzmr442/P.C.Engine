@@ -3,11 +3,14 @@
 ;////////  DEFINE   ////////
 ;///////////////////////////
 ;---------------------
-SCREEN_256_240_B	;screen 256 * 240 dot
-VCE_5M			;VCE Clock 5M
-DISPLAY_BOTTOM_192	;polygon screen 192 line
-USE_SHADING		;flat shading
-BRIGHT_CONVERT_8_8	;8brightnesses 8colors
+;System parameters
+SAMPLE_Z_AVG		;Z sample 'average'
+DISPLAY_BOTTOM_192	;bottom line '192'
+SCREEN_Z128		;screen position '128'
+VCE_5M			;VCE clock '5M'
+SCREEN_256_240_B	;screen dots '256 * 240'
+ENABLE_SHADING		;flat shading 'enable'
+BRIGHT_CONVERT_8_8	;'8brightnesses 8colors'
 
 
 ;///////////////////////////
@@ -22,7 +25,8 @@ BRIGHT_CONVERT_8_8	;8brightnesses 8colors
 ;///////////////////////////
 		.zp
 ;---------------------
-rot_z		.ds	1
+modelRotaionZ	.ds	1
+lightRotaionZ	.ds	1
 
 
 ;///////////////////////////
@@ -63,7 +67,8 @@ main:
 		ldy	#96
 		jsr	setScreenCenter
 
-		stz	<rot_z
+		stz	<modelRotaionZ
+		stz	<lightRotaionZ
 
 		jsr	onScreen
 
@@ -73,13 +78,16 @@ main:
 
 ;----------------
 .mainLoop:
+		inc	<modelRotaionZ
+		add	<lightRotaionZ, #2
+
 		movw	vertexDataWork+VX, #0
 		movw	vertexDataWork+VY, #16384
 		movw	vertexDataWork+VZ, #0
 
-		mov	<rotationX, #0
+		mov	<rotationX, <lightRotaionZ
 		mov	<rotationY, #0
-		mov	<rotationZ, <rot_z
+		mov	<rotationZ, <lightRotaionZ
 		mov	<vertexCount, #1
 		mov	<rotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
 		jsr	orderVertexRotation8
@@ -135,7 +143,7 @@ main:
 		movw	<translationZ, #200
 		mov	<rotationX, #32
 		mov	<rotationY, #64
-		mov	<rotationZ, <rot_z
+		mov	<rotationZ, <modelRotaionZ
 		mov	<rotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
 		movw	<modelAddress, #modelData
 		jsr	setModelRotation
@@ -143,8 +151,6 @@ main:
 		jsr	putPolygonWithVsync
 
 		jsr	setVsyncFlag
-
-		inc	<rot_z
 
 		jmp	.mainLoop
 
@@ -252,7 +258,7 @@ polygonColor:
 ;----------------------------
 paletteData:
 ;0000000G GGRRRBBB
-		.dw	$0000, $0020, $0100, $0120, $0004, $0024, $0104, $0124,\
+		.dw	$0187, $0020, $0100, $0120, $0004, $0024, $0104, $0124,\
 			$01B6, $0038, $01C0, $01F8, $0007, $003F, $01C7, $01FF
 		.dw	$0000, $0020, $0100, $0120, $0004, $0024, $0104, $0124,\
 			$01B6, $0038, $01C0, $01F8, $0007, $003F, $01C7, $01FF

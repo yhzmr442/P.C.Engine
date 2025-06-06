@@ -935,7 +935,7 @@ rmb		.macro
 		.endm
 
 
-		IFDEF	USE_SHADING
+		IFDEF	ENABLE_SHADING
 ;----------------------------
 MODEL_DATA	.macro
 ;

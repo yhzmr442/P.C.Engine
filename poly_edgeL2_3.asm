@@ -1897,3 +1897,480 @@ _initializeVdc:
 		ply
 		plx
 		rts
+
+
+;----------------------------
+_clearBufferColor:
+;arg0:CH0, arg1:CH1, arg2:CH2, arg3:CH3
+		phy
+
+		jsr	setInc32Vdc
+
+		cly
+
+;CH0 CH1 0 to 71 or 95
+.loop0:
+		st0	#$00
+		sty	VDC_2
+		stx	VDC_3
+
+		st0	#$02
+		lda	<arg0
+		sta	VDC_2
+		lda	<arg1
+
+		jsr	__clearBufferColor
+
+		iny
+		cpy	#8
+		bne	.loop0
+
+;CH2 CH3 0 to 71 or 95
+.loop1:
+		st0	#$00
+		sty	VDC_2
+		stx	VDC_3
+
+		st0	#$02
+		lda	<arg2
+		sta	VDC_2
+		lda	<arg3
+
+		jsr	__clearBufferColor
+
+		iny
+		cpy	#16
+		bne	.loop1
+
+;CH0 CH1 0 to 143 or 191
+.loop2:
+		st0	#$00
+		sty	VDC_2
+		stx	VDC_3
+
+		st0	#$02
+		lda	<arg0
+		sta	VDC_2
+		lda	<arg1
+
+		jsr	__clearBufferColor
+
+		iny
+		cpy	#24
+		bne	.loop2
+
+;CH2 CH3 0 to 143 or 191
+.loop3:
+		st0	#$00
+		sty	VDC_2
+		stx	VDC_3
+
+		st0	#$02
+		lda	<arg2
+		sta	VDC_2
+		lda	<arg3
+
+		jsr	__clearBufferColor
+
+		iny
+		cpy	#32
+		bne	.loop3
+
+		jsr	setInc1Vdc
+
+		ply
+		rts
+
+
+;----------------------------
+__clearBufferColor:
+;
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+
+		IFDEF DISPLAY_BOTTOM_192
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		sta	VDC_3
+		ENDIF
+
+		rts

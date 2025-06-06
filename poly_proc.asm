@@ -71,14 +71,15 @@
 ;    viewpoint   Z:0
 
 ;----------------------------
-;vertex data structure
-;|v1 v2 v3|
-
-;----------------------------
-;matrix data structure
-;|a11 a21 a31|
-;|a12 a22 a32|
-;|a13 a23 a33|
+;shading
+;light vector__        __normal vector
+;           |\          /|
+;             \        /
+;              \      /
+;               \    /
+;                \  /
+;                 \/
+;           --------------polygon
 
 ;----------------------------
 ;memory map
@@ -112,31 +113,49 @@
 ;BANK24-31	DIVISION DATAS
 
 ;----------------------------
-;define
+;System parameters
 
-;SAMPLE_Z_AVG		default
-;SAMPLE_Z_MAX_ONLY
+;polygon sample
+;SAMPLE_Z_AVG
+;SAMPLE_Z_MAX
 
-;DISPLAY_BOTTOM_192	default
+;bottom line
+;DISPLAY_BOTTOM_192
 ;DISPLAY_BOTTOM_144
 
-;SCREEN_Z128		default
+;screen position
+;SCREEN_Z128
 ;SCREEN_Z192
 
-;VCE_5M			default
+;VCE clock
+;VCE_5M
 ;VCE_7M
 ;VCE_10M
 
+;VDC setting
 ;SCREEN_256_240_A
 ;SCREEN_256_240_B
 ;SCREEN_256_240_7MHZ
 ;SCREEN_256_192
 ;SCREEN_256_224
 
-;USE_SHADING
+;flat shading
+;ENABLE_SHADING
+;DISABLE_SHADING
 
-;BRIGHT_CONVERT_4_8	default
+;brightnesses colors
+;BRIGHT_CONVERT_4_8
 ;BRIGHT_CONVERT_8_8
+
+;----------------------------
+;vertex data structure
+;|v1 v2 v3|
+
+;----------------------------
+;matrix data structure
+;|a11 a21 a31|
+;|a12 a22 a32|
+;|a13 a23 a33|
 
 
 ;//////////////////////////////////
@@ -2838,7 +2857,7 @@ setModelRotation:
 		phx
 		phy
 
-		IFDEF	USE_SHADING
+		IFDEF	ENABLE_SHADING
 		movw	transform2DWork0, <lightVectorX
 		movw	transform2DWork0+2, <lightVectorY
 		movw	transform2DWork0+4, <lightVectorZ
@@ -2952,7 +2971,7 @@ setModel:
 		lda	[modelAddress], y	;Polygon Count
 		sta	<modelPolygonCount
 
-		IFDEF	USE_SHADING
+		IFDEF	ENABLE_SHADING
 		iny
 		iny
 		iny
@@ -2996,7 +3015,7 @@ setModel:
 
 ;SAMPLE Z
 ;--------
-		IFDEF SAMPLE_Z_MAX_ONLY
+		IFDEF SAMPLE_Z_MAX
 
 		ldy	#3
 		sta	<mul16a+1
@@ -3224,7 +3243,7 @@ setModel:
 .setModelJump10:
 
 
-		IFDEF	USE_SHADING
+		IFDEF	ENABLE_SHADING
 ;shading
 		bbs5	<setModelAttr, .jpShading00
 		jmp	 .jpShading03
@@ -3309,7 +3328,7 @@ setModel:
 		sta	[polyBufferAddr], y	;COUNT
 
 ;--------
-		IFDEF SAMPLE_Z_MAX_ONLY
+		IFDEF SAMPLE_Z_MAX
 
 .compareZMax:
 		ply
@@ -3628,7 +3647,7 @@ setModel:
 		add	#8
 		tay
 
-		IFDEF	USE_SHADING
+		IFDEF	ENABLE_SHADING
 		addw	<modelVectorAddrWork, #6
 		ENDIF
 
@@ -4848,6 +4867,41 @@ setTiaTiiFunction:
 
 
 ;----------------------------
+switchClearBufferColor:
+;switching the drawing area and clear buffer
+		phx
+		bbs0	<drawingNo, .jp0
+
+		ldx	#DRAWING_NO_0_ADDR
+		bra	.jp1
+
+.jp0:
+		ldx	#DRAWING_NO_1_ADDR
+
+.jp1:
+		jsr	clearBufferColor
+		plx
+		rts
+
+
+;----------------------------
+clearBufferColor:
+;arg0:CH0, arg1:CH1, arg2:CH2, arg3:CH3
+;X:DRAWING_NO_0_ADDR or DRAWING_NO_1_ADDR
+		tma	#POLYGON_SUB3_FUNC_MAP
+		pha
+
+		lda	#POLYGON_SUB3_FUNC_BANK
+		tam	#POLYGON_SUB3_FUNC_MAP
+
+		jsr	_clearBufferColor
+
+		pla
+		tam	#POLYGON_SUB3_FUNC_MAP
+		rts
+
+
+;----------------------------
 switchClearBuffer:
 ;switching the drawing area and clear buffer
 		bbs0	<drawingNo, .jp0
@@ -4867,6 +4921,7 @@ switchClearBuffer:
 ;----------------------------
 clearBuffer:
 ;clear buffer
+;A:DRAWING_NO_0_ADDR or DRAWING_NO_1_ADDR
 		st0	#$00
 		st1	#$00
 		sta	VDC_3
@@ -5395,7 +5450,7 @@ initializePolygonBuffer:
 
 
 ;--------
-		IFDEF SAMPLE_Z_MAX_ONLY
+		IFDEF SAMPLE_Z_MAX
 
 ;polyBufferStart SAMPLE Z = $7FFF
 		movw	polyBufferStart+2, #$7FFF
@@ -5698,7 +5753,7 @@ putHex:
 		rts
 
 
-		IFDEF	USE_SHADING
+		IFDEF	ENABLE_SHADING
 ;----------------------------
 reverseRotationSelect
 		.db	$00, $10, $20, $00, $04, $14, $24, $00, $08, $18, $28, $00, $00, $00, $00, $00,\

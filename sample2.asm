@@ -4,7 +4,7 @@
 ;///////////////////////////
 ;---------------------
 ;System parameters
-SAMPLE_Z_AVG		;Z sample 'average'
+SAMPLE_Z_MAX_ONLY	;Z sample 'maximum only'
 DISPLAY_BOTTOM_192	;bottom line '192'
 SCREEN_Z128		;screen position '128'
 VCE_5M			;VCE clock '5M'
@@ -26,7 +26,7 @@ BRIGHT_CONVERT_8_8	;'8brightnesses 8colors'
 		.zp
 ;---------------------
 modelRotaionZ	.ds	1
-lightRotaionZ	.ds	1
+lightRotaionXZ	.ds	1
 
 
 ;///////////////////////////
@@ -68,7 +68,7 @@ main:
 		jsr	setScreenCenter
 
 		stz	<modelRotaionZ
-		stz	<lightRotaionZ
+		stz	<lightRotaionXZ
 
 		jsr	onScreen
 
@@ -79,15 +79,15 @@ main:
 ;----------------
 .mainLoop:
 		inc	<modelRotaionZ
-		add	<lightRotaionZ, #2
+		add	<lightRotaionXZ, #2
 
 		movw	vertexDataWork+VX, #0
 		movw	vertexDataWork+VY, #16384
 		movw	vertexDataWork+VZ, #0
 
-		mov	<rotationX, <lightRotaionZ
+		mov	<rotationX, <lightRotaionXZ
 		mov	<rotationY, #0
-		mov	<rotationZ, <lightRotaionZ
+		mov	<rotationZ, <lightRotaionXZ
 		mov	<vertexCount, #1
 		mov	<rotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
 		jsr	orderVertexRotation8

@@ -116,8 +116,8 @@
 ;System parameters
 
 ;polygon sample
-;SAMPLE_Z_AVG
-;SAMPLE_Z_MAX
+;SAMPLE_Z_SWITCH
+;SAMPLE_Z_MAX_ONLY
 
 ;bottom line
 ;DISPLAY_BOTTOM_192
@@ -496,7 +496,7 @@ initializePolygonFunction:
 		jsr	initializeRandom
 
 ;initialize systen config
-		lda	#ATTR_SYSTEM_Z_MAX
+		lda	#ATTR_SYSTEM_Z_AVG
 		jsr	setSystemConfig
 
 ;disable interrupt IRQ2
@@ -3015,7 +3015,7 @@ setModel:
 
 ;SAMPLE Z
 ;--------
-		IFDEF SAMPLE_Z_MAX
+		IFDEF SAMPLE_Z_MAX_ONLY
 
 		ldy	#3
 		sta	<mul16a+1
@@ -3328,7 +3328,7 @@ setModel:
 		sta	[polyBufferAddr], y	;COUNT
 
 ;--------
-		IFDEF SAMPLE_Z_MAX
+		IFDEF SAMPLE_Z_MAX_ONLY
 
 .compareZMax:
 		ply
@@ -5450,7 +5450,7 @@ initializePolygonBuffer:
 
 
 ;--------
-		IFDEF SAMPLE_Z_MAX
+		IFDEF SAMPLE_Z_MAX_ONLY
 
 ;polyBufferStart SAMPLE Z = $7FFF
 		movw	polyBufferStart+2, #$7FFF

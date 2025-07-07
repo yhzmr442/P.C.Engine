@@ -1277,6 +1277,9 @@ initializePad:
 ;
 		stz	<padLast
 		mov	<padNow, #$FF
+
+		jsr	getPadData
+
 		stz	<padState
 		rts
 
@@ -2852,15 +2855,15 @@ getReverseRotation:
 
 
 ;----------------------------
-setModelRotation:
+		IFDEF	ENABLE_SHADING
+rotationLightVector:
 ;
 		phx
 		phy
 
-		IFDEF	ENABLE_SHADING
-		movw	transform2DWork0, <lightVectorX
-		movw	transform2DWork0+2, <lightVectorY
-		movw	transform2DWork0+4, <lightVectorZ
+		movw	transform2DWork0, <lightVectorRotX
+		movw	transform2DWork0+2, <lightVectorRotY
+		movw	transform2DWork0+4, <lightVectorRotZ
 
 		ldx	<rotationSelect
 		phx
@@ -2898,9 +2901,55 @@ setModelRotation:
 
 		pla
 		sta	<rotationSelect
+
+
+		ply
+		plx
+		rts
+
 		ENDIF
 
-;rotation
+
+;----------------------------
+setDatasPolygon:
+;
+;eye translation
+		subw	<translationX, #0, <eyeTranslationX
+		subw	<translationY, #0, <eyeTranslationY
+		subw	<translationZ, #0, <eyeTranslationZ
+
+		jsr	vertexTranslationDatas
+
+;eye rotation
+		mov	<rotationX, <eyeRotationX
+		mov	<rotationY, <eyeRotationY
+		mov	<rotationZ, <eyeRotationZ
+
+		lda	<eyeRotationSelect
+		jsr	selectVertexRotation8
+
+		lda	<eyeRotationSelect
+		lsr	a
+		lsr	a
+		jsr	selectVertexRotation8
+
+		lda	<eyeRotationSelect
+		lsr	a
+		lsr	a
+		lsr	a
+		lsr	a
+		jsr	selectVertexRotation8
+
+		jsr	setModel
+
+		rts
+
+
+;----------------------------
+moveModelToVertexDataWork0:
+;
+		phy
+
 		ldy	#$03
 		lda	[modelAddress], y		;vertex data address
 		sta	<vertex0Addr
@@ -2914,13 +2963,50 @@ setModelRotation:
 
 		jsr	moveToTransform2DWork0
 
+		plx
+		rts
+
+
+;----------------------------
+rotationDatas:
+;
 		jsr	orderVertexRotation8
 
-;translation
+		jsr	vertexTranslationDatas
+
+		rts
+
+
+;----------------------------
+setModelRotation:
+
+		phx
+		phy
+
+		IFDEF	ENABLE_SHADING
+		ldy	#6
+		lda	[modelAddress], y
+		iny
+		ora	[modelAddress], y
+		beq	.skipLight
+
+		movw	<lightVectorRotX, <lightVectorX
+		movw	<lightVectorRotY, <lightVectorY
+		movw	<lightVectorRotZ, <lightVectorZ
+
+		jsr	rotationLightVector
+
+.skipLight:
+		ENDIF
+
+;rotation
+		jsr	moveModelToVertexDataWork0
+
+		jsr	orderVertexRotation8
+
+;eye translation
 		subw	<translationX, <eyeTranslationX
-
 		subw	<translationY, <eyeTranslationY
-
 		subw	<translationZ, <eyeTranslationZ
 
 		jsr	vertexTranslationDatas
@@ -2950,6 +3036,116 @@ setModelRotation:
 		;;;ply
 		;;;plx
 		;;;rts
+
+
+
+
+;;;<--;----------------------------
+;setModelRotation:
+;;
+;		phx
+;		phy
+;
+;		IFDEF	ENABLE_SHADING
+;		ldy	#6
+;		lda	[modelAddress], y
+;		iny
+;		ora	[modelAddress], y
+;		beq	.skipLight
+;
+;		movw	transform2DWork0, <lightVectorX
+;		movw	transform2DWork0+2, <lightVectorY
+;		movw	transform2DWork0+4, <lightVectorZ
+;
+;		ldx	<rotationSelect
+;		phx
+;		lda	reverseRotationSelect, x
+;		sta	<rotationSelect
+;
+;		ldx	<rotationX
+;		txa
+;		jsr	getReverseRotation
+;		sta	<rotationX
+;
+;		ldy	<rotationY
+;		tya
+;		jsr	getReverseRotation
+;		sta	<rotationY
+;
+;		lda	<rotationZ
+;		pha
+;		jsr	getReverseRotation
+;		sta	<rotationZ
+;
+;		mov	<vertexCount, #1
+;		jsr	orderVertexRotation8
+;
+;		movw	<lightVectorRotX, transform2DWork0
+;		movw	<lightVectorRotY, transform2DWork0+2
+;		movw	<lightVectorRotZ, transform2DWork0+4
+;
+;		pla
+;		sta	<rotationZ
+;
+;		sty	<rotationY
+;
+;		stx	<rotationX
+;
+;		pla
+;		sta	<rotationSelect
+;.skipLight:
+;		ENDIF
+;
+;;rotation
+;		ldy	#$03
+;		lda	[modelAddress], y		;vertex data address
+;		sta	<vertex0Addr
+;		iny
+;		lda	[modelAddress], y
+;		sta	<vertex0Addr+1
+;
+;		iny
+;		lda	[modelAddress], y		;vertex count
+;		sta	<vertexCount
+;
+;		jsr	moveToTransform2DWork0
+;
+;		jsr	orderVertexRotation8
+;
+;;translation
+;		subw	<translationX, <eyeTranslationX
+;
+;		subw	<translationY, <eyeTranslationY
+;
+;		subw	<translationZ, <eyeTranslationZ
+;
+;		jsr	vertexTranslationDatas
+;
+;;eye rotation
+;		mov	<rotationX, <eyeRotationX
+;		mov	<rotationY, <eyeRotationY
+;		mov	<rotationZ, <eyeRotationZ
+;
+;		lda	<eyeRotationSelect
+;		jsr	selectVertexRotation8
+;
+;		lda	<eyeRotationSelect
+;		lsr	a
+;		lsr	a
+;		jsr	selectVertexRotation8
+;
+;		lda	<eyeRotationSelect
+;		lsr	a
+;		lsr	a
+;		lsr	a
+;		lsr	a
+;		jsr	selectVertexRotation8
+;
+;		bra	setModel+2
+;		;;;jsr	setModel
+;		;;;ply
+;		;;;plx
+;		;;;rts
 
 
 ;----------------------------
@@ -3246,7 +3442,7 @@ setModel:
 		IFDEF	ENABLE_SHADING
 ;shading
 		bbs5	<setModelAttr, .jpShading00
-		jmp	 .jpShading03
+		jmp	.jpShading03
 
 .jpShading00:
 		phy
@@ -4660,7 +4856,7 @@ getAngle:
 		subw	transform2DWork0+VX, <angleX1, <angleX0
 		subw	transform2DWork0+VY, <angleY1, <angleY0
 		subw	transform2DWork0+VZ, <angleZ1, <angleZ0
-		mov	vertexCount, #1
+		mov	<vertexCount, #1
 		jsr	vertexRotationY
 
 		movw	<mul16a, transform2DWork0+VZ
@@ -5086,6 +5282,10 @@ clearSat:
 ;
 		jsr	clearSatBuffer
 
+		mov	<drawingNo, #DRAWING_NO_0
+		jsr	setSatToVram
+
+		mov	<drawingNo, #DRAWING_NO_1
 		jsr	setSatToVram
 
 ;set VRAM_SATB DMA

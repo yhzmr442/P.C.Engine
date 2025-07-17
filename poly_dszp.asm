@@ -35,33 +35,11 @@ work8a			equ	work4a
 work8b			equ	work4c
 
 ;---------------------
-padLast			.ds	1	;bit7 6 5 4 3 2 1 0
-padNow			.ds	1	;   L D R U r S 2 1
-padState		.ds	1
-padState2		.ds	1
-
-;---------------------
-vsyncFlag		.ds	1
-vsyncFlagTemp		.ds	1
-vdpStatus		.ds	1
-vdcR05			.ds	2
-drawingNo		.ds	1
-
-;---------------------
-irqDisableReg		.ds	1
-
-;---------------------
 vertexCount		.ds	1
-vertex0Addr		.ds	2
 
 ;---------------------
-clip2D0Count		.ds	1
-clip2D1Count		.ds	1
-clip2DFlag		.ds	1
-clip2DCheckFlag		.ds	1
-
-;---------------------
-systemConfig		.ds	1
+vertexRotationSin	.ds	2
+vertexRotationCos	.ds	2
 
 ;---------------------
 ;---------------------
@@ -209,6 +187,34 @@ matrixTemp		.ds	4
 ;---------------------
 
 ;---------------------
+padLast			.ds	1	;bit7 6 5 4 3 2 1 0
+padNow			.ds	1	;   L D R U r S 2 1
+padState		.ds	1
+padState2		.ds	1
+
+;---------------------
+vsyncFlag		.ds	1
+vsyncFlagTemp		.ds	1
+vdpStatus		.ds	1
+vdcR05			.ds	2
+drawingNo		.ds	1
+
+;---------------------
+irqDisableReg		.ds	1
+
+;---------------------
+vertex0Addr		.ds	2
+
+;---------------------
+clip2D0Count		.ds	1
+clip2D1Count		.ds	1
+clip2DFlag		.ds	1
+clip2DCheckFlag		.ds	1
+
+;---------------------
+systemConfig		.ds	1
+
+;---------------------
 minEdgeY		.ds	1
 maxEdgeY		.ds	1
 
@@ -230,9 +236,6 @@ rotationY		.ds	1
 rotationZ		.ds	1
 
 rotationSelect		.ds	1
-
-vertexRotationSin	.ds	2
-vertexRotationCos	.ds	2
 
 ;---------------------
 eyeTranslationX		.ds	2

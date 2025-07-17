@@ -94,14 +94,14 @@
 ;$E000-$FFFF	user code/data, reset nmi irq1 irq2 timer functions, polygon function datas
 
 ;VRAM
-;$0000-$03FF	BAT0	1KW
-;$0400-$07FF	BAT1	1KW
-;$0800-$08FF	SAT0	256W
-;$0900-$09FF	SAT1	256W
-;$0A00-$0FFF	CG, SG	1536W
-;$1000-$1FFF	CG, SG	4KW
-;$2000-$4FFF	BUFFER0	12KW
-;$5000-$7FFF	BUFFER1	12KW
+;$0000-$03FF	BAT0		1KW
+;$0400-$07FF	BAT1		1KW
+;$0800-$08FF	SAT0		256W
+;$0900-$09FF	SAT1		256W
+;$0A00-$0FFF	CLEAR DATA	1536W
+;$1000-$1FFF	CG, SG		4KW
+;$2000-$4FFF	BUFFER0		12KW
+;$5000-$7FFF	BUFFER1		12KW
 
 ;ROM BANK
 ;BANK 0		USER CODE/DATA, RESET, NMI, IRQ1, IRQ2, TIMER, POLYGON FUNCTION DATAS
@@ -146,6 +146,9 @@
 ;brightnesses colors
 ;BRIGHT_CONVERT_4_8
 ;BRIGHT_CONVERT_8_8
+
+;clear buffer using DMA
+;CLEAR_BUFFER_DMA
 
 ;----------------------------
 ;vertex data structure
@@ -484,6 +487,10 @@ initializePolygonFunction:
 
 		lda	#DRAWING_NO_1_ADDR
 		jsr	clearBuffer
+
+			IFDEF CLEAR_BUFFER_DMA
+		jsr	clearDmaBuffer
+			ENDIF
 
 ;set main volume
 		lda	#$EE
@@ -3462,9 +3469,8 @@ setModel:
 ;--------
 		ELSE
 ;--------
-
-		tst	#ATTR_SYSTEM_Z_MAX + ATTR_SYSTEM_Z_MIN, <systemConfig
-		jne	.compareZMinMax
+		bbs5	<systemConfig, .compareZAvg
+		jmp	.compareZMinMax
 
 .compareZAvg:
 		ply
@@ -5045,6 +5051,92 @@ clearBuffer:
 		rts
 
 
+			IFDEF CLEAR_BUFFER_DMA
+;----------------------------
+clearDmaBuffer:
+;
+		phx
+		phy
+
+		st012	#$00, #$0A00
+		ldy	#6
+		st0	#$02
+		st1	#$00
+.loop0:
+		clx
+.loop1:
+		st2	#$00
+		dex
+		bne	.loop1
+
+		dey
+		bne	.loop0
+
+		ply
+		plx
+		rts
+
+;----------------------------
+switchClearBufferDma:
+;switching the drawing area and clear buffer
+		bbs0	<drawingNo, .jp0
+
+		lda	#DRAWING_NO_0_ADDR
+		;;;bra	.jp1
+		jmp	clearBufferDma
+
+.jp0:
+		lda	#DRAWING_NO_1_ADDR
+
+;;;.jp1:
+		;;;jsr	clearBufferDma
+		;;;rts
+
+
+;----------------------------
+clearBufferDma:
+;clear buffer
+;A:DRAWING_NO_0_ADDR or DRAWING_NO_1_ADDR
+		st0	#$00
+		st1	#$00
+		ora	#$06
+		sta	VDC_3
+
+		tma	#POLYGON_SUB_FUNC_MAP
+		pha
+
+		tma	#POLYGON_EDGE_FUNC_MAP
+		pha
+
+		lda	#CLEAR_FUNC_BANK
+		tam	#POLYGON_SUB_FUNC_MAP
+
+		lda	#POLYGON_SUB_FUNC_BANK
+		tam	#POLYGON_EDGE_FUNC_MAP
+
+		st0	#$02
+		st1	#$00
+
+		jsr	clearBufferSub + (1024 + 512) * 2
+		jsr	clearBufferSub
+
+		IFDEF DISPLAY_BOTTOM_144
+		jsr	clearBufferSub + (8192 - 2048)
+		ELSE
+		jsr	clearBufferSub
+		ENDIF
+
+		pla
+		tam	#POLYGON_EDGE_FUNC_MAP
+
+		pla
+		tam	#POLYGON_SUB_FUNC_MAP
+
+		rts
+
+			ENDIF
+
+
 ;----------------------------
 setAllPolygonColor:
 ;set all polygon color
@@ -5198,12 +5290,12 @@ irq1PolygonFunction:
 		lda	VDC_0
 		sta	<vdpStatus
 
-		bbr5	<vdpStatus, .jp00
+		bbr5	<vdpStatus, .jpEnd
 
 		lda	<vsyncFlag
 		sta	<vsyncFlagTemp
 
-		bbr7	<vsyncFlag, .jp00
+		bbr7	<vsyncFlag, .jpEnd
 
 		stz	<vsyncFlag
 
@@ -5211,23 +5303,38 @@ irq1PolygonFunction:
 		eor	#$01
 		sta	<drawingNo
 
-		beq	.jp01
+		beq	.jpBuffer0
 
 ;set VRAM_SAT DMA
 		st012	#$13, #$0800
 
 ;set scroll y
 		st012	#$08, #$0000
-		bra	.jp00
 
-.jp01:
+			IFDEF CLEAR_BUFFER_DMA
+;set VRAM_VRAM DMA
+		st012	#$10, #$0A00
+		st012	#$11, #$5000
+		st012	#$12, #$0600
+			ENDIF
+
+		bra	.jpEnd
+
+.jpBuffer0:
 ;set VRAM_SAT DMA
 		st012	#$13, #$0900
 
 ;set scroll y
 		st012	#$08, #$0100
 
-.jp00:
+			IFDEF CLEAR_BUFFER_DMA
+;set VRAM_VRAM DMA
+		st012	#$10, #$0A00
+		st012	#$11, #$2000
+		st012	#$12, #$0600
+			ENDIF
+
+.jpEnd:
 		rts
 
 
@@ -5578,6 +5685,13 @@ setSystemConfig:
 
 
 ;----------------------------
+getSystemConfig:
+;
+		lda	<systemConfig
+		rts
+
+
+;----------------------------
 initializeScreenVsync:
 ;
 		stzw	<vdcR05
@@ -5605,7 +5719,11 @@ putPolygonWithVsync:
 
 		jsr	setSatToVram
 
+			IFDEF CLEAR_BUFFER_DMA
+		jsr	switchClearBufferDma
+			ELSE
 		jsr	switchClearBuffer
+			ENDIF
 
 		jsr	putPolygonBuffer
 

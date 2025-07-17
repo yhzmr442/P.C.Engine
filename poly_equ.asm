@@ -118,7 +118,7 @@ SIN_COS_ONE		.equ	ONE_2_14
 ;----------------------------
 ATTR_SYSTEM_Z_MAX	.equ	%10000000
 ATTR_SYSTEM_Z_MIN	.equ	%01000000
-ATTR_SYSTEM_Z_AVG	.equ	%00000000
+ATTR_SYSTEM_Z_AVG	.equ	%00100000
 
 ;----------------------------
 ATTR_CIRCLE		.equ	%10000000

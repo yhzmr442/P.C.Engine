@@ -11,6 +11,7 @@ VCE_5M			;VCE clock '5M'
 SCREEN_256_240_B	;screen dots '256 * 240'
 ENABLE_SHADING		;flat shading 'enable'
 BRIGHT_CONVERT_8_8	;'8brightnesses 8colors'
+CLEAR_BUFFER_DMA	;clear buffer using DMA
 
 
 ;///////////////////////////
@@ -26,7 +27,6 @@ BRIGHT_CONVERT_8_8	;'8brightnesses 8colors'
 		.zp
 ;---------------------
 modelRotaionZ	.ds	1
-lightRotaionXZ	.ds	1
 
 
 ;///////////////////////////
@@ -68,7 +68,6 @@ main:
 		jsr	setScreenCenter
 
 		stz	<modelRotaionZ
-		stz	<lightRotaionXZ
 
 		jsr	onScreen
 
@@ -78,28 +77,11 @@ main:
 
 ;----------------
 .mainLoop:
-		inc	<modelRotaionZ
-		add	<lightRotaionXZ, #2
-
-		movw	vertexDataWork+VX, #0
-		movw	vertexDataWork+VY, #16384
-		movw	vertexDataWork+VZ, #0
-
-		mov	<rotationX, <lightRotaionXZ
-		mov	<rotationY, #0
-		mov	<rotationZ, <lightRotaionXZ
-		mov	<vertexCount, #1
-		mov	<rotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
-		jsr	orderVertexRotation8
-
-		movw	<lightVectorX, vertexDataWork+VX
-		movw	<lightVectorY, vertexDataWork+VY
-		movw	<lightVectorZ, vertexDataWork+VZ
-
 		jsr	initializePolygonAndSat
 
-		lda	#0
-		jsr	setPolygonColorIndex
+		movw	<lightVectorX, #0
+		movw	<lightVectorY, #0
+		movw	<lightVectorZ, #-16384
 
 		movw	<eyeTranslationX, #0
 		movw	<eyeTranslationY, #0
@@ -109,34 +91,10 @@ main:
 		mov	<eyeRotationZ, #0
 		mov	<eyeRotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
 
-		lda	<lightVectorX+1
-		sta	<translationX
-		jsr	signExt
-		asl	<translationX
-		rol	a
-		sta	<translationX+1
+		lda	#0
+		jsr	setPolygonColorIndex
 
-		lda	<lightVectorY+1
-		sta	<translationY
-		jsr	signExt
-		asl	<translationY
-		rol	a
-		sta	<translationY+1
-
-		lda	<lightVectorZ+1
-		sta	<translationZ
-		jsr	signExt
-		asl	<translationZ
-		rol	a
-		sta	<translationZ+1
-
-		addw	<translationZ, #200
-		mov	<rotationX, #0
-		mov	<rotationY, #0
-		mov	<rotationZ, #0
-		mov	<rotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
-		movw	<modelAddress, #modelLightData
-		jsr	setModelRotation
+		inc	<modelRotaionZ
 
 		movw	<translationX, #0
 		movw	<translationY, #0
@@ -184,8 +142,6 @@ _timer:
 		IRQ_ENTRY
 
 		stz	INTERRUPT_STATE_REG
-
-		jsr	timerPlayDdaFunction
 
 		IRQ_EXIT
 
@@ -258,7 +214,7 @@ polygonColor:
 ;----------------------------
 paletteData:
 ;0000000G GGRRRBBB
-		.dw	$0187, $0020, $0100, $0120, $0004, $0024, $0104, $0124,\
+		.dw	$0000, $0020, $0100, $0120, $0004, $0024, $0104, $0124,\
 			$01B6, $0038, $01C0, $01F8, $0007, $003F, $01C7, $01FF
 		.dw	$0000, $0020, $0100, $0120, $0004, $0024, $0104, $0124,\
 			$01B6, $0038, $01C0, $01F8, $0007, $003F, $01C7, $01FF
@@ -377,17 +333,6 @@ modelDataVector
 		VECTOR_DATA	 -9882,  12890,   2148
 		VECTOR_DATA	 -9882, -12890,   2148
 		VECTOR_DATA	-13332,      0,  -9523
-
-
-;----------------------------
-modelLightData
-		MODEL_DATA	modelLightDataPolygon, 1, modelLightDataVertex, 1, 0
-
-modelLightDataPolygon
-		POLYGON_DATA	ATTR_CIRCLE, $39, 10, 0
-
-modelLightDataVertex
-		VERTEX_DATA	     0,      0,      0
 
 
 ;///////////////////////////

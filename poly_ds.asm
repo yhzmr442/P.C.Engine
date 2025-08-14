@@ -38,17 +38,6 @@ clip2D1			.ds	(8+1)*4
 backCheckWork		.ds	3*4
 
 ;---------------------
-polyLineColorWork_H_P0	.ds	1
-polyLineColorWork_H_P1	.ds	1
-polyLineColorWork_H_P2	.ds	1
-polyLineColorWork_H_P3	.ds	1
-
-polyLineColorWork_L_P0	.ds	1
-polyLineColorWork_L_P1	.ds	1
-polyLineColorWork_L_P2	.ds	1
-polyLineColorWork_L_P3	.ds	1
-
-;---------------------
 polygonColorP0		.ds	128
 polygonColorP1		.ds	128
 polygonColorP2		.ds	128

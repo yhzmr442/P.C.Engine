@@ -1676,43 +1676,6 @@ _initializePsg:
 
 
 ;----------------------------
-_setDda:
-;
-
-		tst	#$FF, <dda0No
-		beq	.jp00
-
-		ora	#$00
-		bmi	.jp01
-
-		cmp	<dda0No
-		beq	.jp02
-		bcs	.funcEnd
-		bra	.jp02
-
-.jp01:
-		and	#$7F
-		cmp	<dda0No
-		bcs	.funcEnd
-
-.jp00:
-		and	#$7F
-
-.jp02:
-		sei
-
-		sta	<dda0No
-		movw	<dda0Address, #$4000
-
-		jsr	startDda
-
-		cli
-
-.funcEnd:
-		rts
-
-
-;----------------------------
 _setCgCharData:
 ;argw0: rom address, argw1: src CG No(0-2047), argw2: dist CG No(0-2047), argw3: character count(1-2048)
 		asl	<argw1

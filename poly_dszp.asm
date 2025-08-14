@@ -71,6 +71,10 @@ polyLineColorDataWork0	.ds	1
 polyLineColorDataWork1	.ds	1
 polyLineColorDataWork2	.ds	1
 polyLineColorDataWork3	.ds	1
+polyLineColorDataWork4	.ds	1
+polyLineColorDataWork5	.ds	1
+polyLineColorDataWork6	.ds	1
+polyLineColorDataWork7	.ds	1
 polyLineDataLow		.ds	1
 polyLineDataHigh	.ds	1
 polyLineLeftAddr	.ds	2
@@ -285,7 +289,3 @@ satBufferAddr		.ds	2
 setBufferSkipNo		.ds	1
 setBufferFirstNo	.ds	1
 setBufferSetNo		.ds	1
-
-;---------------------
-dda0No			.ds	1
-dda0Address		.ds	2

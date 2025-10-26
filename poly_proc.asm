@@ -94,28 +94,29 @@
 ;$E000-$FFFF	user code/data, reset nmi irq1 irq2 timer functions, polygon function datas
 
 ;VRAM
-;$0000-$03FF	BAT0			1KW
-;$0400-$07FF	BAT1			1KW
-;$0800-$08FF	SAT0			256W
-;$0900-$09FF	SAT1			256W
-;$0A00-$0FFF	CG, SG OR CLEAR DATA 	1536W
-;$1000-$1FFF	CG, SG			4KW
-;$2000-$4FFF	BUFFER0			12KW
-;$5000-$7FFF	BUFFER1			12KW
+;$0000-$03FF	BAT0				 1024W( 1KW)
+;$0400-$07FF	BAT1				 1024W( 1KW)
+;$0800-$08FF	SAT0				  256W
+;$0900-$09FF	SAT1				  256W
+;$0A00-$0DFF	CG, SG OR BUFFER CLEAR DATA 	 1024W( 1KW)
+;$0E00-$0FFF	CG, SG OR BUFFER CLEAR DATA	  512W
+;$1000-$1FFF	CG, SG				 4096W( 4KW)
+;$2000-$4FFF	BUFFER0				12288W(12KW)
+;$5000-$7FFF	BUFFER1				12288W(12KW)
 
 ;ROM BANK
 ;BANK 0		USER CODE/DATA, RESET, NMI, IRQ1, IRQ2, TIMER, POLYGON FUNCTION DATAS
 ;BANK 1		POLYGON FUNCTIONS
 ;BANK 2		POLYGON SUB FUNCTIONS, ATAN DATAS
-;BANK 3- 6	EDGE CALCULATION FUNCTIONS
-;BANK 7		BUFFER CLEAR_FUNCTION
+;BANK 3		POLYGON FILL FUNCTIONS, BUFFER CLEAR_FUNCTION
+;BANK 4- 7	EDGE CALCULATION FUNCTIONS
 ;BANK 8-23	MULTIPLICATION DATAS
 ;BANK24-31	DIVISION DATAS
 
 ;----------------------------
 ;System parameters
 
-;polygon sample
+;polygon Z sample
 ;SAMPLE_Z_SWITCH
 ;SAMPLE_Z_MAX_ONLY
 
@@ -147,8 +148,13 @@
 ;BRIGHT_CONVERT_4_8
 ;BRIGHT_CONVERT_8_8
 
+;clear size
+;CLEAR_SIZE_1KW
+;CLEAR_SIZE_2KW
+
 ;clear buffer using DMA
 ;CLEAR_BUFFER_DMA
+;CLEAR_BUFFER_CPU
 
 ;----------------------------
 ;vertex data structure
@@ -1190,6 +1196,23 @@ calcDistance:
 		addq	<sqr32a, <work4a, <mul16c
 
 		jsr	usqrt32
+
+		rts
+
+
+;----------------------------
+rsqrt32:
+;mul16a(very rough value) = 1 / sqrt(sqr32a) * 16384
+		tma	#POLYGON_EDGE_FUNC_MAP
+		pha
+
+		lda	#POLYGON_FILL_FUNC_BANK
+		tam	#POLYGON_EDGE_FUNC_MAP
+
+		jsr	_rsqrt32
+
+		pla
+		tam	#POLYGON_EDGE_FUNC_MAP
 
 		rts
 
@@ -3181,6 +3204,8 @@ setModel:
 
 .setModelJump13:
 ;back side check cancel
+		stz	<work8a+3
+
 		bbr1	<setModelAttr, .setModelJump15
 		jmp	.setModelJump2
 
@@ -3219,7 +3244,6 @@ setModel:
 		lda	<setModelFrontColor
 
 .setModelJump10:
-
 
 		IFDEF	ENABLE_SHADING
 ;shading
@@ -3269,13 +3293,21 @@ setModel:
 
 		jsr	smul16
 		addq	<lightVectorWork, <mul16c
+
+		bbs7	<work8a+3, .jpShading04
+
+		eor	#$FF
+		inc	a
+
+.jpShading04:
+		cmp	#0
 		bpl	.jpShading01
 
 		cla
 		bra	.jpShading02
 
 .jpShading01:
-		ldx	<lightVectorWork+3
+		tax
 		lda	brightConvertData, x
 
 .jpShading02:
@@ -4884,55 +4916,47 @@ switchClearBuffer:
 		bbs0	<drawingNo, .jp0
 
 		lda	#DRAWING_NO_0_ADDR
-		;;;bra	.jp1
+		bra	.jp1
 		jmp	clearBuffer
 
 .jp0:
 		lda	#DRAWING_NO_1_ADDR
 
-;;;.jp1:
-		;;;jsr	clearBuffer
-		;;;rts
+.jp1:
+		jsr	clearBuffer
+		rts
 
 
 ;----------------------------
 clearBuffer:
 ;clear buffer
 ;A:DRAWING_NO_0_ADDR or DRAWING_NO_1_ADDR
+		phx
+
 		st0	#$00
 		st1	#$00
 		sta	VDC_3
 
-		tma	#POLYGON_SUB_FUNC_MAP
-		pha
-
 		tma	#POLYGON_EDGE_FUNC_MAP
 		pha
 
-		lda	#CLEAR_FUNC_BANK
-		tam	#POLYGON_SUB_FUNC_MAP
-
-		lda	#POLYGON_SUB_FUNC_BANK
+		lda	#POLYGON_FILL_FUNC_BANK
 		tam	#POLYGON_EDGE_FUNC_MAP
+
+		ldx	#CLEAR_DMA_COUNT
 
 		st0	#$02
 		st1	#$00
 
+.loop0:
 		jsr	clearBufferSub
-		jsr	clearBufferSub
-
-		IFDEF DISPLAY_BOTTOM_144
-		jsr	clearBufferSub + (8192 - 2048)
-		ELSE
-		jsr	clearBufferSub
-		ENDIF
+		dex
+		bne	.loop0
 
 		pla
 		tam	#POLYGON_EDGE_FUNC_MAP
 
-		pla
-		tam	#POLYGON_SUB_FUNC_MAP
-
+		plx
 		rts
 
 
@@ -4944,7 +4968,7 @@ clearDmaBuffer:
 		phy
 
 		st012	#$00, #$0A00
-		ldy	#6
+		ldy	#CLEAR_BUFFER_COUNT
 		st0	#$02
 		st1	#$00
 .loop0:
@@ -4960,66 +4984,70 @@ clearDmaBuffer:
 		ply
 		plx
 		rts
-
-;----------------------------
-switchClearBufferDma:
-;switching the drawing area and clear buffer
-		bbs0	<drawingNo, .jp0
-
-		lda	#DRAWING_NO_0_ADDR
-		;;;bra	.jp1
-		jmp	clearBufferDma
-
-.jp0:
-		lda	#DRAWING_NO_1_ADDR
-
-;;;.jp1:
-		;;;jsr	clearBufferDma
-		;;;rts
+			ENDIF
 
 
 ;----------------------------
 clearBufferDma:
-;clear buffer
-;A:DRAWING_NO_0_ADDR or DRAWING_NO_1_ADDR
-		st0	#$00
-		st1	#$00
-		ora	#$06
-		sta	VDC_3
-
-		tma	#POLYGON_SUB_FUNC_MAP
-		pha
+;
+		phx
 
 		tma	#POLYGON_EDGE_FUNC_MAP
 		pha
 
-		lda	#CLEAR_FUNC_BANK
-		tam	#POLYGON_SUB_FUNC_MAP
-
-		lda	#POLYGON_SUB_FUNC_BANK
+		lda	#POLYGON_FILL_FUNC_BANK
 		tam	#POLYGON_EDGE_FUNC_MAP
+
+.clearLoop:
+		sei
+		lda	<dmaCount
+		cmp	#CLEAR_DMA_COUNT
+		beq	.clearLoopEnd
+
+		inc	<dmaCount
+
+		tax
+
+		lda	<drawingNo
+		beq	.jpBuffer0
+
+		st0	#$00
+		st1	#$00
+
+		lda	clearDmaAddress, x
+		clc
+		add	#$50
+		sta	VDC_3
+
+		bra	.jpClear00
+
+.jpBuffer0:
+		st0	#$00
+		st1	#$00
+
+		lda	clearDmaAddress, x
+		clc
+		add	#$20
+		sta	VDC_3
+
+.jpClear00:
+		cli
 
 		st0	#$02
 		st1	#$00
 
-		jsr	clearBufferSub + (1024 + 512) * 2
 		jsr	clearBufferSub
 
-		IFDEF DISPLAY_BOTTOM_144
-		jsr	clearBufferSub + (8192 - 2048)
-		ELSE
-		jsr	clearBufferSub
-		ENDIF
+		bra	.clearLoop
+
+.clearLoopEnd:
+		cli
 
 		pla
 		tam	#POLYGON_EDGE_FUNC_MAP
 
-		pla
-		tam	#POLYGON_SUB_FUNC_MAP
-
+		plx
 		rts
-
-			ENDIF
 
 
 ;----------------------------
@@ -5180,9 +5208,11 @@ irq1PolygonFunction:
 		lda	<vsyncFlag
 		sta	<vsyncFlagTemp
 
-		bbr7	<vsyncFlag, .jpEnd
+		bbr7	<vsyncFlag, .jpDma
 
 		stz	<vsyncFlag
+
+		stz	<dmaCount
 
 		lda	<drawingNo
 		eor	#$01
@@ -5196,14 +5226,7 @@ irq1PolygonFunction:
 ;set scroll y
 		st012	#$08, #$0000
 
-			IFDEF CLEAR_BUFFER_DMA
-;set VRAM_VRAM DMA
-		st012	#$10, #$0A00
-		st012	#$11, #$5000
-		st012	#$12, #$0600
-			ENDIF
-
-		bra	.jpEnd
+		bra	.jpDma
 
 .jpBuffer0:
 ;set VRAM_SAT DMA
@@ -5212,11 +5235,47 @@ irq1PolygonFunction:
 ;set scroll y
 		st012	#$08, #$0100
 
+.jpDma:
 			IFDEF CLEAR_BUFFER_DMA
+		lda	<dmaCount
+		cmp	#CLEAR_DMA_COUNT - 1
+		bcs	.jpEnd
+
+		inc	<dmaCount
+		tax
+
+		lda	<drawingNo
+		beq	.jpDma0
+
 ;set VRAM_VRAM DMA
 		st012	#$10, #$0A00
-		st012	#$11, #$2000
-		st012	#$12, #$0600
+		st0	#$11
+		st1	#$00
+
+		lda	clearDmaAddress, x
+		clc
+		add	#$50
+		sta	VDC_3
+
+		st012	#$12, #CLEAR_DMA_SIZE
+
+		st0	#$02
+		bra	.jpEnd
+
+.jpDma0
+;set VRAM_VRAM DMA
+		st012	#$10, #$0A00
+		st0	#$11
+		st1	#$00
+
+		lda	clearDmaAddress, x
+		clc
+		add	#$20
+		sta	VDC_3
+
+		st012	#$12, #CLEAR_DMA_SIZE
+
+		st0	#$02
 			ENDIF
 
 .jpEnd:
@@ -5588,6 +5647,9 @@ initializeScreenVsync:
 ;set drawing No.0
 		mov	<drawingNo, #DRAWING_NO_0
 
+;initialize dma counter
+		mov	<dmaCount, #CLEAR_DMA_COUNT
+
 ;set scroll x
 		st012	#$07, #$0000
 
@@ -5604,11 +5666,7 @@ putPolygonWithVsync:
 
 		jsr	setSatToVram
 
-			IFDEF CLEAR_BUFFER_DMA
-		jsr	switchClearBufferDma
-			ELSE
-		jsr	switchClearBuffer
-			ENDIF
+		jsr	clearBufferDma
 
 		jsr	putPolygonBuffer
 
@@ -5856,11 +5914,11 @@ reverseRotationSelect
 		IFDEF	BRIGHT_CONVERT_8_8
 ;----------------------------
 brightConvertData
-		.db	 8,  8, 16, 16, 24, 24, 32, 32, 40, 40, 48, 48, 48, 56, 56, 56, 56
+		.db	 8,  8,  8, 16, 16, 16, 24, 24, 32, 32, 40, 40, 48, 48, 56, 56, 56
 		ELSE
 ;----------------------------
 brightConvertData
-		.db	 8,  8,  8,  8,  8, 16, 16, 16, 16, 16, 24, 24, 24, 24, 24, 24, 24
+		.db	 8,  8,  8,  8,  8,  8, 16, 16, 16, 16, 16, 16, 24, 24, 24, 24, 24
 		ENDIF
 
 		ENDIF
@@ -5869,11 +5927,6 @@ brightConvertData
 ;////////////////////////////
 		.bank	POLYGON_SUB_FUNC_BANK
 		.org	$4000
-
-;----------------------------
-;for clearBuffer function
-		rts
-
 
 ;----------------------------
 calcCircle_putPoly:
@@ -9240,6 +9293,103 @@ putPolyLineProc1:
 		dw	.centerVDC_02_1 +3*0	;30
 
 
+;----------------------------
+_rsqrt32:
+;mul16a(very rough value) = 1 / sqrt(sqr32a) * 16384
+		phx
+
+		clx
+		lda	<sqr32a+3
+
+.loop0:
+		bmi	.jp00
+
+		inx
+
+		asl	<sqr32a
+		rol	<sqr32a+1
+		rol	<sqr32a+2
+		rol	a
+
+		bra	.loop0
+
+.jp00:
+		stx	<work1a
+
+		tax
+		mov	<sqr32a+1, <sqr32a
+		mov	<sqr32a+2, <sqr32a+1
+		txa
+		asl	a
+		sta	<sqr32a+2
+
+		sec
+		lda	#31 + 127
+		sbc	<work1a
+		lsr	a
+		sta	<sqr32a+3
+		ror	<sqr32a+2
+
+		lsr	<sqr32a+3
+		ror	<sqr32a+2
+		ror	<sqr32a+1
+		ror	<sqr32a
+
+		sec
+		lda	#$DF
+		sbc	<sqr32a
+		sta	<sqr32a
+
+		lda	#$59
+		sbc	<sqr32a+1
+		sta	<sqr32a+1
+
+		lda	#$37
+		sbc	<sqr32a+2
+		sta	<sqr32a+2
+
+		lda	#$5F
+		sbc	<sqr32a+3
+		sta	<sqr32a+3
+
+		lda	<sqr32a+2
+		asl	a
+		rol	<sqr32a+3
+
+		sec
+		lda	#136
+		sbc	<sqr32a+3
+		tax
+
+		lda	<sqr32a+2
+		ora	#$80
+
+		cpx	#0
+.loop1:
+		beq	.jp01
+
+		lsr	a
+		ror	<sqr32a+1
+		ror	<sqr32a
+
+		dex
+		bra	.loop1
+
+.jp01:
+		plx
+		rts
+
+
+;----------------------------
+clearBufferSub:
+			IFDEF CLEAR_SIZE_1KW
+		INCBIN	"clear_1kw.dat"		;  2K
+			ELSE
+		INCBIN	"clear_2kw.dat"		;  3K
+			ENDIF
+		rts
+
+
 ;////////////////////////////
 		.bank	EDGE_FUNC_L_0_1_BANK
 		INCLUDE	"poly_edgeL0_1.asm"	;  8K
@@ -9258,14 +9408,6 @@ putPolyLineProc1:
 ;////////////////////////////
 		.bank	EDGE_FUNC_R_2_3_BANK
 		INCLUDE	"poly_edgeR2_3.asm"	;  8K
-
-
-;////////////////////////////
-		.bank	CLEAR_FUNC_BANK
-		.org	$4000
-
-clearBufferSub:
-		INCBIN	"clear.dat"		;  8K
 
 
 ;////////////////////////////

@@ -10,8 +10,9 @@ SCREEN_Z128		;screen position '128'
 VCE_5M			;VCE clock '5M'
 SCREEN_256_240_B	;screen dots '256 * 240'
 ENABLE_SHADING		;flat shading 'enable'
-BRIGHT_CONVERT_8_8	;'8brightnesses 8colors'
-CLEAR_BUFFER_DMA	;clear buffer using DMA
+BRIGHT_CONVERT_8_8	;'8'brightnesses '8'colors
+CLEAR_SIZE_2KW		;clear size 1.5KW
+CLEAR_BUFFER_DMA	;clear buffer using 'DMA'
 
 
 ;///////////////////////////
@@ -339,7 +340,6 @@ modelDataVector
 ;////////   DATAS   ////////
 ;///////////////////////////
 		INCLUDE	"poly_datas.asm"
-
 
 ;----------------------------
 		.org	$FFF6

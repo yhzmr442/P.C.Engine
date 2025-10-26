@@ -189,6 +189,7 @@ matrixTemp		.ds	4
 ;share area end
 ;---------------------
 ;---------------------
+dmaCount		.ds	1
 
 ;---------------------
 padLast			.ds	1	;bit7 6 5 4 3 2 1 0

@@ -1866,7 +1866,9 @@ _initializeVdc:
 		bne	.resetWaitloop0
 
 ;set vdc
-.vdcdataloop:	lda	vdcData, y
+		cly
+.vdcdataloop:
+		lda	vdcData, y
 		cmp	#$FF
 		beq	.vdcdataend
 		sta	VDC_0

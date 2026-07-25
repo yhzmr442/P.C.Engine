@@ -3,17 +3,10 @@
 ;////////  DEFINE   ////////
 ;///////////////////////////
 ;---------------------
-;System parameters
-SAMPLE_Z_MAX_ONLY	;Z sample 'maximum only'
-DISPLAY_BOTTOM_192	;bottom line '192'
-SCREEN_Z128		;screen position '128'
-VCE_5M			;VCE clock '5M'
-SCREEN_256_240_B	;screen dots '256 * 240'
-ENABLE_SHADING		;flat shading 'enable'
-BRIGHT_CONVERT_8_8	;'8'brightnesses '8'colors
-CLEAR_SIZE_2KW		;clear size 1.5KW
-CLEAR_BUFFER_DMA	;clear buffer using 'DMA'
-
+SCREEN_256_240_B	;screen 256 * 240 dot
+VCE_5M			;VCE Clock 5M
+DISPLAY_BOTTOM_192	;polygon screen 192 line
+SCREEN_Z128
 
 ;///////////////////////////
 ;////////  INCLUDE  ////////
@@ -27,7 +20,7 @@ CLEAR_BUFFER_DMA	;clear buffer using 'DMA'
 ;///////////////////////////
 		.zp
 ;---------------------
-modelRotaionZ	.ds	1
+rot_z		.ds	1
 
 
 ;///////////////////////////
@@ -51,7 +44,6 @@ modelRotaionZ	.ds	1
 
 ;----------------------------
 main:
-;
 		SET_POLYGON_FUNCTION
 
 		jsr	initializePolygonFunction
@@ -68,7 +60,7 @@ main:
 		ldy	#96
 		jsr	setScreenCenter
 
-		stz	<modelRotaionZ
+		stz	<rot_z
 
 		jsr	onScreen
 
@@ -80,9 +72,8 @@ main:
 .mainLoop:
 		jsr	initializePolygonAndSat
 
-		movw	<lightVectorX, #0
-		movw	<lightVectorY, #0
-		movw	<lightVectorZ, #-16384
+		lda	#0
+		jsr	setPolygonColorIndex
 
 		movw	<eyeTranslationX, #0
 		movw	<eyeTranslationY, #0
@@ -92,17 +83,12 @@ main:
 		mov	<eyeRotationZ, #0
 		mov	<eyeRotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
 
-		lda	#0
-		jsr	setPolygonColorIndex
-
-		inc	<modelRotaionZ
-
 		movw	<translationX, #0
 		movw	<translationY, #0
 		movw	<translationZ, #200
 		mov	<rotationX, #32
 		mov	<rotationY, #64
-		mov	<rotationZ, <modelRotaionZ
+		mov	<rotationZ, <rot_z
 		mov	<rotationSelect, #ROT_FIRST_Z + ROT_SECOND_X + ROT_THIRD_Y
 		movw	<modelAddress, #modelData
 		jsr	setModelRotation
@@ -110,6 +96,8 @@ main:
 		jsr	putPolygonWithVsync
 
 		jsr	setVsyncFlag
+
+		inc	<rot_z
 
 		jmp	.mainLoop
 
@@ -169,51 +157,51 @@ _reset:
 ;--------    DATA    --------
 ;----------------------------
 ;----------------------------
-polygonColor:
+polygonColor
 ;128 pattern
 		;CH0
-		.db	$00, $00, $00, $00, $00, $00, $00, $00, $88, $88, $88, $88, $00, $00, $00, $00,\
-			$AA, $AA, $AA, $AA, $00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $00, $00, $00,\
-			$55, $55, $55, $55, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$AA, $AA, $AA, $AA, $00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+		.db	$00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF,\
+			$00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $55, $FF, $55, $00, $AA, $FF, $FF,\
+			$00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF,\
+			$00, $00, $00, $FF, $00, $FF, $00, $FF, $00, $AA, $FF, $AA, $00, $55, $FF, $FF
+		.db	$00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF,\
+			$00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $55, $FF, $55, $00, $AA, $FF, $FF,\
+			$00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF,\
+			$00, $00, $00, $FF, $00, $FF, $00, $FF, $00, $AA, $FF, $AA, $00, $55, $FF, $FF
 
 		;CH1
-		.db	$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$AA, $AA, $AA, $AA, $00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $00, $00, $00,\
-			$FF, $FF, $FF, $FF, $00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+		.db	$00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF,\
+			$00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $55, $FF, $55, $00, $AA, $FF, $FF,\
+			$00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF,\
+			$00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $AA, $FF, $AA, $00, $55, $FF, $FF
+		.db	$00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF,\
+			$00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $55, $FF, $55, $00, $AA, $FF, $FF,\
+			$00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $00, $FF, $FF,\
+			$00, $00, $FF, $FF, $00, $00, $FF, $FF, $00, $AA, $FF, $AA, $00, $55, $FF, $FF
 
 		;CH2
-		.db	$00, $FF, $00, $FF, $00, $00, $00, $00, $00, $FF, $00, $FF, $00, $00, $00, $00,\
-			$00, $FF, $00, $FF, $00, $00, $00, $00, $00, $FF, $00, $FF, $00, $00, $00, $00,\
-			$00, $FF, $00, $FF, $00, $00, $00, $00, $00, $FF, $00, $FF, $00, $00, $00, $00,\
-			$00, $FF, $00, $FF, $00, $00, $00, $00, $00, $FF, $00, $FF, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+		.db	$00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $00, $00, $00, $FF, $FF, $FF, $FF,\
+			$00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $55, $FF, $55, $00, $AA, $FF, $FF,\
+			$00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $00, $00, $00, $FF, $FF, $FF, $FF,\
+			$00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $AA, $FF, $AA, $00, $55, $FF, $FF
+		.db	$00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $00, $00, $00, $FF, $FF, $FF, $FF,\
+			$00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $55, $FF, $55, $00, $AA, $FF, $FF,\
+			$00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $00, $00, $00, $FF, $FF, $FF, $FF,\
+			$00, $00, $00, $00, $FF, $FF, $FF, $FF, $00, $AA, $FF, $AA, $00, $55, $FF, $FF
 
 		;CH3
-		.db	$00, $00, $FF, $FF, $00, $00, $00, $00, $00, $00, $FF, $FF, $00, $00, $00, $00,\
-			$00, $00, $FF, $FF, $00, $00, $00, $00, $00, $00, $FF, $FF, $00, $00, $00, $00,\
-			$00, $00, $FF, $FF, $00, $00, $00, $00, $00, $00, $FF, $FF, $00, $00, $00, $00,\
-			$00, $00, $FF, $FF, $00, $00, $00, $00, $00, $00, $FF, $FF, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,\
-			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+		.db	$00, $00, $00, $00, $00, $00, $00, $00, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,\
+			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $AA, $FF, $FF, $FF, $FF,\
+			$00, $00, $00, $00, $00, $00, $00, $00, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,\
+			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $55, $FF, $FF, $FF, $FF
+		.db	$00, $00, $00, $00, $00, $00, $00, $00, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,\
+			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $AA, $FF, $FF, $FF, $FF,\
+			$00, $00, $00, $00, $00, $00, $00, $00, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF,\
+			$00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $55, $FF, $FF, $FF, $FF
 
 
 ;----------------------------
-paletteData:
+paletteData
 ;0000000G GGRRRBBB
 		.dw	$0000, $0020, $0100, $0120, $0004, $0024, $0104, $0124,\
 			$01B6, $0038, $01C0, $01F8, $0007, $003F, $01C7, $01FF
@@ -245,8 +233,8 @@ paletteData:
 			$01B6, $0038, $01C0, $01F8, $0007, $003F, $01C7, $01FF
 		.dw	$0000, $0020, $0100, $0120, $0004, $0024, $0104, $0124,\
 			$01B6, $0038, $01C0, $01F8, $0007, $003F, $01C7, $01FF
-		.dw	$0000, $0092, $0124, $01B6, $0008, $0018, $0028, $0038,\
-			$0001, $0003, $0005, $0007, $0049, $00DB, $016D, $01FF
+		.dw	$0000, $0020, $0100, $0120, $0004, $0024, $0104, $0124,\
+			$01B6, $0038, $01C0, $01F8, $0007, $003F, $01C7, $01FF
 
 		.dw	$0000, $0020, $0100, $0120, $0004, $0024, $0104, $0124,\
 			$01B6, $0038, $01C0, $01F8, $0007, $003F, $01C7, $01FF
@@ -284,24 +272,24 @@ paletteData:
 
 ;----------------------------
 modelData
-		MODEL_DATA	modelDataPolygon, 13, modelDataVertex, 13, modelDataVector
+		MODEL_DATA	modelDataPolygon, 13, modelDataVertex, 13
 
 modelDataPolygon
-		POLYGON_DATA	ATTR_BACKDRAW_CXL+ATTR_SHADING, $03, $00,  0,  1,  2,  3	;center bottom
-		POLYGON_DATA	ATTR_BACKDRAW_CXL+ATTR_SHADING, $02, $00,  0,  3,  4		;center front left
-		POLYGON_DATA	ATTR_BACKDRAW_CXL+ATTR_SHADING, $02, $00,  0,  4,  1		;center front right
-		POLYGON_DATA	ATTR_BACKDRAW_CXL+ATTR_SHADING, $03, $00,  4,  3,  2		;center back left
-		POLYGON_DATA	ATTR_BACKDRAW_CXL+ATTR_SHADING, $03, $00,  4,  2,  1		;center back right
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $07, $00,  0,  1,  2,  3	;center bottom
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $04, $00,  0,  3,  4		;center front left
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $0C, $00,  0,  4,  1		;center front right
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $08, $00,  4,  3,  2		;center back left
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $0F, $00,  4,  2,  1		;center back right
 
-		POLYGON_DATA	ATTR_BACKDRAW_CXL+ATTR_SHADING, $03, $00,  5,  7,  6		;right center
-		POLYGON_DATA	ATTR_BACKDRAW_CXL+ATTR_SHADING, $03, $00,  5,  6,  8		;right front top
-		POLYGON_DATA	ATTR_BACKDRAW_CXL+ATTR_SHADING, $03, $00,  5,  8,  7		;right front bottom
-		POLYGON_DATA	ATTR_BACKDRAW_CXL+ATTR_SHADING, $01, $00,  6,  7,  8		;right back
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $08, $00,  5,  7,  6		;right center
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $0F, $00,  5,  6,  8		;right front top
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $07, $00,  5,  8,  7		;right front bottom
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $09, $00,  6,  7,  8		;right back
 
-		POLYGON_DATA	ATTR_BACKDRAW_CXL+ATTR_SHADING, $03, $00,  9, 10, 11		;left center
-		POLYGON_DATA	ATTR_BACKDRAW_CXL+ATTR_SHADING, $03, $00,  9, 12, 10		;left front top
-		POLYGON_DATA	ATTR_BACKDRAW_CXL+ATTR_SHADING, $03, $00,  9, 11, 12		;left front bottom
-		POLYGON_DATA	ATTR_BACKDRAW_CXL+ATTR_SHADING, $01, $00, 10, 12, 11		;left back
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $08, $00,  9, 10, 11		;left center
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $0F, $00,  9, 12, 10		;left front top
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $07, $00,  9, 11, 12		;left front bottom
+		POLYGON_DATA	ATTR_BACKDRAW_CXL, $09, $00, 10, 12, 11		;left back
 
 modelDataVertex
 		VERTEX_DATA	    0,    0,  100	;0
@@ -320,26 +308,12 @@ modelDataVertex
 		VERTEX_DATA	  -40,  -25,  -50	;11
 		VERTEX_DATA	  -65,    0,  -15	;12
 
-modelDataVector
-		VECTOR_DATA	     0, -16384,      0
-		VECTOR_DATA	-11408,  11408,   2852
-		VECTOR_DATA	 11408,  11408,   2852
-		VECTOR_DATA	-10923,  10923,  -5461
-		VECTOR_DATA	 10923,  10923,  -5461
-		VECTOR_DATA	-16384,      0,      0
-		VECTOR_DATA	  9882,  12890,   2148
-		VECTOR_DATA	  9882, -12890,   2148
-		VECTOR_DATA	 13332,      0,  -9523
-		VECTOR_DATA	 16384,      0,      0
-		VECTOR_DATA	 -9882,  12890,   2148
-		VECTOR_DATA	 -9882, -12890,   2148
-		VECTOR_DATA	-13332,      0,  -9523
-
 
 ;///////////////////////////
 ;////////   DATAS   ////////
 ;///////////////////////////
 		INCLUDE	"poly_datas.asm"
+
 
 ;----------------------------
 		.org	$FFF6

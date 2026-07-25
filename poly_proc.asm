@@ -60,7 +60,7 @@
 
 ;----------------------------
 ;screen position
-;--------------- Z:+128 or +192
+;--------------- Z:+128 or +192 or +220
 ;\      |      /
 ; \     |     /
 ;  \    |    /
@@ -71,396 +71,80 @@
 ;    viewpoint   Z:0
 
 ;----------------------------
-;shading
-;light vector__        __normal vector
-;           |\          /|
-;             \        /
-;              \      /
-;               \    /
-;                \  /
-;                 \/
-;           --------------polygon
-
-;----------------------------
 ;memory map
 ;CPU
 ;$0000-$1FFF	I/O
 ;$2000-$3FFF	RAM
-;$4000-$5FFF	user code/data, sin mul datas, mul datas, transform div datas, atan datas, polygon functions : switch when using
-;$6000-$7FFF	user code/data, cos mul datas, edge functions : switch when using
+;$4000-$5FFF	user code/data, mul datas, transform div datas, atan datas, polygon functions : switch when using
+;$6000-$7FFF	user code/data, mul datas, edge functions : switch when using
 ;$8000-$9FFF	user code/data
 ;$A000-$BFFF	user code/data
 ;$C000-$DFFF	polygon functions
 ;$E000-$FFFF	user code/data, reset nmi irq1 irq2 timer functions, polygon function datas
 
 ;VRAM
-;$0000-$03FF	BAT0				 1024W( 1KW)
-;$0400-$07FF	BAT1				 1024W( 1KW)
-;$0800-$08FF	SAT0				  256W
-;$0900-$09FF	SAT1				  256W
-;$0A00-$0DFF	CG, SG OR BUFFER CLEAR DATA 	 1024W( 1KW)
-;$0E00-$0FFF	CG, SG OR BUFFER CLEAR DATA	  512W
-;$1000-$1FFF	CG, SG				 4096W( 4KW)
-;$2000-$4FFF	BUFFER0				12288W(12KW)
-;$5000-$7FFF	BUFFER1				12288W(12KW)
+;$0000-$03FF	BAT0	1KW
+;$0400-$07FF	BAT1	1KW
+;$0800-$08FF	SAT0	256W
+;$0900-$09FF	SAT1	256W
+;$0A00-$0FFF	CG, SG	1536W
+;$1000-$1FFF	CG, SG	4KW
+;$2000-$4FFF	BUFFER0	12KW
+;$5000-$7FFF	BUFFER1	12KW
 
 ;ROM BANK
 ;BANK 0		USER CODE/DATA, RESET, NMI, IRQ1, IRQ2, TIMER, POLYGON FUNCTION DATAS
 ;BANK 1		POLYGON FUNCTIONS
 ;BANK 2		POLYGON SUB FUNCTIONS, ATAN DATAS
-;BANK 3		POLYGON FILL FUNCTIONS, BUFFER CLEAR_FUNCTION
-;BANK 4- 7	EDGE CALCULATION FUNCTIONS
+;BANK 3- 6	EDGE CALCULATION FUNCTIONS
+;BANK 7		BUFFER CLEAR_FUNCTION
 ;BANK 8-23	MULTIPLICATION DATAS
 ;BANK24-31	DIVISION DATAS
 
 ;----------------------------
-;System parameters
+;define
 
-;polygon Z sample
-;SAMPLE_Z_SWITCH
+;SAMPLE_Z_AVG		default
 ;SAMPLE_Z_MAX_ONLY
 
-;bottom line
-;DISPLAY_BOTTOM_192
+;DISPLAY_BOTTOM_192	default
 ;DISPLAY_BOTTOM_144
 
-;screen position
-;SCREEN_Z128
+;SCREEN_Z128		default
 ;SCREEN_Z192
+;SCREEN_Z220
 
-;VCE clock
-;VCE_5M
+;VCE_5M			default
 ;VCE_7M
 ;VCE_10M
 
-;VDC setting
 ;SCREEN_256_240_A
 ;SCREEN_256_240_B
 ;SCREEN_256_240_7MHZ
 ;SCREEN_256_192
 ;SCREEN_256_224
 
-;flat shading
-;ENABLE_SHADING
-;DISABLE_SHADING
-
-;brightnesses colors
-;BRIGHT_CONVERT_4_8
-;BRIGHT_CONVERT_8_8
-
-;clear size
-;CLEAR_SIZE_1KW
-;CLEAR_SIZE_2KW
-
-;clear buffer using DMA
-;CLEAR_BUFFER_DMA
-;CLEAR_BUFFER_CPU
-
-;----------------------------
-;vertex data structure
-;|v1 v2 v3|
-
-;----------------------------
-;matrix data structure
-;|a11 a21 a31|
-;|a12 a22 a32|
-;|a13 a23 a33|
-
 
 ;//////////////////////////////////
 		.bank	POLYGON_FUNC_BANK
 		.org	$C000
 
-;----------------------------
-;Warning.
-;Using the matrix will slow down.
-;----------------------------
-setZeroMatrix:
-;|   0    0    0|
-;|   0    0    0|
-;|   0    0    0|
+;===============================================================================
+; initializePolygonFunction
+;-------------------------------------------------------------------------------
+; Description:
+;   Initializes the polygon rendering library.
 ;
-		phy
-
-		cla
-		cly
-.loop0:
-		sta	[matrix0], y
-		iny
-		cpy	#18
-		bne	.loop0
-
-		ply
-		rts
-
-
-;----------------------------
-setMatrixRotationZ:
-;| cos  sin    0|
-;|-sin  cos    0|
-;|   0    0    1|
+; Inputs:
+;   None
 ;
-		phx
-		phy
-
-		jsr	setZeroMatrix
-
-		ldy	#(0*3+1)*2
-		lda	sinDataLow, x			;sin
-		sta	[matrix0], y
-		iny
-		lda	sinDataHigh, x
-		sta	[matrix0], y
-
-		ldy	#(1*3+0)*2
-		sec
-		cla
-		sbc	sinDataLow, x			;sin
-		sta	[matrix0], y
-		iny
-		cla
-		sbc	sinDataHigh, x
-		sta	[matrix0], y
-
-		ldy	#(0*3+0)*2
-		lda	cosDataLow, x			;cos
-		sta	[matrix0], y
-		iny
-		lda	cosDataHigh, x
-		sta	[matrix0], y
-
-		ldy	#(1*3+1)*2
-		lda	cosDataLow, x			;cos
-		sta	[matrix0], y
-		iny
-		lda	cosDataHigh, x
-		sta	[matrix0], y
-
-		ldy	#(2*3+2)*2
-		lda	#LOW(SIN_COS_ONE)
-		sta	[matrix0], y
-		iny
-		lda	#HIGH(SIN_COS_ONE)
-		sta	[matrix0], y
-
-		ply
-		plx
-		rts
-
-
-;----------------------------
-setMatrixRotationY:
-;| cos    0  sin|
-;|   0    1    0|
-;|-sin    0  cos|
+; Outputs:
+;   None
 ;
-		phx
-		phy
-
-		jsr	setZeroMatrix
-
-		ldy	#(0*3+2)*2
-		lda	sinDataLow, x			;sin
-		sta	[matrix0], y
-		iny
-		lda	sinDataHigh, x
-		sta	[matrix0], y
-
-		ldy	#(2*3+0)*2
-		sec
-		cla
-		sbc	sinDataLow, x			;sin
-		sta	[matrix0], y
-		iny
-		cla
-		sbc	sinDataHigh, x
-		sta	[matrix0], y
-
-		ldy	#(0*3+0)*2
-		lda	cosDataLow, x			;cos
-		sta	[matrix0], y
-		iny
-		lda	cosDataHigh, x
-		sta	[matrix0], y
-
-		ldy	#(2*3+2)*2
-		lda	cosDataLow, x			;cos
-		sta	[matrix0], y
-		iny
-		lda	cosDataHigh, x
-		sta	[matrix0], y
-
-		ldy	#(1*3+1)*2
-		lda	#LOW(SIN_COS_ONE)
-		sta	[matrix0], y
-		iny
-		lda	#HIGH(SIN_COS_ONE)
-		sta	[matrix0], y
-
-		ply
-		plx
-		rts
-
-
-;----------------------------
-setMatrixRotationX:
-;|   1    0    0|
-;|   0  cos -sin|
-;|   0  sin  cos|
-;
-		phx
-		phy
-
-		jsr	setZeroMatrix
-
-		ldy	#(2*3+1)*2
-		lda	sinDataLow, x			;sin
-		sta	[matrix0], y
-		iny
-		lda	sinDataHigh, x
-		sta	[matrix0], y
-
-		ldy	#(1*3+2)*2
-		sec
-		cla
-		sbc	sinDataLow, x			;sin
-		sta	[matrix0], y
-		iny
-		cla
-		sbc	sinDataHigh, x
-		sta	[matrix0], y
-
-		ldy	#(1*3+1)*2
-		lda	cosDataLow, x			;cos
-		sta	[matrix0], y
-		iny
-		lda	cosDataHigh, x
-		sta	[matrix0], y
-
-		ldy	#(2*3+2)*2
-		lda	cosDataLow, x			;cos
-		sta	[matrix0], y
-		iny
-		lda	cosDataHigh, x
-		sta	[matrix0], y
-
-		ldy	#(0*3+0)*2
-		lda	#LOW(SIN_COS_ONE)
-		sta	[matrix0], y
-		iny
-		lda	#HIGH(SIN_COS_ONE)
-		sta	[matrix0], y
-
-		ply
-		plx
-		rts
-
-
-;----------------------------
-vertexMultiplyDatas:
-;
-		phx
-
-		ldx	<vertexCount
-.loop0:
-		jsr	vertexMultiply
-		addw	<matrix0, #6
-		addw	<matrix2, #6
-		dex
-		bne	.loop0
-
-		plx
-		rts
-
-
-;----------------------------
-matrixMultiply:
-;
-		jsr	vertexMultiply
-
-		addw	<matrix0, #6
-		addw	<matrix2, #6
-		jsr	vertexMultiply
-
-		addw	<matrix0, #6
-		addw	<matrix2, #6
-		;;;jsr	vertexMultiply
-		;;;rts
-
-
-;----------------------------
-vertexMultiply:
-;
-		phx
-		phy
-
-		clx
-.loop0:
-		phx
-		cly
-
-		stzq	<matrixTemp
-
-.loop1:
-		lda	[matrix0], y
-		sta	<mul16a
-		iny
-		lda	[matrix0], y
-		sta	<mul16a+1
-		iny
-
-		sxy
-
-		lda	[matrix1], y
-		sta	<mul16b
-		iny
-		lda	[matrix1], y
-		sta	<mul16b+1
-		iny
-
-		jsr	smul16
-
-		addq	<matrixTemp, <mul16c, <matrixTemp
-
-		iny
-		iny
-		iny
-		iny
-
-		sxy
-		cpy	#6
-		bne	.loop1
-
-		plx
-
-		txa
-		tay
-
-		lda	<matrixTemp+2
-		asl	<matrixTemp+1
-		rol	a
-		rol	<matrixTemp+3
-		asl	<matrixTemp+1
-		rol	a
-		rol	<matrixTemp+3
-		sta	[matrix2], y
-		iny
-		lda	<matrixTemp+3
-		sta	[matrix2], y
-
-		inx
-		inx
-		cpx	#6
-		bne	.loop0
-
-		ply
-		plx
-		rts
-
-
-;----------------------------
+; Modifies:
+;   A, X
+;===============================================================================
 initializePolygonFunction:
-;enable interrupt TIMER IRQ1 disable interrupt IRQ2
 ;set tia tii function
 		jsr	setTiaTiiFunction
 
@@ -494,10 +178,6 @@ initializePolygonFunction:
 		lda	#DRAWING_NO_1_ADDR
 		jsr	clearBuffer
 
-			IFDEF CLEAR_BUFFER_DMA
-		jsr	clearDmaBuffer
-			ENDIF
-
 ;set main volume
 		lda	#$EE
 		jsr	setMainVolume
@@ -506,7 +186,7 @@ initializePolygonFunction:
 		jsr	initializeRandom
 
 ;initialize systen config
-		lda	#ATTR_SYSTEM_Z_AVG
+		lda	#ATTR_SYSTEM_Z_MAX
 		jsr	setSystemConfig
 
 ;disable interrupt IRQ2
@@ -516,32 +196,97 @@ initializePolygonFunction:
 		rts
 
 
-;----------------------------
-setMainVolume:
+;===============================================================================
+; setMainVolume
+;-------------------------------------------------------------------------------
+; Description:
+;   Sets the main volume.
 ;
+; Inputs:
+;   A : Volume
+;
+; Outputs:
+;   None
+;
+; Modifies:
+;   None
+;===============================================================================
+setMainVolume:
 		sta	PSG_1
 		rts
 
 
-;----------------------------
-initializePsg:
+;===============================================================================
+; initializePsg:
+;-------------------------------------------------------------------------------
+; Description:
+;   Initializes PSG.
 ;
-		tma	#POLYGON_SUB2_FUNC_MAP
-		pha
+; Inputs:
+;   None
+;
+; Outputs:
+;   None
+;
+; Modifies:
+;   A
+;===============================================================================
+initializePsg:
+		phx
+		phy
 
-		lda	#POLYGON_SUB2_FUNC_BANK
-		tam	#POLYGON_SUB2_FUNC_MAP
+		stz	PSG_0
+		stz	PSG_1
+		stz	PSG_8
+		stz	PSG_9
 
-		jsr	_initializePsg
+		cly
+.loop0:
+		sty	PSG_0
+		stz	PSG_2
+		stz	PSG_3
+		mov	PSG_4, #$40
+		stz	PSG_4
+		stz	PSG_5
 
-		pla
-		tam	#POLYGON_SUB2_FUNC_MAP
+		clx
+.loop1:
+		stz	PSG_6
+		inx
+		cpx	#32
+		bne	.loop1
+
+		iny
+		cpy	#6
+		bne	.loop0
+
+		mov	PSG_0, #4
+		stz	PSG_7
+
+		mov	PSG_0, #5
+		stz	PSG_7
+
+		ply
+		plx
 		rts
 
 
-;----------------------------
+;===============================================================================
+; signExt
+;-------------------------------------------------------------------------------
+; Description:
+;   Returns the sign extension of register A.
+;
+; Inputs:
+;   A : Value to be extended
+;
+; Outputs:
+;   A : $00(Plus), $FF(Minus)
+;
+; Modifies:
+;   A
+;===============================================================================
 signExt:
-;A(sign extension) = A
 		and	#$80
 		beq	.convPositive
 		lda	#$FF
@@ -549,9 +294,26 @@ signExt:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; sdiv32
+;-------------------------------------------------------------------------------
+; Description:
+;   Performs signed division: 32-bit dividend / 16-bit divisor.
+;   Formula: div16a div16b = div16d : div16c / div16a
+;
+; Inputs:
+;   [div16c] (2 bytes) : Lower 16 bits of dividend
+;   [div16d] (2 bytes) : Upper 16 bits of dividend
+;   [div16a] (2 bytes) : 16-bit divisor
+;
+; Outputs:
+;   [div16a] (2 bytes) : 16-bit quotient
+;   [div16b] (2 bytes) : 16-bit 16-bit remainder
+;
+; Modifies:
+;   A
+;===============================================================================
 sdiv32:
-;div16a div16b = div16d:div16c / div16a(-32767 to +32767)
 		phx
 		phy
 
@@ -645,9 +407,26 @@ sdiv32:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; udiv32
+;-------------------------------------------------------------------------------
+; Description:
+;   Performs unsigned division: 32-bit dividend / 16-bit divisor.
+;   Formula: div16a div16b = div16d : div16c / div16a
+;
+; Inputs:
+;   [div16c] (2 bytes) : Lower 16 bits of dividend
+;   [div16d] (2 bytes) : Upper 16 bits of dividend
+;   [div16a] (2 bytes) : 16-bit divisor
+;
+; Outputs:
+;   [div16a] (2 bytes) : 16-bit quotient
+;   [div16b] (2 bytes) : 16-bit 16-bit remainder
+;
+; Modifies:
+;   A
+;===============================================================================
 udiv32:
-;div16a div16b = div16d:div16c / div16a
 		phx
 		phy
 
@@ -754,9 +533,26 @@ udiv32:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; udiv30
+;-------------------------------------------------------------------------------
+; Description:
+;   Performs unsigned division: 30-bit dividend / 15-bit divisor.
+;   Formula: div16a div16b = div16d : div16c / div16a
+;
+; Inputs:
+;   [div16c] (2 bytes) : Lower 16 bits of dividend
+;   [div16d] (2 bytes) : Upper 16 bits of dividend
+;   [div16a] (2 bytes) : 16-bit divisor
+;
+; Outputs:
+;   [div16a] (2 bytes) : 16-bit quotient
+;   [div16b] (2 bytes) : 16-bit 16-bit remainder
+;
+; Modifies:
+;   A
+;===============================================================================
 udiv30:
-;div16a div16b = div16d:div16c(30bit) / div16a(15bit)
 		phx
 		phy
 
@@ -767,9 +563,26 @@ udiv30:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; _udiv30
+;-------------------------------------------------------------------------------
+; Description:
+;   Performs unsigned division: 30-bit dividend / 15-bit divisor.
+;   Formula: div16a div16b = div16d : div16c / div16a
+;
+; Inputs:
+;   [div16c] (2 bytes) : Lower 16 bits of dividend
+;   [div16d] (2 bytes) : Upper 16 bits of dividend
+;   [div16a] (2 bytes) : 16-bit divisor
+;
+; Outputs:
+;   [div16a] (2 bytes) : 16-bit quotient
+;   [div16b] (2 bytes) : 16-bit 16-bit remainder
+;
+; Modifies:
+;   A, X, Y
+;===============================================================================
 _udiv30:
-;div16a div16b = div16d:div16c(30bit) / div16a(15bit)
 ;dec div16a
 		lda	<div16a
 		bne	.jp00
@@ -975,10 +788,25 @@ _udiv30:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; smul16
+;-------------------------------------------------------------------------------
+; Description:
+;   Performs signed multiplication of two 16-bit integers.
+;   Formula: mul16d : mul16c = mul16a * mul16b
+;
+; Inputs:
+;   [mul16a] (2 bytes) : Multiplicand
+;   [mul16b] (2 bytes) : Multiplier
+;
+; Outputs:
+;   [mul16c] (2 bytes) : Lower 16 bits of product
+;   [mul16d] (2 bytes) : Upper 16 bits of product
+;
+; Modifies:
+;   A
+;===============================================================================
 smul16:
-;mul16d:mul16c = mul16a * mul16b
-
 ;a eor b sign
 		lda	<mul16a+1
 		eor	<mul16b+1
@@ -1048,9 +876,25 @@ initializeUmul16:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; umul16
+;-------------------------------------------------------------------------------
+; Description:
+;   Performs unsigned multiplication of two 16-bit integers.
+;   Formula: mul16d : mul16c = mul16a * mul16b
+;
+; Inputs:
+;   [mul16a] (2 bytes) : Multiplicand
+;   [mul16b] (2 bytes) : Multiplier
+;
+; Outputs:
+;   [mul16c] (2 bytes) : Lower 16 bits of product
+;   [mul16d] (2 bytes) : Upper 16 bits of product
+;
+; Modifies:
+;   A
+;===============================================================================
 umul16:
-;mul16d:mul16c = mul16a * mul16b
 		phy
 
 ;save MPR2 data
@@ -1125,9 +969,23 @@ umul16:
 		rts
 
 
-;----------------------------
-usqrt32:
-;mul16c = sqrt(sqr32a)
+;===============================================================================
+; sqrt32
+;-------------------------------------------------------------------------------
+; Description:
+;   Calculates the 16-bit square root of a 32-bit unsigned integer.
+;   Formula: mul16c = sqrt(sqr32a)
+;
+; Inputs:
+;   [sqr32a] (4 bytes) : 32-bit unsigned integer (Radicand)
+;
+; Outputs:
+;   [mul16c] (2 bytes) : 16-bit square root (Result)
+;
+; Modifies:
+;   A
+;===============================================================================
+sqrt32:
 		phx
 		phy
 
@@ -1177,9 +1035,28 @@ usqrt32:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; calcDistance
+;-------------------------------------------------------------------------------
+; Description:
+;   Calculates the Euclidean distance between two 2D points.
+;   Formula: mul16c = sqrt((x2 - x1)^2 + (y2 - y1)^2 + (z2 - z1)^2)
+;
+; Inputs:
+;   [angleX0] (2 bytes) : X coordinate of first point (x1)
+;   [angleY0] (2 bytes) : Y coordinate of first point (y1)
+;   [angleZ0] (2 bytes) : Y coordinate of first point (z1)
+;   [angleX1] (2 bytes) : X coordinate of first point (x2)
+;   [angleY1] (2 bytes) : Y coordinate of first point (y2)
+;   [angleZ1] (2 bytes) : Y coordinate of first point (z2)
+;
+; Outputs:
+;   [mul16c] (2 bytes)  : 16-bit calculated distance
+;
+; Modifies:
+;   A, X, Y
+;===============================================================================
 calcDistance:
-;mul16c = (angleX0, angleY0, angleZ0)  (angleX1, angleY1, angleZ1)
 		subw	<mul16a, <angleX1, <angleX0
 		movw	<mul16b, <mul16a
 		jsr	smul16
@@ -1195,50 +1072,72 @@ calcDistance:
 		jsr	smul16
 		addq	<sqr32a, <work4a, <mul16c
 
-		jsr	usqrt32
+		jsr	sqrt32
 
 		rts
 
 
-;----------------------------
-rsqrt32:
-;mul16a(very rough value) = 1 / sqrt(sqr32a) * 16384
-		tma	#POLYGON_EDGE_FUNC_MAP
-		pha
-
-		lda	#POLYGON_FILL_FUNC_BANK
-		tam	#POLYGON_EDGE_FUNC_MAP
-
-		jsr	_rsqrt32
-
-		pla
-		tam	#POLYGON_EDGE_FUNC_MAP
-
-		rts
-
-
-;----------------------------
-initializePad:
+;===============================================================================
+; initializePad
+;-------------------------------------------------------------------------------
+; Description:
+;   Initializes the game controller state variables.
 ;
+; Inputs:
+;   None
+;
+; Outputs:
+;   None
+;
+; Modifies:
+;   A
+;===============================================================================
+initializePad:
 		stz	<padLast
 		mov	<padNow, #$FF
-
-		jsr	getPadData
-
 		stz	<padState
 		rts
 
 
-;----------------------------
-initializePad2:
+;===============================================================================
+; initializePad2
+;-------------------------------------------------------------------------------
+; Description:
+;   Initializes the game controller state variables.
 ;
+; Inputs:
+;   None
+;
+; Outputs:
+;   None
+;
+; Modifies:
+;   A
+;===============================================================================
+initializePad2:
 		stz	<padState2
 		rts
 
 
-;----------------------------
-getPadData:
+;===============================================================================
+; getPadData
+;-------------------------------------------------------------------------------
+; Description:
+;   Reads the current state of the controller and updates input buffers.
 ;
+; Inputs:
+;   None
+;
+; Outputs:
+;   [padNow]    (1 byte) : Currently held buttons
+;   [padLast]   (1 byte) : Last held buttons
+;   [padState]  (1 byte) : Newly pressed buttons this frame
+;   [padState2] (1 byte) : Buttons pressed within the last few frames
+;
+; Modifies:
+;   A
+;===============================================================================
+getPadData:
 		lda	<padNow
 		sta	<padLast
 
@@ -1292,9 +1191,23 @@ checkEnd:
 		rts
 
 
-;----------------------------
-setSinCos8:
+;===============================================================================
+; setSinCos8
+;-------------------------------------------------------------------------------
+; Description:
+;   Sets up pointers to the pre-calculated multiplication lookup tables (MPR2, MPR3)
+;   based on the provided sine and cosine values.
 ;
+; Inputs:
+;   X: Angle
+;
+; Outputs:
+;   None
+;
+; Modifies:
+;   A
+;===============================================================================
+setSinCos8:
 		phx
 
 ;save MPR2 data
@@ -1348,9 +1261,23 @@ setSinCos8:
 		rts
 
 
-;----------------------------
-unsetSinCos8:
+;===============================================================================
+; unsetSinCos8
+;-------------------------------------------------------------------------------
+; Description:
+;   Restores the original bank mapping for MPR2 and MPR3 after sine/cosine
+;   table lookup operations.
 ;
+; Inputs:
+;   None
+;
+; Outputs:
+;   None
+;
+; Modifies:
+;   A
+;===============================================================================
+unsetSinCos8:
 ;set MPR2 data
 		lda	<saveMpr2
 		tam	#2
@@ -1361,12 +1288,28 @@ unsetSinCos8:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; rotation8
+;-------------------------------------------------------------------------------
+; Description:
+;   Applies a 2D rotation to a 2D vector (work2a, work2b) using an 8-bit angle.
+;   Calculates:
+;     work2a = work2a * cos(A) - work2b * sin(A)
+;     work2b = work2a * sin(A) + work2b * cos(A)
+;
+; Inputs:
+;   X                  : angle
+;   [work2a] (2 bytes) : X coordinate
+;   [work2b] (2 bytes) : Y coordinate
+;
+; Outputs:
+;   [work2a] (2 bytes) : Rotated X coordinate
+;   [work2b] (2 bytes) : Rotated Y coordinate
+;
+; Modifies:
+;   A
+;===============================================================================
 rotation8:
-;work2a = work2a * cosA - work2b * sinA
-;work2b = work2a * sinA + work2b * cosA
-;x (0 to 255)
-
 		phy
 
 ;================
@@ -1404,8 +1347,6 @@ rotation8:
 		lda	<mul16a+1
 		sta	<work4c+2
 
-		stz	<work4c+3
-
 		bra	.jpCosA_03
 
 .jpCosA_00:
@@ -1427,8 +1368,6 @@ rotation8:
 		adc	#0
 		sta	<work4c+2
 
-		stz	<work4c+3
-
 .jpCosA_03:
 ;anser sign
 		pla
@@ -1447,10 +1386,6 @@ rotation8:
 		cla
 		sbc	<work4c+2
 		sta	<work4c+2
-
-		cla
-		sbc	<work4c+3
-		sta	<work4c+3
 
 .jpCosA_End:
 ;================
@@ -1490,8 +1425,6 @@ rotation8:
 		lda	<mul16a+1
 		sta	<mul16d
 
-		stz	<mul16d+1
-
 		bra	.jpSinA_03
 
 .jpSinA_00:
@@ -1513,8 +1446,6 @@ rotation8:
 		adc	#0
 		sta	<mul16d
 
-		stz	<mul16d+1
-
 .jpSinA_03:
 ;anser sign
 		pla
@@ -1522,13 +1453,35 @@ rotation8:
 
 ;anser neg
 ;work2a * cosA - ( - ( work2b * sinA ) )
-		addq	<work4c, <mul16c
+		clc
+		lda	<work4c
+		adc	<mul16c
+		sta	<work4c
+
+		lda	<work4c+1
+		adc	<mul16c+1
+		sta	<work4c+1
+
+		lda	<work4c+2
+		adc	<mul16d
+		sta	<work4c+2
 
 		bra	.jpSinA_End
 
 .jpSinA_04:
 ;work2a * cosA - work2b * sinA
-		subq	<work4c, <mul16c
+		sec
+		lda	<work4c
+		sbc	<mul16c
+		sta	<work4c
+
+		lda	<work4c+1
+		sbc	<mul16c+1
+		sta	<work4c+1
+
+		lda	<work4c+2
+		sbc	<mul16d
+		sta	<work4c+2
 
 .jpSinA_End:
 ;================
@@ -1568,8 +1521,6 @@ rotation8:
 		lda	<mul16a+1
 		sta	<work4d+2
 
-		stz	<work4d+3
-
 		bra	.jpSinB_03
 
 .jpSinB_00:
@@ -1591,8 +1542,6 @@ rotation8:
 		adc	#0
 		sta	<work4d+2
 
-		stz	<work4d+3
-
 .jpSinB_03:
 ;anser sign
 		pla
@@ -1611,10 +1560,6 @@ rotation8:
 		cla
 		sbc	<work4d+2
 		sta	<work4d+2
-
-		cla
-		sbc	<work4d+3
-		sta	<work4d+3
 
 .jpSinB_End:
 ;================
@@ -1653,8 +1598,6 @@ rotation8:
 		lda	<mul16a+1
 		sta	<mul16d
 
-		stz	<mul16d+1
-
 		bra	.jpCosB_03
 
 .jpCosB_00:
@@ -1676,8 +1619,6 @@ rotation8:
 		adc	#0
 		sta	<mul16d
 
-		stz	<mul16d+1
-
 .jpCosB_03:
 ;anser sign
 		pla
@@ -1685,13 +1626,35 @@ rotation8:
 
 ;anser neg
 ;work2a * sinA + ( - ( work2b * cosA ) )
-		subq	<work4d, <mul16c
+		sec
+		lda	<work4d
+		sbc	<mul16c
+		sta	<work4d
+
+		lda	<work4d+1
+		sbc	<mul16c+1
+		sta	<work4d+1
+
+		lda	<work4d+2
+		sbc	<mul16d
+		sta	<work4d+2
 
 		bra	.jpCosB_End
 
 .jpCosB_04:
 ;work2a * sinA + work2b * cosA
-		addq	<work4d, <mul16c
+		clc
+		lda	<work4d
+		adc	<mul16c
+		sta	<work4d
+
+		lda	<work4d+1
+		adc	<mul16c+1
+		sta	<work4d+1
+
+		lda	<work4d+2
+		adc	<mul16d
+		sta	<work4d+2
 
 .jpCosB_End:
 ;================
@@ -1707,171 +1670,247 @@ rotation8:
 		rts
 
 
-;----------------------------
-vertexRotationZ8:
-;x=xcosA-ysinA	y=xsinA+ycosA	z=z
-		phx
-		phy
-
-		cpx	#0
-		beq	.jpEnd
-
-		lda	<vertexCount
-		beq	.jpEnd
-
-		jsr	setSinCos8
-
-		cly
-		ldx	<vertexCount
-
-.loop0:
-		lda	transform2DWork0+VX, y
-		sta	<work2a
-		lda	transform2DWork0+VX+1, y
-		sta	<work2a+1
-
-		lda	transform2DWork0+VY, y
-		sta	<work2b
-		lda	transform2DWork0+VY+1, y
-		sta	<work2b+1
-
-		jsr	rotation8
-
-		lda	<work2a
-		sta	transform2DWork0+VX, y
-		lda	<work2a+1
-		sta	transform2DWork0+VX+1, y
-
-		lda	<work2b
-		sta	transform2DWork0+VY, y
-		lda	<work2b+1
-		sta	transform2DWork0+VY+1, y
-
-		ady2	#6
-
-		dex
-		bne	.loop0
-
-		jsr	unsetSinCos8
-
-.jpEnd:
-		ply
-		plx
-
-		rts
-
-
-;----------------------------
-vertexRotationY8:
-;x=xcosA-zsinA	y=y		z=xsinA+zcosA
-		phx
-		phy
-
-		cpx	#0
-		beq	.jpEnd
-
-		lda	<vertexCount
-		beq	.jpEnd
-
-		jsr	setSinCos8
-
-		cly
-		ldx	<vertexCount
-
-.loop0:
-		lda	transform2DWork0+VX, y
-		sta	<work2a
-		lda	transform2DWork0+VX+1, y
-		sta	<work2a+1
-
-		lda	transform2DWork0+VZ, y
-		sta	<work2b
-		lda	transform2DWork0+VZ+1, y
-		sta	<work2b+1
-
-		jsr	rotation8
-
-		lda	<work2a
-		sta	transform2DWork0+VX, y
-		lda	<work2a+1
-		sta	transform2DWork0+VX+1, y
-
-		lda	<work2b
-		sta	transform2DWork0+VZ, y
-		lda	<work2b+1
-		sta	transform2DWork0+VZ+1, y
-
-		ady2	#6
-
-		dex
-		bne	.loop0
-
-		jsr	unsetSinCos8
-
-.jpEnd:
-		ply
-		plx
-
-		rts
-
-
-;----------------------------
-vertexRotationX8:
-;x=x		y=zsinA+ycosA	z=zcosA-ysinA
-		phx
-		phy
-
-		cpx	#0
-		beq	.jpEnd
-
-		lda	<vertexCount
-		beq	.jpEnd
-
-		jsr	setSinCos8
-
-		cly
-		ldx	<vertexCount
-
-.loop0:
-		lda	transform2DWork0+VZ, y
-		sta	<work2a
-		lda	transform2DWork0+VZ+1, y
-		sta	<work2a+1
-
-		lda	transform2DWork0+VY, y
-		sta	<work2b
-		lda	transform2DWork0+VY+1, y
-		sta	<work2b+1
-
-		jsr	rotation8
-
-		lda	<work2a
-		sta	transform2DWork0+VZ, y
-		lda	<work2a+1
-		sta	transform2DWork0+VZ+1, y
-
-		lda	<work2b
-		sta	transform2DWork0+VY, y
-		lda	<work2b+1
-		sta	transform2DWork0+VY+1, y
-
-		ady2	#6
-
-		dex
-		bne	.loop0
-
-		jsr	unsetSinCos8
-
-.jpEnd:
-		ply
-		plx
-
-		rts
-
-
-;----------------------------
-selectVertexRotation8:
+;===============================================================================
+; vertexRotationZ8
+;-------------------------------------------------------------------------------
+; Description:
+;   Rotates a 3D vertex around the Z-axis using an angle.
+;   Calculates:
+;     X = X * cos(A) - Y * sin(A)
+;     Y = X * sin(A) + Y * cos(A)
+;     Z = Z
 ;
+; Inputs:
+;   X                       : angle
+;   [vertexCount] (1 bytes) : Number of X, Y, Z coordinates
+;   [vertexDataTemp]        : X, Y, Z coordinates
+;
+; Outputs:
+;   [vertexDataTemp]        : Rotated X, Y, Z coordinates
+;
+; Modifies:
+;   A
+;===============================================================================
+vertexRotationZ8:
+		phx
+		phy
+
+		cpx	#0
+		beq	.jpEnd
+
+		lda	<vertexCount
+		beq	.jpEnd
+
+		jsr	setSinCos8
+
+		cly
+		ldx	<vertexCount
+
+.loop0:
+		lda	transform2DWork0+VX, y
+		sta	<work2a
+		lda	transform2DWork0+VX+1, y
+		sta	<work2a+1
+
+		lda	transform2DWork0+VY, y
+		sta	<work2b
+		lda	transform2DWork0+VY+1, y
+		sta	<work2b+1
+
+		jsr	rotation8
+
+		lda	<work2a
+		sta	transform2DWork0+VX, y
+		lda	<work2a+1
+		sta	transform2DWork0+VX+1, y
+
+		lda	<work2b
+		sta	transform2DWork0+VY, y
+		lda	<work2b+1
+		sta	transform2DWork0+VY+1, y
+
+		ady2	#6
+
+		dex
+		bne	.loop0
+
+		jsr	unsetSinCos8
+
+.jpEnd:
+		ply
+		plx
+
+		rts
+
+
+;===============================================================================
+; vertexRotationY8
+;-------------------------------------------------------------------------------
+; Description:
+;   Rotates a 3D vertex around the Y-axis using an angle.
+;   Calculates:
+;     X = X * cos(A) - Z * sin(A)
+;     Y = Y
+;     Z = X * sin(A) + Z * cos(A)
+;
+; Inputs:
+;   X                       : angle
+;   [vertexCount] (1 bytes) : Number of X, Y, Z coordinates
+;   [vertexDataTemp]        : X, Y, Z coordinates
+;
+; Outputs:
+;   [vertexDataTemp]        : Rotated X, Y, Z coordinates
+;
+; Modifies:
+;   A
+;===============================================================================
+vertexRotationY8:
+		phx
+		phy
+
+		cpx	#0
+		beq	.jpEnd
+
+		lda	<vertexCount
+		beq	.jpEnd
+
+		jsr	setSinCos8
+
+		cly
+		ldx	<vertexCount
+
+.loop0:
+		lda	transform2DWork0+VX, y
+		sta	<work2a
+		lda	transform2DWork0+VX+1, y
+		sta	<work2a+1
+
+		lda	transform2DWork0+VZ, y
+		sta	<work2b
+		lda	transform2DWork0+VZ+1, y
+		sta	<work2b+1
+
+		jsr	rotation8
+
+		lda	<work2a
+		sta	transform2DWork0+VX, y
+		lda	<work2a+1
+		sta	transform2DWork0+VX+1, y
+
+		lda	<work2b
+		sta	transform2DWork0+VZ, y
+		lda	<work2b+1
+		sta	transform2DWork0+VZ+1, y
+
+		ady2	#6
+
+		dex
+		bne	.loop0
+
+		jsr	unsetSinCos8
+
+.jpEnd:
+		ply
+		plx
+
+		rts
+
+
+;===============================================================================
+; vertexRotationX8
+;-------------------------------------------------------------------------------
+; Description:
+;   Rotates a 3D vertex around the X-axis using an angle.
+;   Calculates:
+;     X = X
+;     Y = Z * sin(A) + Y * cos(A)
+;     Z = Z * cos(A) - Y * sin(A)
+;
+; Inputs:
+;   X                       : angle
+;   [vertexCount] (1 bytes) : Number of X, Y, Z coordinates
+;   [vertexDataTemp]        : X, Y, Z coordinates
+;
+; Outputs:
+;   [vertexDataTemp]        : Rotated X, Y, Z coordinates
+;
+; Modifies:
+;   A
+;===============================================================================
+vertexRotationX8:
+		phx
+		phy
+
+		cpx	#0
+		beq	.jpEnd
+
+		lda	<vertexCount
+		beq	.jpEnd
+
+		jsr	setSinCos8
+
+		cly
+		ldx	<vertexCount
+
+.loop0:
+		lda	transform2DWork0+VZ, y
+		sta	<work2a
+		lda	transform2DWork0+VZ+1, y
+		sta	<work2a+1
+
+		lda	transform2DWork0+VY, y
+		sta	<work2b
+		lda	transform2DWork0+VY+1, y
+		sta	<work2b+1
+
+		jsr	rotation8
+
+		lda	<work2a
+		sta	transform2DWork0+VZ, y
+		lda	<work2a+1
+		sta	transform2DWork0+VZ+1, y
+
+		lda	<work2b
+		sta	transform2DWork0+VY, y
+		lda	<work2b+1
+		sta	transform2DWork0+VY+1, y
+
+		ady2	#6
+
+		dex
+		bne	.loop0
+
+		jsr	unsetSinCos8
+
+.jpEnd:
+		ply
+		plx
+
+		rts
+
+
+;===============================================================================
+; selectVertexRotation8
+;-------------------------------------------------------------------------------
+; Description:
+;   Applies 3D rotation to a vertex by executing X, Y, and Z axis rotations
+;   in a specified order using angles.
+;
+; Inputs:
+;   A                       : rotation order(0:X, 1:Y, 2:Z)
+;   [rotationX] (1 bytes)   : rotation angle for X-axis
+;   [rotationY] (1 bytes)   : rotation angle for Y-axis
+;   [rotationZ] (1 bytes)   : rotation angle for Z-axis
+;   [vertexCount] (1 bytes) : Number of X, Y, Z coordinates
+;   [vertexDataTemp]        : X, Y, Z coordinates
+;
+; Outputs:
+;   [vertexDataTemp]        : Rotated X, Y, Z coordinates
+;
+; Modifies:
+;   A
+;===============================================================================
+selectVertexRotation8:
 		phx
 
 		and	#3
@@ -1902,438 +1941,26 @@ selectVertexRotation8:
 		rts
 
 
-;----------------------------
-orderVertexRotation8:
+;===============================================================================
+; vertexTranslationDatas
+;-------------------------------------------------------------------------------
+; Description:
+;   Data block containing 3D vertex translation offsets (X, Y, Z).
 ;
-		lda	<rotationSelect
-		jsr	selectVertexRotation8
-
-		lda	<rotationSelect
-		lsr	a
-		lsr	a
-		jsr	selectVertexRotation8
-
-		lda	<rotationSelect
-		lsr	a
-		lsr	a
-		lsr	a
-		lsr	a
-		jsr	selectVertexRotation8
-
-		rts
-
-
-;----------------------------
-selectVertexRotation:
+; Inputs:
+;   [translationX] (2 bytes) : X translation offset
+;   [translationY] (2 bytes) : Y translation offset
+;   [translationZ] (2 bytes) : Z translation offset
+;   [vertexCount] (1 bytes)  : Number of X, Y, Z coordinates
+;   [vertexDataTemp]         : X, Y, Z coordinates
 ;
-		phx
-
-		and	#3
-		beq	.rotationSelectX
-
-		cmp	#1
-		beq	.rotationSelectY
-
-.rotationSelectZ:
-		ldx	<rotationZ
-		jsr	vertexRotationZ
-
-		plx
-		rts
-
-.rotationSelectX:
-		ldx	<rotationX
-		jsr	vertexRotationX
-
-		plx
-		rts
-
-.rotationSelectY:
-		ldx	<rotationY
-		jsr	vertexRotationY
-
-		plx
-		rts
-
-
-;----------------------------
-orderVertexRotation:
+; Outputs:
+;   [vertexDataTemp]         : Translated X, Y, Z coordinates
 ;
-		lda	<rotationSelect
-		jsr	selectVertexRotation
-
-		lda	<rotationSelect
-		lsr	a
-		lsr	a
-		jsr	selectVertexRotation
-
-		lda	<rotationSelect
-		lsr	a
-		lsr	a
-		lsr	a
-		lsr	a
-		jsr	selectVertexRotation
-
-		rts
-
-
-;----------------------------
-vertexRotationZ:
-;x=xcosA-ysinA	y=xsinA+ycosA	z=z
-;transform2DWork0 => transform2DWork0
-;vertexCount = count
-;x = angle
-		phx
-		phy
-
-		cpx	#0
-		jeq	.vertexRotationZEnd
-
-		lda	<vertexCount
-		jeq	.vertexRotationZEnd
-
-		lda	sinDataLow, x			;sin
-		sta	<vertexRotationSin
-		lda	sinDataHigh, x
-		sta	<vertexRotationSin+1
-
-		lda	cosDataLow, x			;cos
-		sta	<vertexRotationCos
-		lda	cosDataHigh, x
-		sta	<vertexRotationCos+1
-
-		ldx	<vertexCount
-
-		cly
-
-.vertexRotationZLoop:
-;----------------
-		lda	transform2DWork0+VX, y		;X0
-		sta	<mul16a
-		lda	transform2DWork0+VX+1, y
-		sta	<mul16a+1
-
-		movw	<mul16b, <vertexRotationCos	;cos
-
-		jsr	smul16				;xcosA
-
-		movq	<work8a, <mul16c
-
-		lda	transform2DWork0+VY, y		;Y0
-		sta	<mul16a
-		lda	transform2DWork0+VY+1, y
-		sta	<mul16a+1
-
-		movw	<mul16b, <vertexRotationSin	;sin
-
-		jsr	smul16				;ysinA
-
-		subq	<mul16c, <work8a, <mul16c	;xcosA-ysinA
-
-		lda	<mul16d+1
-		asl	<mul16c+1
-		rol	<mul16d
-		rol	a
-		asl	<mul16c+1
-		rol	<mul16d
-		rol	a
-
-		pha
-		lda	<mul16d
-		pha
-
-;----------------
-		lda	transform2DWork0+VX, y		;X0
-		sta	<mul16a
-		lda	transform2DWork0+VX+1, y
-		sta	<mul16a+1
-
-		movw	<mul16b, <vertexRotationSin	;sin
-
-		jsr	smul16				;xsinA
-
-		movq	<work8a, <mul16c
-
-		lda	transform2DWork0+VY, y		;Y0
-		sta	<mul16a
-		lda	transform2DWork0+VY+1, y
-		sta	<mul16a+1
-
-		movw	<mul16b, <vertexRotationCos	;cos
-
-		jsr	smul16				;ycosA
-
-		addq	<mul16c, <work8a, <mul16c	;xsinA+ycosA
-
-		lda	<mul16d
-		asl	<mul16c+1
-		rol	a
-		rol	<mul16d+1
-		asl	<mul16c+1
-		rol	a
-		rol	<mul16d+1
-
-		sta	transform2DWork0+VY, y
-		lda	<mul16d+1
-		sta	transform2DWork0+VY+1, y
-
-;----------------
-		pla
-		sta	transform2DWork0+VX, y
-		pla
-		sta	transform2DWork0+VX+1, y
-
-;----------------
-		ady2	#6
-
-		dex
-		jne	.vertexRotationZLoop
-
-.vertexRotationZEnd:
-		ply
-		plx
-		rts
-
-
-;----------------------------
-vertexRotationY:
-;x=xcosA-zsinA	y=y		z=xsinA+zcosA
-;transform2DWork0 => transform2DWork0
-;vertexCount = count
-;x = angle
-		phx
-		phy
-
-		cpx	#0
-		jeq	.vertexRotationYEnd
-
-		lda	<vertexCount
-		jeq	.vertexRotationYEnd
-
-		lda	sinDataLow, x			;sin
-		sta	<vertexRotationSin
-		lda	sinDataHigh, x
-		sta	<vertexRotationSin+1
-
-		lda	cosDataLow, x			;cos
-		sta	<vertexRotationCos
-		lda	cosDataHigh, x
-		sta	<vertexRotationCos+1
-
-		ldx	<vertexCount
-
-		cly
-
-.vertexRotationYLoop:
-;----------------
-		lda	transform2DWork0+VZ, y		;Z0
-		sta	<mul16a
-		lda	transform2DWork0+VZ+1, y
-		sta	<mul16a+1
-
-		movw	<mul16b, <vertexRotationSin	;sin
-
-		jsr	smul16				;zsinA
-
-		movq	<work8a, <mul16c
-
-		lda	transform2DWork0+VX, y		;X0
-		sta	<mul16a
-		lda	transform2DWork0+VX+1, y
-		sta	<mul16a+1
-
-		movw	<mul16b, <vertexRotationCos	;cos
-
-		jsr	smul16				;xcosA
-
-		subq	<mul16c, <mul16c, <work8a	;xcosA-zsinA
-
-		lda	<mul16d+1
-		asl	<mul16c+1
-		rol	<mul16d
-		rol	a
-		asl	<mul16c+1
-		rol	<mul16d
-		rol	a
-
-		pha
-		lda	<mul16d
-		pha
-
-;----------------------------
-		lda	transform2DWork0+VZ, y		;Z0
-		sta	<mul16a
-		lda	transform2DWork0+VZ+1, y
-		sta	<mul16a+1
-
-		movw	<mul16b, <vertexRotationCos	;cos
-
-		jsr	smul16				;zcosA
-
-		movq	<work8a, <mul16c
-
-		lda	transform2DWork0+VX, y		;X0
-		sta	<mul16a
-		lda	transform2DWork0+VX+1, y
-		sta	<mul16a+1
-
-		movw	<mul16b, <vertexRotationSin	;sin
-
-		jsr	smul16				;xsinA
-
-		addq	<mul16c, <work8a, <mul16c	;zcosA+xsinA
-
-		lda	<mul16d
-		asl	<mul16c+1
-		rol	a
-		rol	<mul16d+1
-		asl	<mul16c+1
-		rol	a
-		rol	<mul16d+1
-
-		sta	transform2DWork0+VZ, y
-		lda	<mul16d+1
-		sta	transform2DWork0+VZ+1, y
-
-;----------------
-		pla
-		sta	transform2DWork0+VX, y
-		pla
-		sta	transform2DWork0+VX+1, y
-
-;----------------
-		ady2	#6
-
-		dex
-		jne	.vertexRotationYLoop
-
-.vertexRotationYEnd:
-		ply
-		plx
-		rts
-
-
-;----------------------------
-vertexRotationX:
-;x=x		y=ycosA+zsinA	z=-ysinA+zcosA
-;transform2DWork0 => transform2DWork0
-;vertexCount = count
-;x = angle
-		phx
-		phy
-
-		cpx	#0
-		jeq	.vertexRotationXEnd
-
-		lda	<vertexCount
-		jeq	.vertexRotationXEnd
-
-		lda	sinDataLow, x			;sin
-		sta	<vertexRotationSin
-		lda	sinDataHigh, x
-		sta	<vertexRotationSin+1
-
-		lda	cosDataLow, x			;cos
-		sta	<vertexRotationCos
-		lda	cosDataHigh, x
-		sta	<vertexRotationCos+1
-
-		ldx	<vertexCount
-
-		cly
-
-.vertexRotationXLoop:
-;----------------
-		lda	transform2DWork0+VY, y		;Y0
-		sta	<mul16a
-		lda	transform2DWork0+VY+1, y
-		sta	<mul16a+1
-
-		movw	<mul16b, <vertexRotationCos	;cos
-
-		jsr	smul16				;ycosA
-
-		movq	<work8a, <mul16c
-
-		lda	transform2DWork0+VZ, y		;Z0
-		sta	<mul16a
-		lda	transform2DWork0+VZ+1, y
-		sta	<mul16a+1
-
-		movw	<mul16b, <vertexRotationSin	;sin
-
-		jsr	smul16				;zsinA
-
-		addq	<mul16c, <work8a, <mul16c	;ycosA+zsinA
-
-		lda	<mul16d+1
-		asl	<mul16c+1
-		rol	<mul16d
-		rol	a
-		asl	<mul16c+1
-		rol	<mul16d
-		rol	a
-
-		pha
-		lda	<mul16d
-		pha
-
-;----------------
-		lda	transform2DWork0+VY, y	;Y0
-		sta	<mul16a
-		lda	transform2DWork0+VY+1, y
-		sta	<mul16a+1
-
-		movw	<mul16b, <vertexRotationSin	;sin
-
-		jsr	smul16				;ysinA
-
-		movq	<work8a, <mul16c
-
-		lda	transform2DWork0+VZ, y		;Z0
-		sta	<mul16a
-		lda	transform2DWork0+VZ+1, y
-		sta	<mul16a+1
-
-		movw	<mul16b, <vertexRotationCos	;cos
-
-		jsr	smul16				;zcosA
-
-		subq	<mul16c, <mul16c, <work8a 	;-ysinA+zcosA
-
-		lda	<mul16d
-		asl	<mul16c+1
-		rol	a
-		rol	<mul16d+1
-		asl	<mul16c+1
-		rol	a
-		rol	<mul16d+1
-
-		sta	transform2DWork0+VZ, y
-		lda	<mul16d+1
-		sta	transform2DWork0+VZ+1, y
-
-;----------------
-		pla
-		sta	transform2DWork0+VY, y
-		pla
-		sta	transform2DWork0+VY+1, y
-
-;----------------
-		ady2	#6
-
-		dex
-		jne	.vertexRotationXLoop
-
-.vertexRotationXEnd:
-		ply
-		plx
-		rts
-
-
-;----------------------------
+; Modifies:
+;   A
+;===============================================================================
 vertexTranslationDatas:
-;target vertex data: vertexDataTemp
 		phx
 		phy
 
@@ -2378,9 +2005,24 @@ vertexTranslationDatas:
 		rts
 
 
-;----------------------------
-transform2D:
+;===============================================================================
+; transform2D
+;-------------------------------------------------------------------------------
+; Description:
+;   Performs perspective projection to transform 3D vertex coordinates (X, Y, Z)
+;   into 2D screen coordinates (X, Y).
 ;
+; Inputs:
+;   [vertexCount] (1 bytes) : Number of X, Y, Z coordinates
+;   [vertexDataTemp]        : X, Y, Z coordinates
+;
+; Outputs:
+;   [vertexDataTemp]        : Projected 2D screen  X, Y coordinates
+;
+; Modifies:
+;   A
+;===============================================================================
+transform2D:
 		phx
 		phy
 
@@ -2486,7 +2128,7 @@ transform2D:
 		rts
 
 
-;----------------------------
+;===============================================================================
 transform2DProc:
 ;mul16d(very rough value) = mul16b(-32768 to 32767) * 128 / mul16a(128 to 32767)
 		phy
@@ -2515,7 +2157,7 @@ transform2DProc:
 		;;;rts
 
 
-;----------------------------
+;===============================================================================
 _transform2DProc:
 ;
 		lda	<div16a+1
@@ -2558,9 +2200,25 @@ _transform2DProc:
 		rts
 
 
-;----------------------------
+
+;===============================================================================
+; moveToTransform2DWork0
+;-------------------------------------------------------------------------------
+; Description:
+;   Copies the specified number of vertex data entries (vertexCount) from
+;   vertex0Addr into the 2D transformation work buffer (vertexDataTemp / transform2DWork0).
+;
+; Inputs:
+;   [vertex0Addr] (2 bytes) : Pointer to the source vertex data
+;   [vertexCount] (1 byte)  : Number of vertices to copy
+;
+; Outputs:
+;   [transform2DWork0]      : Work buffer populated with vertex data
+;
+; Modifies:
+;   A
+;===============================================================================
 moveToTransform2DWork0:
-;vertex0Addr to Transform2DWork0
 		lda	<vertexCount
 		beq	.jpEnd
 
@@ -2583,20 +2241,43 @@ moveToTransform2DWork0:
 		rts
 
 
-;----------------------------
-moveToVertexDataWork0	.equ	moveToTransform2DWork0
-
-
-;----------------------------
-setPolygonColorIndex:
+;===============================================================================
+; setPolygonColorIndex
+;-------------------------------------------------------------------------------
+; Description:
+;   Sets the starting color palette index used for rendering polygons.
 ;
+; Inputs:
+;   A                            : Base color palette index
+;
+; Outputs:
+;   [polygonColorIndex] (1 byte) : Work variable updated with the index
+;
+; Modifies:
+;   A
+;===============================================================================
+setPolygonColorIndex:
 		sta	<polygonColorIndex
 		rts
 
 
-;----------------------------
-putPolygonBuffer:
+;===============================================================================
+; putPolygonBuffer
+;-------------------------------------------------------------------------------
+; Description:
+;   Renders polygon graphics data stored in the RAM work buffer
+;   directly into VRAM for visual display.
 ;
+; Inputs:
+;   [polyBuffer] : Buffer containing processed polygon data
+;
+; Outputs:
+;   VRAM         : Updated with new polygon patterns
+;
+; Modifies:
+;   A
+;===============================================================================
+putPolygonBuffer:
 		phx
 		phy
 
@@ -2654,6 +2335,35 @@ putPolygonBuffer:
 		stx	<polyBufferAddr+0
 
 .putPolyBufferLoop0:
+		ldy	#4
+		lda	[polyBufferAddr], y	;COLOR
+
+;set polygon pattern
+		tax
+		lda	polygonColorP0, x
+		sta	polyLineColorWork_H_P0
+		sta	polyLineColorWork_L_P0
+		rol	a
+		rol	polyLineColorWork_L_P0
+
+		lda	polygonColorP1, x
+		sta	polyLineColorWork_H_P1
+		sta	polyLineColorWork_L_P1
+		rol	a
+		rol	polyLineColorWork_L_P1
+
+		lda	polygonColorP2, x
+		sta	polyLineColorWork_H_P2
+		sta	polyLineColorWork_L_P2
+		rol	a
+		rol	polyLineColorWork_L_P2
+
+		lda	polygonColorP3, x
+		sta	polyLineColorWork_H_P3
+		sta	polyLineColorWork_L_P3
+		rol	a
+		rol	polyLineColorWork_L_P3
+
 		ldy	#5
 		lda	[polyBufferAddr], y	;COUNT
 		jeq	.putPolyBufferEnd
@@ -2760,111 +2470,42 @@ putPolygonBuffer:
 		rts
 
 
-;----------------------------
-getReverseRotation:
+
+;===============================================================================
+; setModelRotation
+;-------------------------------------------------------------------------------
+; Description:
+;   Transforms 3D model vertices by executing rotation, translation, and
+;   perspective projection, then writes the resulting 2D screen coordinates
+;   into the render buffer.
 ;
-		eor	#$FF
-		inc	a
-
-		rts
-
-
-;----------------------------
-		IFDEF	ENABLE_SHADING
-rotationLightVector:
+; Inputs:
+;   [modelAddress] (2 bytes)     : Source 3D model vertex coordinates
+;   [rotationSelect](1 bytes)    : rotation order
+;   [rotationX] (1 bytes)        : rotation angle for X-axis
+;   [rotationY] (1 bytes)        : rotation angle for Y-axis
+;   [rotationZ] (1 bytes)        : rotation angle for Z-axis
+;   [translationX] (2 bytes)     : X-axis translation offsets
+;   [translationY] (2 bytes)     : Y-axis translation offsets
+;   [translationZ] (2 bytes)     : Z-axis translation offsets
+;   [eyeRotationSelect](1 bytes) : rotation order for the viewpoint position.
+;   [eyeRotationX] (1 bytes)     : rotation angle for X-axis for the viewpoint position.
+;   [eyeRotationY] (1 bytes)     : rotation angle for Y-axis for the viewpoint position.
+;   [eyeRotationZ] (1 bytes)     : rotation angle for Z-axis for the viewpoint position.
+;   [eyeTranslationX] (2 bytes)  : X-axis translation offset for the viewpoint position.
+;   [eyeTranslationY] (2 bytes)  : Y-axis translation offset for the viewpoint position.
+;   [eyeTranslationZ] (2 bytes)  : Z-axis translation offset for the viewpoint position.
 ;
+; Outputs:
+;   [polyBuffer]                 : Transformed 2D screen coordinates ready for rendering
+;
+; Modifies:
+;   A
+;===============================================================================
+setModelRotation:
 		phx
 		phy
-
-		movw	transform2DWork0, <lightVectorRotX
-		movw	transform2DWork0+2, <lightVectorRotY
-		movw	transform2DWork0+4, <lightVectorRotZ
-
-		ldx	<rotationSelect
-		phx
-		lda	reverseRotationSelect, x
-		sta	<rotationSelect
-
-		ldx	<rotationX
-		txa
-		jsr	getReverseRotation
-		sta	<rotationX
-
-		ldy	<rotationY
-		tya
-		jsr	getReverseRotation
-		sta	<rotationY
-
-		lda	<rotationZ
-		pha
-		jsr	getReverseRotation
-		sta	<rotationZ
-
-		mov	<vertexCount, #1
-		jsr	orderVertexRotation8
-
-		movw	<lightVectorRotX, transform2DWork0
-		movw	<lightVectorRotY, transform2DWork0+2
-		movw	<lightVectorRotZ, transform2DWork0+4
-
-		pla
-		sta	<rotationZ
-
-		sty	<rotationY
-
-		stx	<rotationX
-
-		pla
-		sta	<rotationSelect
-
-
-		ply
-		plx
-		rts
-
-		ENDIF
-
-
-;----------------------------
-setDatasPolygon:
-;
-;eye translation
-		subw	<translationX, #0, <eyeTranslationX
-		subw	<translationY, #0, <eyeTranslationY
-		subw	<translationZ, #0, <eyeTranslationZ
-
-		jsr	vertexTranslationDatas
-
-;eye rotation
-		mov	<rotationX, <eyeRotationX
-		mov	<rotationY, <eyeRotationY
-		mov	<rotationZ, <eyeRotationZ
-
-		lda	<eyeRotationSelect
-		jsr	selectVertexRotation8
-
-		lda	<eyeRotationSelect
-		lsr	a
-		lsr	a
-		jsr	selectVertexRotation8
-
-		lda	<eyeRotationSelect
-		lsr	a
-		lsr	a
-		lsr	a
-		lsr	a
-		jsr	selectVertexRotation8
-
-		jsr	setModel
-
-		rts
-
-
-;----------------------------
-moveModelToVertexDataWork0:
-;
-		phy
-
+;rotation
 		ldy	#$03
 		lda	[modelAddress], y		;vertex data address
 		sta	<vertex0Addr
@@ -2878,50 +2519,26 @@ moveModelToVertexDataWork0:
 
 		jsr	moveToTransform2DWork0
 
-		plx
-		rts
+		lda	<rotationSelect
+		jsr	selectVertexRotation8
 
+		lda	<rotationSelect
+		lsr	a
+		lsr	a
+		jsr	selectVertexRotation8
 
-;----------------------------
-rotationDatas:
-;
-		jsr	orderVertexRotation8
+		lda	<rotationSelect
+		lsr	a
+		lsr	a
+		lsr	a
+		lsr	a
+		jsr	selectVertexRotation8
 
-		jsr	vertexTranslationDatas
-
-		rts
-
-
-;----------------------------
-setModelRotation:
-
-		phx
-		phy
-
-		IFDEF	ENABLE_SHADING
-		ldy	#6
-		lda	[modelAddress], y
-		iny
-		ora	[modelAddress], y
-		beq	.skipLight
-
-		movw	<lightVectorRotX, <lightVectorX
-		movw	<lightVectorRotY, <lightVectorY
-		movw	<lightVectorRotZ, <lightVectorZ
-
-		jsr	rotationLightVector
-
-.skipLight:
-		ENDIF
-
-;rotation
-		jsr	moveModelToVertexDataWork0
-
-		jsr	orderVertexRotation8
-
-;eye translation
+;translation
 		subw	<translationX, <eyeTranslationX
+
 		subw	<translationY, <eyeTranslationY
+
 		subw	<translationZ, <eyeTranslationZ
 
 		jsr	vertexTranslationDatas
@@ -2953,7 +2570,7 @@ setModelRotation:
 		;;;rts
 
 
-;----------------------------
+;===============================================================================
 setModel:
 ;target vertex data: vertexDataTemp
 		phx
@@ -2971,19 +2588,6 @@ setModel:
 		iny
 		lda	[modelAddress], y	;Polygon Count
 		sta	<modelPolygonCount
-
-		IFDEF	ENABLE_SHADING
-		iny
-		iny
-		iny
-		iny
-
-		lda	[modelAddress], y	;Polygon Vector Addr
-		sta	<modelVectorAddrWork
-		iny
-		lda	[modelAddress], y
-		sta	<modelVectorAddrWork+1
-		ENDIF
 
 		cly
 
@@ -3016,7 +2620,7 @@ setModel:
 
 ;SAMPLE Z
 ;--------
-		IFDEF SAMPLE_Z_MAX_ONLY
+			IFDEF SAMPLE_Z_MAX_ONLY
 
 		ldy	#3
 		sta	<mul16a+1
@@ -3028,7 +2632,7 @@ setModel:
 		sta	[polyBufferAddr], y
 
 ;--------
-		ELSE
+			ELSE
 ;--------
 
 		ldy	#3
@@ -3042,7 +2646,7 @@ setModel:
 		ror	a
 		sta	[polyBufferAddr], y
 
-		ENDIF
+			ENDIF
 ;--------
 
 		lda	<setModelBackColor
@@ -3204,8 +2808,6 @@ setModel:
 
 .setModelJump13:
 ;back side check cancel
-		stz	<work8a+3
-
 		bbr1	<setModelAttr, .setModelJump15
 		jmp	.setModelJump2
 
@@ -3244,80 +2846,6 @@ setModel:
 		lda	<setModelFrontColor
 
 .setModelJump10:
-
-		IFDEF	ENABLE_SHADING
-;shading
-		bbs5	<setModelAttr, .jpShading00
-		jmp	.jpShading03
-
-.jpShading00:
-		phy
-
-		sta	<lightVectorColorWork
-
-;----
-		movw	<mul16a, <lightVectorRotX
-
-		cly
-		lda	[modelVectorAddrWork], y
-		sta	<mul16b
-		iny
-		lda	[modelVectorAddrWork], y
-		sta	<mul16b+1
-
-		jsr	smul16
-		movq	<lightVectorWork, <mul16c
-
-;----
-		movw	<mul16a, <lightVectorRotY
-
-		iny
-		lda	[modelVectorAddrWork], y
-		sta	<mul16b
-		iny
-		lda	[modelVectorAddrWork], y
-		sta	<mul16b+1
-
-		jsr	smul16
-		addq	<lightVectorWork, <mul16c
-
-;----
-		movw	<mul16a, <lightVectorRotZ
-
-		iny
-		lda	[modelVectorAddrWork], y
-		sta	<mul16b
-		iny
-		lda	[modelVectorAddrWork], y
-		sta	<mul16b+1
-
-		jsr	smul16
-		addq	<lightVectorWork, <mul16c
-
-		bbs7	<work8a+3, .jpShading04
-
-		eor	#$FF
-		inc	a
-
-.jpShading04:
-		cmp	#0
-		bpl	.jpShading01
-
-		cla
-		bra	.jpShading02
-
-.jpShading01:
-		tax
-		lda	brightConvertData, x
-
-.jpShading02:
-		ora	<lightVectorColorWork
-
-		ply
-
-.jpShading03:
-		ENDIF
-
 		clc
 		adc	<polygonColorIndex
 
@@ -3338,7 +2866,7 @@ setModel:
 		sta	[polyBufferAddr], y	;COUNT
 
 ;--------
-		IFDEF SAMPLE_Z_MAX_ONLY
+			IFDEF SAMPLE_Z_MAX_ONLY
 
 .compareZMax:
 		ply
@@ -3384,10 +2912,11 @@ setModel:
 		sta	[polyBufferAddr], y
 
 ;--------
-		ELSE
+			ELSE
 ;--------
-		bbs5	<systemConfig, .compareZAvg
-		jmp	.compareZMinMax
+
+		tst	#ATTR_SYSTEM_Z_MAX + ATTR_SYSTEM_Z_MIN, <systemConfig
+		jne	.compareZMinMax
 
 .compareZAvg:
 		ply
@@ -3558,7 +3087,7 @@ setModel:
 		sta	[polyBufferAddr], y
 
 .compareEnd:
-		ENDIF
+			ENDIF
 ;--------
 
 ;set buffer
@@ -3656,10 +3185,6 @@ setModel:
 		add	#8
 		tay
 
-		IFDEF	ENABLE_SHADING
-		addw	<modelVectorAddrWork, #6
-		ENDIF
-
 		dec	<modelPolygonCount
 		jne	.setModelLoop3
 
@@ -3668,7 +3193,7 @@ setModel:
 		rts
 
 
-;----------------------------
+;===============================================================================
 clipFront:
 ;
 		lda	transform2DWork0+VZ+1, x	;Z0<128 flag
@@ -3885,7 +3410,7 @@ clipFront:
 		rts
 
 
-;----------------------------
+;===============================================================================
 checkClip2D:
 ;
 		stz	<clipCountX0
@@ -3963,7 +3488,7 @@ checkClip2D:
 		rts
 
 
-;----------------------------
+;===============================================================================
 clip2D:
 ;
 		jsr	clip2DY0
@@ -3985,7 +3510,7 @@ clip2D:
 		rts
 
 
-;----------------------------
+;===============================================================================
 clip2DX255:
 ;
 		lda	<clip2D1Count
@@ -4152,7 +3677,7 @@ clip2DX255:
 		jmp	.clip2DX255Jump03
 
 
-;----------------------------
+;===============================================================================
 clip2DX0:
 ;
 		lda	<clip2D0Count
@@ -4315,7 +3840,7 @@ clip2DX0:
 		jmp	.clip2DX0Jump03
 
 
-;----------------------------
+;===============================================================================
 clip2DY255:
 ;
 		lda	<clip2D1Count
@@ -4488,7 +4013,7 @@ clip2DY255:
 		jmp	.clip2DY255Jump03
 
 
-;----------------------------
+;===============================================================================
 clip2DY0:
 ;
 		lda	<clip2D0Count
@@ -4651,9 +4176,30 @@ clip2DY0:
 		jmp	.clip2DY0Jump03
 
 
-;----------------------------
-getAngle:
+;===============================================================================
+; getAngle
+;-------------------------------------------------------------------------------
+; Description:
+;   Calculates the relative rotation angles (ansAngleX, ansAngleY) required
+;   to orient from the source point (X0, Y0, Z0) toward the target
+;   point (X1, Y1, Z1).
 ;
+; Inputs:
+;   [angleX0] (2 byte)   : Source 3D coordinates
+;   [angleY0] (2 byte)   : Source 3D coordinates
+;   [angleZ0] (2 byte)   : Source 3D coordinates
+;   [angleX1] (2 byte)   : Target 3D coordinates
+;   [angleY1] (2 byte)   : Target 3D coordinates
+;   [angleZ1] (2 byte)   : Target 3D coordinates
+;
+; Outputs:
+;   [ansAngleX] (1 byte) : Calculated X-axis angle
+;   [ansAngleY] (1 byte) : Calculated Y-axis angle
+;
+; Modifies:
+;   A
+;===============================================================================
+getAngle:
 		phx
 		phy
 
@@ -4669,8 +4215,8 @@ getAngle:
 		subw	transform2DWork0+VX, <angleX1, <angleX0
 		subw	transform2DWork0+VY, <angleY1, <angleY0
 		subw	transform2DWork0+VZ, <angleZ1, <angleZ0
-		mov	<vertexCount, #1
-		jsr	vertexRotationY
+		mov	vertexCount, #1
+		jsr	vertexRotationY8
 
 		movw	<mul16a, transform2DWork0+VZ
 		movw	<mul16b, transform2DWork0+VY
@@ -4693,10 +4239,24 @@ getAngle:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; atan
+;-------------------------------------------------------------------------------
+; Description:
+;   Calculates the 2-argument arctangent (atan2) of coordinates (Y/X),
+;   returning an angle.
+;
+; Inputs:
+;   [mul16a] (2 bytes) : Signed X coordinate
+;   [mul16b] (2 bytes) : Signed Y coordinate
+;
+; Outputs:
+;   A                  : Calculated angle
+;
+; Modifies:
+;   A
+;===============================================================================
 atan:
-;mul16a = x(-32767 to 32767), mul16b = y(-32767 to 32767)
-;A(0 to 255) = atan(y/x)
 		phx
 
 		lda	<mul16b+1
@@ -4752,7 +4312,7 @@ atan:
 		rts
 
 
-;----------------------------
+;===============================================================================
 _atan:
 ;mul16a = x(0 to 32767), mul16b = y(0 to 32767)
 ;A(0 to 64) = atan2(y/x)
@@ -4815,10 +4375,25 @@ _atan:
 		rts
 
 
-;----------------------------
-romToVram:
-;argw0: rom address, argw1: VRAM address, argw2: bytes
 
+;===============================================================================
+; romToVram
+;-------------------------------------------------------------------------------
+; Description:
+;   Transfers a specified block of data directly from ROM into VRAM.
+;
+; Inputs:
+;   [argw0]  (2 bytes) : Source ROM start address
+;   [argw1]  (2 bytes) : Destination VRAM target address
+;   [argw2]  (2 bytes) : Transfer size in bytes
+;
+; Outputs:
+;   VRAM               : Updated with data from ROM
+;
+; Modifies:
+;   A
+;===============================================================================
+romToVram:
 		movw	tiaSrc, <argw0
 
 		st0	#$00
@@ -4833,39 +4408,137 @@ romToVram:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; setCgCharData
+;-------------------------------------------------------------------------------
+; Description:
+;   Copies character/tile pattern data from ROM to VRAM, mapping source
+;   character indices to destination character indices.
+;
+; Inputs:
+;   [argw0]  (2 bytes) : Base ROM address of source character data
+;   [argw1]  (2 bytes) : Source character number / CG index (0-2047)
+;   [argw2]  (2 bytes) : Destination character number / CG index (0-2047)
+;   [argw3]  (2 bytes) : Number of characters to copy (1-2048)
+;
+; Outputs:
+;   VRAM               : Updated with specified character pattern data
+;
+; Modifies:
+;   A
+;===============================================================================
 setCgCharData:
-;argw0: rom address, argw1: src CG No(0-2047), argw2: dist CG No(0-2047), argw3: character count(1-2048)
-		tma	#POLYGON_SUB2_FUNC_MAP
-		pha
+		asl	<argw1
+		rol	<argw1+1
+		asl	<argw1
+		rol	<argw1+1
+		asl	<argw1
+		rol	<argw1+1
+		asl	<argw1
+		rol	<argw1+1
+		asl	<argw1
+		rol	<argw1+1
 
-		lda	#POLYGON_SUB2_FUNC_BANK
-		tam	#POLYGON_SUB2_FUNC_MAP
+		addw	<argw0, <argw1
 
-		jsr	_setCgCharData
+		asl	<argw2
+		rol	<argw2+1
+		asl	<argw2
+		rol	<argw2+1
+		asl	<argw2
+		rol	<argw2+1
+		asl	<argw2
+		rol	<argw2+1
 
-		pla
-		tam	#POLYGON_SUB2_FUNC_MAP
+		movw	<argw1, <argw2
+
+		asl	<argw3
+		rol	<argw3+1
+		asl	<argw3
+		rol	<argw3+1
+		asl	<argw3
+		rol	<argw3+1
+		asl	<argw3
+		rol	<argw3+1
+		asl	<argw3
+		rol	<argw3+1
+
+		movw	<argw2, <argw3
+
+		jsr	romToVram
+
 		rts
 
 
-;----------------------------
+;===============================================================================
+; setSgCharData
+;-------------------------------------------------------------------------------
+; Description:
+;   Copies sprite character pattern data from ROM into VRAM for the
+;   Sprite Generator (SG).
+;
+; Inputs:
+;   [argw0]  (2 bytes) : Base ROM address of source sprite pattern data
+;   [argw1]  (2 bytes) : Source sprite pattern number / SG index (0-1022)
+;   [argw2]  (2 bytes) : Destination sprite pattern number / SG index (0-1022)
+;   [argw3]  (2 bytes) : Number of sprite characters to copy (1-512)
+;
+; Outputs:
+;   VRAM               : Updated with specified sprite pattern data
+;
+; Modifies:
+;   A
+;===============================================================================
 setSgCharData:
-;argw0: rom address, argw1: SG No(0-1022), argw2: SG No(0-1022), argw3: character count(0-511)
-		tma	#POLYGON_SUB2_FUNC_MAP
-		pha
+		phx
 
-		lda	#POLYGON_SUB2_FUNC_BANK
-		tam	#POLYGON_SUB2_FUNC_MAP
+		ldx	<argw1
+		lda	<argw1+1
 
-		jsr	_setSgCharData
+		stz	<argw1
+		stx	<argw1+1
 
-		pla
-		tam	#POLYGON_SUB2_FUNC_MAP
+		lsr	a
+		ror	<argw1+1
+		ror	<argw1
+		lsr	a
+		ror	<argw1+1
+		ror	<argw1
+
+		addw	<argw0, <argw1
+
+		asl	<argw2
+		rol	<argw2+1
+		asl	<argw2
+		rol	<argw2+1
+		asl	<argw2
+		rol	<argw2+1
+		asl	<argw2
+		rol	<argw2+1
+		asl	<argw2
+		rol	<argw2+1
+
+		movw	<argw1, <argw2
+
+		ldx	<argw3
+		lda	<argw3+1
+
+		stz	<argw3
+		stx	<argw3+1
+
+		lsr	a
+		ror	<argw3+1
+		ror	<argw3
+
+		movw	<argw2, <argw3
+
+		jsr	romToVram
+
+		plx
 		rts
 
 
-;----------------------------
+;===============================================================================
 setTiaTiiFunction:
 ;
 		mov	tiaFunction, #$E3
@@ -4875,185 +4548,79 @@ setTiaTiiFunction:
 		rts
 
 
-;----------------------------
-switchClearBufferColor:
-;switching the drawing area and clear buffer
-		phx
-		bbs0	<drawingNo, .jp0
-
-		ldx	#DRAWING_NO_0_ADDR
-		bra	.jp1
-
-.jp0:
-		ldx	#DRAWING_NO_1_ADDR
-
-.jp1:
-		jsr	clearBufferColor
-		plx
-		rts
-
-
-;----------------------------
-clearBufferColor:
-;arg0:CH0, arg1:CH1, arg2:CH2, arg3:CH3
-;X:DRAWING_NO_0_ADDR or DRAWING_NO_1_ADDR
-		tma	#POLYGON_SUB3_FUNC_MAP
-		pha
-
-		lda	#POLYGON_SUB3_FUNC_BANK
-		tam	#POLYGON_SUB3_FUNC_MAP
-
-		jsr	_clearBufferColor
-
-		pla
-		tam	#POLYGON_SUB3_FUNC_MAP
-		rts
-
-
-;----------------------------
+;===============================================================================
 switchClearBuffer:
 ;switching the drawing area and clear buffer
 		bbs0	<drawingNo, .jp0
 
 		lda	#DRAWING_NO_0_ADDR
-		bra	.jp1
+		;;;bra	.jp1
 		jmp	clearBuffer
 
 .jp0:
 		lda	#DRAWING_NO_1_ADDR
 
-.jp1:
-		jsr	clearBuffer
-		rts
+;;;.jp1:
+		;;;jsr	clearBuffer
+		;;;rts
 
 
-;----------------------------
+;===============================================================================
 clearBuffer:
 ;clear buffer
-;A:DRAWING_NO_0_ADDR or DRAWING_NO_1_ADDR
-		phx
-
 		st0	#$00
 		st1	#$00
 		sta	VDC_3
 
+		tma	#POLYGON_SUB_FUNC_MAP
+		pha
+
 		tma	#POLYGON_EDGE_FUNC_MAP
 		pha
 
-		lda	#POLYGON_FILL_FUNC_BANK
-		tam	#POLYGON_EDGE_FUNC_MAP
+		lda	#CLEAR_FUNC_BANK
+		tam	#POLYGON_SUB_FUNC_MAP
 
-		ldx	#CLEAR_DMA_COUNT
+		lda	#POLYGON_SUB_FUNC_BANK
+		tam	#POLYGON_EDGE_FUNC_MAP
 
 		st0	#$02
 		st1	#$00
 
-.loop0:
 		jsr	clearBufferSub
-		dex
-		bne	.loop0
+		jsr	clearBufferSub
 
-		pla
-		tam	#POLYGON_EDGE_FUNC_MAP
-
-		plx
-		rts
-
-
-			IFDEF CLEAR_BUFFER_DMA
-;----------------------------
-clearDmaBuffer:
-;
-		phx
-		phy
-
-		st012	#$00, #$0A00
-		ldy	#CLEAR_BUFFER_COUNT
-		st0	#$02
-		st1	#$00
-.loop0:
-		clx
-.loop1:
-		st2	#$00
-		dex
-		bne	.loop1
-
-		dey
-		bne	.loop0
-
-		ply
-		plx
-		rts
+			IFDEF DISPLAY_BOTTOM_144
+		jsr	clearBufferSub + (8192 - 2048)
+			ELSE
+		jsr	clearBufferSub
 			ENDIF
 
-
-;----------------------------
-clearBufferDma:
-;
-		phx
-
-		tma	#POLYGON_EDGE_FUNC_MAP
-		pha
-
-		lda	#POLYGON_FILL_FUNC_BANK
-		tam	#POLYGON_EDGE_FUNC_MAP
-
-.clearLoop:
-		sei
-		lda	<dmaCount
-		cmp	#CLEAR_DMA_COUNT
-		beq	.clearLoopEnd
-
-		inc	<dmaCount
-
-		tax
-
-		lda	<drawingNo
-		beq	.jpBuffer0
-
-		st0	#$00
-		st1	#$00
-
-		lda	clearDmaAddress, x
-		clc
-		add	#$50
-		sta	VDC_3
-
-		bra	.jpClear00
-
-.jpBuffer0:
-		st0	#$00
-		st1	#$00
-
-		lda	clearDmaAddress, x
-		clc
-		add	#$20
-		sta	VDC_3
-
-.jpClear00:
-		cli
-
-		st0	#$02
-		st1	#$00
-
-		jsr	clearBufferSub
-
-		bra	.clearLoop
-
-.clearLoopEnd:
-		cli
-
 		pla
 		tam	#POLYGON_EDGE_FUNC_MAP
 
-		plx
+		pla
+		tam	#POLYGON_SUB_FUNC_MAP
+
 		rts
 
 
-;----------------------------
+;===============================================================================
+; setAllPolygonColor
+;-------------------------------------------------------------------------------
+; Description:
+;   Sets a uniform color value across all polygons in the render buffer.
+;
+; Inputs:
+;   [argw0]  (2 bytes) : Color data address
+;
+; Outputs:
+;   [polygonColorP0]    : Color fields for all polygons updated
+;
+; Modifies:
+;   A
+;===============================================================================
 setAllPolygonColor:
-;set all polygon color
-;argw0:color data
 		movw	tiiSrc, <argw0
 		movw	tiiDst, #polygonColorP0
 		movw	tiiCnt, #128*4
@@ -5062,10 +4629,23 @@ setAllPolygonColor:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; setAllPalette
+;-------------------------------------------------------------------------------
+; Description:
+;   Loads and applies color palette data for all palette slots from the
+;   specified memory address into the system palette/VCE.
+;
+; Inputs:
+;   [argw0]  (2 bytes) : Base memory address of the palette data
+;
+; Outputs:
+;   Palette RAM / VCE  : Updated with the new palette table
+;
+; Modifies:
+;   A
+;===============================================================================
 setAllPalette:
-;set all palette
-;argw0:palette data
 		stzw	VCE_2
 
 		movw	tiaSrc, <argw0
@@ -5076,23 +4656,75 @@ setAllPalette:
 		rts
 
 
-;----------------------------
-initializeVdc:
+;===============================================================================
+; initializeVdc
+;-------------------------------------------------------------------------------
+; Description:
+;   Initializes the Video Display Controller (VDC / HuC6270). Sets up
+;   screen resolution, VRAM memory mapping (BAT, SATB), display control
+;   registers, and clears hardware display status.
 ;
-		tma	#POLYGON_SUB3_FUNC_MAP
-		pha
+; Inputs:
+;   None
+;
+; Outputs:
+;   VDC Registers      : Configured to default system display settings
+;
+; Modifies:
+;   A
+;===============================================================================
+initializeVdc:
+		phx
+		phy
 
-		lda	#POLYGON_SUB3_FUNC_BANK
-		tam	#POLYGON_SUB3_FUNC_MAP
+;disable interrupts
+		sei
 
-		jsr	_initializeVdc
+;reset wait
+		cly
+.resetWaitloop0:
+		clx
+.resetWaitloop1:
+		dex
+		bne	.resetWaitloop1
+		dey
+		bne	.resetWaitloop0
 
-		pla
-		tam	#POLYGON_SUB3_FUNC_MAP
+;set vdc
+.vdcdataloop:	lda	vdcData, y
+		cmp	#$FF
+		beq	.vdcdataend
+		sta	VDC_0
+		iny
+
+		lda	vdcData, y
+		sta	VDC_2
+		iny
+
+		lda	vdcData, y
+		sta	VDC_3
+		iny
+		bra	.vdcdataloop
+.vdcdataend:
+
+;set vce
+		movw	VCE_0, #VCE0_INIT_DATA
+
+;wait vsync
+		st012	#$05, #$0008
+
+.resetWait:
+		tst	#$20, VDC_0
+		beq	.resetWait
+
+		st012	#$05, #$0000
+
+		ply
+		plx
 		rts
 
 
-;----------------------------
+;===============================================================================
 clearBat:
 ;x:a CG
 		phx
@@ -5119,11 +4751,11 @@ clearBat:
 
 
 ;----------------------------
-		IFDEF DISPLAY_BOTTOM_144
+			IFDEF DISPLAY_BOTTOM_144
 SETBAT_DATA_COUNT	.equ	$0240
-		ELSE
+			ELSE
 SETBAT_DATA_COUNT	.equ	$0300
-		ENDIF
+			ENDIF
 setBat:
 ;set BAT
 		phx
@@ -5172,15 +4804,11 @@ setBat:
 		rts
 
 
-;----------------------------
+;===============================================================================
 clearSat:
 ;
 		jsr	clearSatBuffer
 
-		mov	<drawingNo, #DRAWING_NO_0
-		jsr	setSatToVram
-
-		mov	<drawingNo, #DRAWING_NO_1
 		jsr	setSatToVram
 
 ;set VRAM_SATB DMA
@@ -5189,7 +4817,7 @@ clearSat:
 		rts
 
 
-;----------------------------
+;===============================================================================
 setInterruptDisable:
 ;
 		sta	INTERRUPT_DISABLE_REG
@@ -5197,92 +4825,46 @@ setInterruptDisable:
 		rts
 
 
-;----------------------------
+;===============================================================================
 irq1PolygonFunction:
 ;
 		lda	VDC_0
 		sta	<vdpStatus
 
-		bbr5	<vdpStatus, .jpEnd
+		bbr5	<vdpStatus, .jp00
 
 		lda	<vsyncFlag
 		sta	<vsyncFlagTemp
 
-		bbr7	<vsyncFlag, .jpDma
+		bbr7	<vsyncFlag, .jp00
 
 		stz	<vsyncFlag
-
-		stz	<dmaCount
 
 		lda	<drawingNo
 		eor	#$01
 		sta	<drawingNo
 
-		beq	.jpBuffer0
+		beq	.jp01
 
 ;set VRAM_SAT DMA
 		st012	#$13, #$0800
 
 ;set scroll y
 		st012	#$08, #$0000
+		bra	.jp00
 
-		bra	.jpDma
-
-.jpBuffer0:
+.jp01:
 ;set VRAM_SAT DMA
 		st012	#$13, #$0900
 
 ;set scroll y
 		st012	#$08, #$0100
 
-.jpDma:
-			IFDEF CLEAR_BUFFER_DMA
-		lda	<dmaCount
-		cmp	#CLEAR_DMA_COUNT - 1
-		bcs	.jpEnd
-
-		inc	<dmaCount
-		tax
-
-		lda	<drawingNo
-		beq	.jpDma0
-
-;set VRAM_VRAM DMA
-		st012	#$10, #$0A00
-		st0	#$11
-		st1	#$00
-
-		lda	clearDmaAddress, x
-		clc
-		add	#$50
-		sta	VDC_3
-
-		st012	#$12, #CLEAR_DMA_SIZE
-
-		st0	#$02
-		bra	.jpEnd
-
-.jpDma0
-;set VRAM_VRAM DMA
-		st012	#$10, #$0A00
-		st0	#$11
-		st1	#$00
-
-		lda	clearDmaAddress, x
-		clc
-		add	#$20
-		sta	VDC_3
-
-		st012	#$12, #CLEAR_DMA_SIZE
-
-		st0	#$02
-			ENDIF
-
-.jpEnd:
+.jp00:
 		rts
 
 
-;----------------------------
+;===============================================================================
 clearSatBuffer:
 ;
 		phx
@@ -5313,7 +4895,7 @@ clearSatBuffer:
 		rts
 
 
-;----------------------------
+;===============================================================================
 initializeSatBuffer:
 ;
 		mov	<setBufferSkipNo, #$FF
@@ -5325,7 +4907,7 @@ initializeSatBuffer:
 		rts
 
 
-;----------------------------
+;===============================================================================
 setSatBufferSkipNo:
 ;
 ;A:skip max No.
@@ -5334,7 +4916,7 @@ setSatBufferSkipNo:
 		rts
 
 
-;----------------------------
+;===============================================================================
 setSatBufferAutoNo:
 ;set sprite data
 ;argw0:Y, argw1:X, argw2:pattern No., argw3:attribute
@@ -5364,10 +4946,27 @@ setSatBufferAutoNo:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; setSatBuffer
+;-------------------------------------------------------------------------------
+; Description:
+;   Populates a single sprite entry in the RAM Sprite Attribute Table (SAT)
+;   buffer with 16-bit coordinates, pattern index, and render attributes.
+;
+; Inputs:
+;   A                 : Sprite index / number (0 to 63)
+;   [argw0] (2 bytes) : Y coordinate
+;   [argw1] (2 bytes) : X coordinate
+;   [argw2] (2 bytes) : Pattern number / SG index
+;   [argw3] (2 bytes) : Sprite attributes (palette, priority, h-flip, v-flip)
+;
+; Outputs:
+;   [satBuffer]       : Updated sprite entry at index A
+;
+; Modifies:
+;   A
+;===============================================================================
 setSatBuffer:
-;set sprite data
-;A:sprinte No., argw0:Y, argw1:X, argw2:pattern No., argw3:attribute
 		phy
 
 		and	#63
@@ -5400,31 +4999,75 @@ setSatBuffer:
 		rts
 
 
-;----------------------------
+
+;===============================================================================
+; setScreenCenter
+;-------------------------------------------------------------------------------
+; Description:
+;   Sets the 2D screen center coordinates (vanishing point) used for
+;   perspective projection and coordinate transformation offset calculations.
+;
+; Inputs:
+;   X                  : Screen center X coordinate (0 to 255)
+;   Y                  : Screen center Y coordinate (0 to 255)
+;
+; Outputs:
+;   [centerX] (1 byte) : Screen center offsets updated
+;   [centerY] (1 byte) : Screen center offsets updated
+;
+; Modifies:
+;   None
+;===============================================================================
 setScreenCenter:
-;centerX:0 to 255, centerY:0 to 255
 		stx	<centerX
 		sty	<centerY
 		rts
 
 
-;----------------------------
-onScreen:
+;===============================================================================
+; onScreen
+;-------------------------------------------------------------------------------
+; Description:
+;   Enables the screen display (turns on BG/Sprite rendering via VDC).
 ;
+; Inputs:
+;   None
+;
+; Outputs:
+;   VDC Control Register : Screen output enabled (Display ON)
+;
+; Modifies:
+;   A
+;===============================================================================
+onScreen:
 		jsr	onScreenBg
 		jsr	onScreenSp
 		rts
 
 
-;----------------------------
-offScreen:
+
+;===============================================================================
+; offScreen
+;-------------------------------------------------------------------------------
+; Description:
+;   Disables the screen display (turns off BG/Sprite rendering / blanking).
 ;
+; Inputs:
+;   None
+;
+; Outputs:
+;   VDC Control Register : Screen output disabled (Display OFF)
+;
+; Modifies:
+;   A
+;===============================================================================
+offScreen:
 		jsr	offScreenBg
 		jsr	offScreenSp
 		rts
 
 
-;----------------------------
+;===============================================================================
 enableIrqVdc:
 ;
 		st0	#$05
@@ -5440,7 +5083,7 @@ enableIrqVdc:
 		rts
 
 
-;----------------------------
+;===============================================================================
 disableIrqVdc:
 ;
 		st0	#$05
@@ -5456,7 +5099,7 @@ disableIrqVdc:
 		rts
 
 
-;----------------------------
+;===============================================================================
 setInc1Vdc:
 ;
 		st0	#$05
@@ -5472,7 +5115,7 @@ setInc1Vdc:
 		rts
 
 
-;----------------------------
+;===============================================================================
 setInc32Vdc:
 ;
 		st0	#$05
@@ -5489,7 +5132,7 @@ setInc32Vdc:
 		rts
 
 
-;----------------------------
+;===============================================================================
 setInc64Vdc:
 ;
 		st0	#$05
@@ -5506,7 +5149,7 @@ setInc64Vdc:
 		rts
 
 
-;----------------------------
+;===============================================================================
 onScreenBg:
 ;
 		st0	#$05
@@ -5522,7 +5165,7 @@ onScreenBg:
 		rts
 
 
-;----------------------------
+;===============================================================================
 onScreenSp:
 ;
 		st0	#$05
@@ -5538,7 +5181,7 @@ onScreenSp:
 		rts
 
 
-;----------------------------
+;===============================================================================
 offScreenBg:
 ;
 		st0	#$05
@@ -5554,7 +5197,7 @@ offScreenBg:
 		rts
 
 
-;----------------------------
+;===============================================================================
 offScreenSp:
 ;
 		st0	#$05
@@ -5570,9 +5213,24 @@ offScreenSp:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; initializePolygonAndSat
+;-------------------------------------------------------------------------------
+; Description:
+;   Initializes both the polygon render buffer and the Sprite Attribute
+;   Table (SAT) buffer to prepare for a new frame.
+;
+; Inputs:
+;   None
+;
+; Outputs:
+;   [polyBuffer] : Cleared for incoming geometry
+;   [satBuffer]  : Cleared for sprite updates
+;
+; Modifies:
+;   A
+;===============================================================================
 initializePolygonAndSat:
-
 		jsr	initializePolygonBuffer
 
 		jsr	clearSatBuffer
@@ -5580,7 +5238,7 @@ initializePolygonAndSat:
 		rts
 
 
-;----------------------------
+;===============================================================================
 initializePolygonBuffer:
 ;
 ;initialize polyBufferAddr = polyBuffer
@@ -5591,7 +5249,7 @@ initializePolygonBuffer:
 
 
 ;--------
-		IFDEF SAMPLE_Z_MAX_ONLY
+			IFDEF SAMPLE_Z_MAX_ONLY
 
 ;polyBufferStart SAMPLE Z = $7FFF
 		movw	polyBufferStart+2, #$7FFF
@@ -5600,7 +5258,7 @@ initializePolygonBuffer:
 		movw	polyBufferEnd+2, #0
 
 ;--------
-		ELSE
+			ELSE
 ;--------
 
 ;polyBufferStart SAMPLE Z = 16384
@@ -5609,7 +5267,7 @@ initializePolygonBuffer:
 ;polyBufferEnd SAMPLE Z = -16384
 		movw	polyBufferEnd+2, #-16384
 
-		ENDIF
+			ENDIF
 ;--------
 
 ;polyBufferEnd COLOR = $00
@@ -5621,21 +5279,14 @@ initializePolygonBuffer:
 		rts
 
 
-;----------------------------
+;===============================================================================
 setSystemConfig:
 ;
 		sta	<systemConfig
 		rts
 
 
-;----------------------------
-getSystemConfig:
-;
-		lda	<systemConfig
-		rts
-
-
-;----------------------------
+;===============================================================================
 initializeScreenVsync:
 ;
 		stzw	<vdcR05
@@ -5647,9 +5298,6 @@ initializeScreenVsync:
 ;set drawing No.0
 		mov	<drawingNo, #DRAWING_NO_0
 
-;initialize dma counter
-		mov	<dmaCount, #CLEAR_DMA_COUNT
-
 ;set scroll x
 		st012	#$07, #$0000
 
@@ -5659,21 +5307,39 @@ initializeScreenVsync:
 		rts
 
 
-;----------------------------
-putPolygonWithVsync:
+;===============================================================================
+; putPolygonWithVsync
+;-------------------------------------------------------------------------------
+; Description:
+;   Executes the frame rendering sequence synchronized with VSYNC:
+;     1. Waits for vertical blanking interval (VSYNC).
+;     2. Transfers local SAT buffer to VDC VRAM (SATB DMA).
+;     3. Flips active VRAM display buffers and clears back buffer.
+;     4. Renders/draws buffered polygon geometry.
 ;
+; Inputs:
+;   [polyBuffer]    : Polygon data prepared for the current frame
+;   [satBuffer]     : Sprite Attribute Table data prepared for VRAM transfer
+;
+; Outputs:
+;   VDC VRAM        : Updated with new SAT data and freshly rendered polygons
+;
+; Modifies:
+;   A
+;===============================================================================
+putPolygonWithVsync:
 		jsr	waitScreenVsync
 
 		jsr	setSatToVram
 
-		jsr	clearBufferDma
+		jsr	switchClearBuffer
 
 		jsr	putPolygonBuffer
 
 		rts
 
 
-;----------------------------
+;===============================================================================
 waitScreenVsync:
 ;Access to VRAM should be done after this function.
 .waitloop0:
@@ -5681,7 +5347,7 @@ waitScreenVsync:
 		rts
 
 
-;----------------------------
+;===============================================================================
 setSatToVram:
 ;
 ;set vram addr
@@ -5701,14 +5367,28 @@ setSatToVram:
 		rts
 
 
-;----------------------------
-setVsyncFlag:
+;===============================================================================
+; setVsyncFlag
+;-------------------------------------------------------------------------------
+; Description:
+;   Sets the frame completion flag (vsyncFlag) to indicate that all frame
+;   rendering is finished, signaling the V-Blank handler/main loop to proceed.
 ;
+; Inputs:
+;   None
+;
+; Outputs:
+;   [vsyncFlag] : Set to $80 (Frame render completed)
+;
+; Modifies:
+;   A
+;===============================================================================
+setVsyncFlag:
 		smb7	<vsyncFlag
 		rts
 
 
-;----------------------------
+;===============================================================================
 initializeRandom:
 ;
 		lda	#$C0
@@ -5717,9 +5397,23 @@ initializeRandom:
 		rts
 
 
-;----------------------------
-getRandom:
+;===============================================================================
+; getRandom
+;-------------------------------------------------------------------------------
+; Description:
+;   Generates the next pseudo-random byte using the internal PRNG state
+;   and updates the seed for subsequent calls.
 ;
+; Inputs:
+;   None
+;
+; Outputs:
+;   A               : Generated 8-bit pseudo-random value (0 to 255)
+;
+; Modifies:
+;   A
+;===============================================================================
+getRandom:
 		lda	randomSeed+1
 		lsr	a
 		rol	randomSeed
@@ -5732,10 +5426,25 @@ getRandom:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; numToChar
+;-------------------------------------------------------------------------------
+; Description:
+;   Converts a 4-bit numeric value ($0-$F) into its corresponding ASCII/font
+;   character code ('0'-'9', 'A'-'F').
+;
+; Inputs:
+;   A               : 4-bit numeric value ($00 to $0F)
+;
+; Outputs:
+;   A               : ASCII character code
+;                     - '0' to '9' ($30 to $39)
+;                     - 'A' to 'F' ($41 to $46)
+;
+; Modifies:
+;   A
+;===============================================================================
 numToChar:
-;in  A Register $0 to $F
-;out A Register '0'-'9'($30-$39) 'A'-'F'($41-$46)
 		sed
 		clc
 		adc	#$90
@@ -5745,24 +5454,134 @@ numToChar:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; setCgToSgData
+;-------------------------------------------------------------------------------
+; Description:
+;   Transfers an 8x8 Character Generator (CG) tile from ROM into a specified
+;   quadrant (top-left, bottom-left, top-right, or bottom-right) of a 16x16
+;   Sprite Generator (SG) pattern in VRAM.
+;
+; Inputs:
+;   [argw0] (2 bytes) : ROM source base address
+;   [argw1] (2 bytes) : Source CG tile index (0 to 2047)
+;   [argw2] (2 bytes) : Destination SG pattern index (0 to 1022)
+;   [arg6]  (1 byte)  : Target quadrant position inside the 16x16 sprite
+;                       - $00 : Top-Left
+;                       - $01 : Top-Right
+;                       - $02 : Bottom-Left
+;                       - $03 : Bottom-Right
+;
+; Outputs:
+;   VRAM (SG Region)  : Specified 16x16 SG quadrant updated with 8x8 CG tile
+;
+; Modifies:
+;   A
+;===============================================================================
 setCgToSgData:
-;argw0: rom address, argw1: src CG No(0-2047), argw2: dist SG No(0-1022), arg6: top or bottom left or right
-;arg6 $00:left top, $02:left bottom, $01:right top, $03:right bottom
-		tma	#POLYGON_SUB2_FUNC_MAP
-		pha
+		phx
+		phy
 
-		lda	#POLYGON_SUB2_FUNC_BANK
-		tam	#POLYGON_SUB2_FUNC_MAP
+;CG address
+		asl	<argw1
+		rol	<argw1+1
+		asl	<argw1
+		rol	<argw1+1
+		asl	<argw1
+		rol	<argw1+1
+		asl	<argw1
+		rol	<argw1+1
+		asl	<argw1
+		rol	<argw1+1
 
-		jsr	_setCgToSgData
+		addw	<argw0, <argw1
 
-		pla
-		tam	#POLYGON_SUB2_FUNC_MAP
+;SG address
+		asl	<argw2
+		rol	<argw2+1
+		asl	<argw2
+		rol	<argw2+1
+		asl	<argw2
+		rol	<argw2+1
+		asl	<argw2
+		rol	<argw2+1
+		asl	<argw2
+		rol	<argw2+1
+
+;top or bottom
+		bbr1	<arg6, .jp00
+;bottom
+		addw	<argw2, #8
+
+.jp00:
+
+		cly
+
+.loop00:
+		st0	#$00
+		movw	VDC_2, <argw2
+
+		st0	#$01
+		movw	VDC_2, <argw2
+
+		st0	#$02
+
+.loop01:
+;left or right
+		bbs0	<arg6, .jp01
+
+;left
+		ldx	VDC_2
+		lda	VDC_3
+
+		lda	[argw0], y
+		stx	VDC_2
+		sta	VDC_3
+
+		bra	.jp02
+
+.jp01:
+;right
+		lda	VDC_2
+		ldx	VDC_3
+
+		lda	[argw0], y
+		sta	VDC_2
+		stx	VDC_3
+
+.jp02:
+		iny
+		iny
+		cpy	#33
+		beq	.funcEnd
+
+		cpy	#16
+		bne	.jp05
+		ldy	#1
+		bra	.jp07
+
+.jp05:
+		cpy	#17
+		bne	.jp06
+		ldy	#16
+		bra	.jp07
+
+.jp06:
+		cpy	#32
+		bne	.loop01
+		ldy	#17
+
+.jp07:
+		addw	<argw2, #16
+		bra	.loop00
+
+.funcEnd:
+		ply
+		plx
 		rts
 
 
-;----------------------------
+;===============================================================================
 calcBatAddressXY:
 ;x:X, y:Y
 		stx	<tempw0
@@ -5783,10 +5602,25 @@ calcBatAddressXY:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; setWriteVramAddress
+;-------------------------------------------------------------------------------
+; Description:
+;   Calculates the VRAM memory address corresponding to the specified 2D
+;   screen coordinates (X, Y) and configures the VDC VRAM write address
+;   register (VWR / MAR).
+;
+; Inputs:
+;   X                 : X coordinate (Tile/Screen X position)
+;   Y                 : Y coordinate (Tile/Screen Y position)
+;
+; Outputs:
+;   VDC Registers      : VRAM write target address set to position (X, Y)
+;
+; Modifies:
+;   A
+;===============================================================================
 setWriteVramAddress:
-;x:X, y:Y
-;automatically select the drawing area
 		phx
 		phy
 
@@ -5813,9 +5647,24 @@ setWriteVramAddress:
 		rts
 
 
-;----------------------------
+;===============================================================================
+; setVramData
+;-------------------------------------------------------------------------------
+; Description:
+;   Writes a 16-bit data word (A: Low byte, X: High byte) to the current VRAM
+;   address via the VDC data port.
+;
+; Inputs:
+;   A               : Low byte of 16-bit VRAM data
+;   X               : High byte of 16-bit VRAM data
+;
+; Outputs:
+;   VRAM Data Port  : 16-bit word written to VRAM (address auto-increments)
+;
+; Modifies:
+;   None
+;===============================================================================
 setVramData:
-;x:a: Data
 		st0	#$02
 		sta	VDC_2
 		stx	VDC_3
@@ -5823,7 +5672,7 @@ setVramData:
 		rts
 
 
-;----------------------------
+;===============================================================================
 putChar:
 ;a:char code, x:palette
 		pha
@@ -5848,7 +5697,7 @@ putChar:
 		rts
 
 
-;----------------------------
+;===============================================================================
 putString:
 ;argw0:String Address, arg2:palette
 		phx
@@ -5878,7 +5727,7 @@ putString:
 		rts
 
 
-;----------------------------
+;===============================================================================
 putHex:
 ;a:Data, x:palette
 		pha
@@ -5904,29 +5753,14 @@ putHex:
 		rts
 
 
-		IFDEF	ENABLE_SHADING
-;----------------------------
-reverseRotationSelect
-		.db	$00, $10, $20, $00, $04, $14, $24, $00, $08, $18, $28, $00, $00, $00, $00, $00,\
-			$01, $11, $21, $00, $05, $15, $25, $00, $09, $19, $29, $00, $00, $00, $00, $00,\
-			$02, $12, $22, $00, $06, $16, $26, $00, $0A, $1A, $2A 
-
-		IFDEF	BRIGHT_CONVERT_8_8
-;----------------------------
-brightConvertData
-		.db	 8,  8,  8, 16, 16, 16, 24, 24, 32, 32, 40, 40, 48, 48, 56, 56, 56
-		ELSE
-;----------------------------
-brightConvertData
-		.db	 8,  8,  8,  8,  8,  8, 16, 16, 16, 16, 16, 16, 24, 24, 24, 24, 24
-		ENDIF
-
-		ENDIF
-
-
 ;////////////////////////////
 		.bank	POLYGON_SUB_FUNC_BANK
 		.org	$4000
+
+;----------------------------
+;for clearBuffer function
+		rts
+
 
 ;----------------------------
 calcCircle_putPoly:
@@ -6379,79 +6213,47 @@ putPolyLine:
 ;put horizontal lines
 		inc	<maxEdgeY
 
-		ldy	#4
-		lda	[polyBufferAddr], y	;COLOR
-		tax
-
-		bbs6	<polyAttribute, .jpLineSkip
-
-		lda	#POLYGON_FILL_FUNC_BANK
-		tam	#POLYGON_EDGE_FUNC_MAP
-
-		lda	polygonColorP0, x
-		sta	<polyLineColorDataWork0
-		tay
-		lda	rotation1Data,y
-		sta	<polyLineColorDataWork4
-
-		lda	polygonColorP1, x
-		sta	<polyLineColorDataWork1
-		tay
-		lda	rotation1Data,y
-		sta	<polyLineColorDataWork5
-
-		lda	polygonColorP2, x
-		sta	<polyLineColorDataWork2
-		tay
-		lda	rotation1Data,y
-		sta	<polyLineColorDataWork6
-
-		lda	polygonColorP3, x
-		sta	<polyLineColorDataWork3
-		tay
-		lda	rotation1Data,y
-		sta	<polyLineColorDataWork7
-
-		ldy	<minEdgeY
-
-		bbs0	<drawingNo, .jpLine0
-		jsr	putPolyLineProc0
-		rts
-
-.jpLine0:
-		jsr	putPolyLineProc1
-		rts
-
-;line skip
-.jpLineSkip:
-		lda	polygonColorP0, x
-		sta	<polyLineColorDataWork0
-
-		lda	polygonColorP1, x
-		sta	<polyLineColorDataWork1
-
-		lda	polygonColorP2, x
-		sta	<polyLineColorDataWork2
-
-		lda	polygonColorP3, x
-		sta	<polyLineColorDataWork3
+		mov	<polyLineColorDataWork0, polyLineColorWork_H_P0
+		mov	<polyLineColorDataWork1, polyLineColorWork_H_P1
+		mov	<polyLineColorDataWork2, polyLineColorWork_H_P2
+		mov	<polyLineColorDataWork3, polyLineColorWork_H_P3
 
 		lda	<minEdgeY
 		inc	a
 		and	#$FE
 		tay
 
-		bbs0	<drawingNo, .jpLineSkip0
-		jsr	_putPolyLineProc0
-		rts
+		bbs0	<drawingNo, .jp4
+		jsr	putPolyLineProc0
+		bra	.jp5
+.jp4:
+		jsr	putPolyLineProc1
 
-.jpLineSkip0:
-		jsr	_putPolyLineProc1
+.jp5:
+		bbs6	<polyAttribute, .jp3
+
+		mov	<polyLineColorDataWork0, polyLineColorWork_L_P0
+		mov	<polyLineColorDataWork1, polyLineColorWork_L_P1
+		mov	<polyLineColorDataWork2, polyLineColorWork_L_P2
+		mov	<polyLineColorDataWork3, polyLineColorWork_L_P3
+
+		lda	<minEdgeY
+		and	#$FE
+		inc	a
+		tay
+
+		bbs0	<drawingNo, .jp6
+		jsr	putPolyLineProc0
+		bra	.jp3
+.jp6:
+		jsr	putPolyLineProc1
+
+.jp3:
 		rts
 
 
 ;----------------------------
-_putPolyLineProc0:
+putPolyLineProc0:
 ;put horizontal line
 		bra	.loopStart
 
@@ -6900,7 +6702,7 @@ _putPolyLineProc0:
 
 
 ;----------------------------
-_putPolyLineProc1:
+putPolyLineProc1:
 ;put horizontal line
 		bra	.loopStart
 
@@ -7349,7 +7151,7 @@ _putPolyLineProc1:
 
 
 ;----------------------------
-		IFDEF DISPLAY_BOTTOM_144
+			IFDEF DISPLAY_BOTTOM_144
 ;----------------------------
 polyLineAddrConvYHigh0:
 		.db	$20, $20, $20, $20, $20, $20, $20, $20, $24, $24, $24, $24, $24, $24, $24, $24,\
@@ -7396,7 +7198,7 @@ polyLineAddrConvYLow:
 
 
 ;----------------------------
-		ELSE
+			ELSE
 ;----------------------------
 polyLineAddrConvYHigh0:
 		.db	$20, $20, $20, $20, $20, $20, $20, $20, $24, $24, $24, $24, $24, $24, $24, $24,\
@@ -7444,7 +7246,7 @@ polyLineAddrConvYLow:
 			$10, $11, $12, $13, $14, $15, $16, $17, $10, $11, $12, $13, $14, $15, $16, $17,\
 			$10, $11, $12, $13, $14, $15, $16, $17, $10, $11, $12, $13, $14, $15, $16, $17
 ;----------------------------
-		ENDIF
+			ENDIF
 ;----------------------------
 
 
@@ -7506,1891 +7308,6 @@ polyLineRightDatas:
 
 
 ;////////////////////////////
-		.bank	POLYGON_FILL_FUNC_BANK
-		.org	$6000
-
-;----------------------------
-putPolyLineProc0:
-;put horizontal line
-		tya
-		and	#$01
-		beq	.loopStart_0
-		jmp	.loopStart_1
-
-.jpRts_0:
-		rts
-
-.jpSwap_0:
-;swap left and right
-		beq	.jp0_0
-		ldx	edgeRight, y
-		sta	edgeRight, y
-		txa
-		sta	edgeLeft, y
-		bra	.jp0_0
-
-.jpCount0_0:
-		jmp	.jpCount0Pg_0
-
-;loop
-.loop0_0:
-		iny
-
-.loopStart_0:
-		cpy	<maxEdgeY
-		bcs	.jpRts_0
-
-;compare left and right values
-		lda	edgeLeft, y
-		cmp	edgeRight, y
-		bcs	.jpSwap_0
-
-;calculation left counts
-.jp0_0:
-		lsr	a
-		lsr	a
-		lsr	a
-		sta	<polyLineCount
-
-;calculation left vram address
-		tax
-
-		lda	polyLineAddrConvXHigh, x
-		ora	polyLineAddrConvYHigh0, y
-		sta	<polyLineLeftAddr+1
-
-		lda	polyLineAddrConvXLow, x
-		ora	polyLineAddrConvYLow, y
-		pha
-
-;set left address
-		ldx	<polyLineLeftAddr+1
-		st0	#$00
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$01
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$02
-
-;put left data
-		ldx	edgeLeft, y
-
-		lda	polyLineLeftDatas, x
-		sta	<polyLineLeftData
-		eor	#$FF
-		sta	<polyLineLeftMask
-
-;calculation counts
-		lda	edgeRight, y
-		lsr	a
-		lsr	a
-		lsr	a
-		tax
-		sec
-		sbc	<polyLineCount
-		beq	.jpCount0_0
-
-;center jump index
-		asl	a
-		sta	<polyLineJumpIndex
-
-;right address
-		lda	polyLineAddrConvXLow, x
-		ora	polyLineAddrConvYLow, y
-		sta	<polyLineRightAddr
-
-		lda	polyLineAddrConvXHigh, x
-		ora	polyLineAddrConvYHigh0, y
-		sta	<polyLineRightAddr+1
-
-;put right data
-		ldx	edgeRight, y
-
-		lda	polyLineRightDatas, x
-		sta	<polyLineRightData
-		eor	#$FF
-		sta	<polyLineRightMask
-
-;put line process
-;left CH0 CH1
-		lda	VDC_2
-		and	<polyLineLeftMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineLeftMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork0
-		and	<polyLineLeftData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork1
-		and	<polyLineLeftData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;center CH0 CH1
-		lda	<polyLineColorDataWork0
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork1
-
-		ldx	<polyLineJumpIndex
-
-		jmp	[.centerVDC_01_0Addr, x]
-
-.centerVDC_01_0:
-		sta	VDC_3	;30
-		sta	VDC_3	;29
-		sta	VDC_3	;28
-		sta	VDC_3	;27
-		sta	VDC_3	;26
-		sta	VDC_3	;25
-		sta	VDC_3	;24
-		sta	VDC_3	;23
-		sta	VDC_3	;22
-		sta	VDC_3	;21
-
-		sta	VDC_3	;20
-		sta	VDC_3	;19
-		sta	VDC_3	;18
-		sta	VDC_3	;17
-		sta	VDC_3	;16
-		sta	VDC_3	;15
-		sta	VDC_3	;14
-		sta	VDC_3	;13
-		sta	VDC_3	;12
-		sta	VDC_3	;11
-
-		sta	VDC_3	;10
-		sta	VDC_3	;9
-		sta	VDC_3	;8
-		sta	VDC_3	;7
-		sta	VDC_3	;6
-		sta	VDC_3	;5
-		sta	VDC_3	;4
-		sta	VDC_3	;3
-		sta	VDC_3	;2
-		sta	VDC_3	;1
-
-;right CH0 CH1
-		st0	#$01
-		lda	<polyLineRightAddr
-		sta	VDC_2
-		lda	<polyLineRightAddr+1
-		sta	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineRightMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineRightMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork0
-		and	<polyLineRightData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork1
-		and	<polyLineRightData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;left CH2 CH3
-		pla
-		ora	#$08
-
-		ldx	<polyLineLeftAddr+1
-
-		st0	#$00
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$01
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineLeftMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineLeftMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork2
-		and	<polyLineLeftData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork3
-		and	<polyLineLeftData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;center CH2 CH3
-		lda	<polyLineColorDataWork2
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork3
-
-		ldx	<polyLineJumpIndex
-
-		jmp	[.centerVDC_02_0Addr, x]
-
-.centerVDC_02_0:
-		sta	VDC_3	;30
-		sta	VDC_3	;29
-		sta	VDC_3	;28
-		sta	VDC_3	;27
-		sta	VDC_3	;26
-		sta	VDC_3	;25
-		sta	VDC_3	;24
-		sta	VDC_3	;23
-		sta	VDC_3	;22
-		sta	VDC_3	;21
-
-		sta	VDC_3	;20
-		sta	VDC_3	;19
-		sta	VDC_3	;18
-		sta	VDC_3	;17
-		sta	VDC_3	;16
-		sta	VDC_3	;15
-		sta	VDC_3	;14
-		sta	VDC_3	;13
-		sta	VDC_3	;12
-		sta	VDC_3	;11
-
-		sta	VDC_3	;10
-		sta	VDC_3	;9
-		sta	VDC_3	;8
-		sta	VDC_3	;7
-		sta	VDC_3	;6
-		sta	VDC_3	;5
-		sta	VDC_3	;4
-		sta	VDC_3	;3
-		sta	VDC_3	;2
-		sta	VDC_3	;1
-
-;right CH2 CH3
-		st0	#$01
-		lda	<polyLineRightAddr
-		ora	#$08
-		sta	VDC_2
-		lda	<polyLineRightAddr+1
-		sta	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineRightMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineRightMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork2
-		and	<polyLineRightData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork3
-		and	<polyLineRightData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;loop jump
-		jmp	.loop0_1
-
-.jpCount0Pg_0:
-;count 0 then
-;put line same address
-		ldx	edgeRight, y
-		lda	polyLineRightDatas, x
-		ldx	edgeLeft, y
-		and	polyLineLeftDatas, x
-
-		sta	<polyLineMask0
-		eor	#$FF
-		sta	<polyLineMask1
-
-;CH0 CH1
-		lda	VDC_2
-		and	<polyLineMask1
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineMask1
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork0
-		and	<polyLineMask0
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork1
-		and	<polyLineMask0
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;CH2 CH3
-		pla
-		ora	#$08
-		ldx	<polyLineLeftAddr+1
-		st0	#$00
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$01
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineMask1
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineMask1
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork2
-		and	<polyLineMask0
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork3
-		and	<polyLineMask0
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;loop jump
-		jmp	.loop0_1
-
-;----------------
-.jpRts_1:
-		rts
-
-.jpSwap_1:
-;swap left and right
-		beq	.jp0_1
-		ldx	edgeRight, y
-		sta	edgeRight, y
-		txa
-		sta	edgeLeft, y
-		bra	.jp0_1
-
-.jpCount0_1:
-		jmp	.jpCount0Pg_1
-
-;loop
-.loop0_1:
-		iny
-
-.loopStart_1:
-		cpy	<maxEdgeY
-		bcs	.jpRts_1
-
-;compare left and right values
-		lda	edgeLeft, y
-		cmp	edgeRight, y
-		bcs	.jpSwap_1
-
-;calculation left counts
-.jp0_1:
-		lsr	a
-		lsr	a
-		lsr	a
-		sta	<polyLineCount
-
-;calculation left vram address
-		tax
-
-		lda	polyLineAddrConvXHigh, x
-		ora	polyLineAddrConvYHigh0, y
-		sta	<polyLineLeftAddr+1
-
-		lda	polyLineAddrConvXLow, x
-		ora	polyLineAddrConvYLow, y
-		pha
-
-;set left address
-		ldx	<polyLineLeftAddr+1
-		st0	#$00
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$01
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$02
-
-;put left data
-		ldx	edgeLeft, y
-
-		lda	polyLineLeftDatas, x
-		sta	<polyLineLeftData
-		eor	#$FF
-		sta	<polyLineLeftMask
-
-;calculation counts
-		lda	edgeRight, y
-		lsr	a
-		lsr	a
-		lsr	a
-		tax
-		sec
-		sbc	<polyLineCount
-		beq	.jpCount0_1
-
-;center jump index
-		asl	a
-		sta	<polyLineJumpIndex
-
-;right address
-		lda	polyLineAddrConvXLow, x
-		ora	polyLineAddrConvYLow, y
-		sta	<polyLineRightAddr
-
-		lda	polyLineAddrConvXHigh, x
-		ora	polyLineAddrConvYHigh0, y
-		sta	<polyLineRightAddr+1
-
-;put right data
-		ldx	edgeRight, y
-
-		lda	polyLineRightDatas, x
-		sta	<polyLineRightData
-		eor	#$FF
-		sta	<polyLineRightMask
-
-;put line process
-;left CH0 CH1
-		lda	VDC_2
-		and	<polyLineLeftMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineLeftMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork4
-		and	<polyLineLeftData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork5
-		and	<polyLineLeftData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;center CH0 CH1
-		lda	<polyLineColorDataWork4
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork5
-
-		ldx	<polyLineJumpIndex
-
-		jmp	[.centerVDC_01_1Addr, x]
-
-.centerVDC_01_1:
-		sta	VDC_3	;30
-		sta	VDC_3	;29
-		sta	VDC_3	;28
-		sta	VDC_3	;27
-		sta	VDC_3	;26
-		sta	VDC_3	;25
-		sta	VDC_3	;24
-		sta	VDC_3	;23
-		sta	VDC_3	;22
-		sta	VDC_3	;21
-
-		sta	VDC_3	;20
-		sta	VDC_3	;19
-		sta	VDC_3	;18
-		sta	VDC_3	;17
-		sta	VDC_3	;16
-		sta	VDC_3	;15
-		sta	VDC_3	;14
-		sta	VDC_3	;13
-		sta	VDC_3	;12
-		sta	VDC_3	;11
-
-		sta	VDC_3	;10
-		sta	VDC_3	;9
-		sta	VDC_3	;8
-		sta	VDC_3	;7
-		sta	VDC_3	;6
-		sta	VDC_3	;5
-		sta	VDC_3	;4
-		sta	VDC_3	;3
-		sta	VDC_3	;2
-		sta	VDC_3	;1
-
-;right CH0 CH1
-		st0	#$01
-		lda	<polyLineRightAddr
-		sta	VDC_2
-		lda	<polyLineRightAddr+1
-		sta	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineRightMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineRightMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork4
-		and	<polyLineRightData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork5
-		and	<polyLineRightData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;left CH2 CH3
-		pla
-		ora	#$08
-
-		ldx	<polyLineLeftAddr+1
-
-		st0	#$00
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$01
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineLeftMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineLeftMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork6
-		and	<polyLineLeftData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork7
-		and	<polyLineLeftData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;center CH2 CH3
-		lda	<polyLineColorDataWork6
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork7
-
-		ldx	<polyLineJumpIndex
-
-		jmp	[.centerVDC_02_1Addr, x]
-
-.centerVDC_02_1:
-		sta	VDC_3	;30
-		sta	VDC_3	;29
-		sta	VDC_3	;28
-		sta	VDC_3	;27
-		sta	VDC_3	;26
-		sta	VDC_3	;25
-		sta	VDC_3	;24
-		sta	VDC_3	;23
-		sta	VDC_3	;22
-		sta	VDC_3	;21
-
-		sta	VDC_3	;20
-		sta	VDC_3	;19
-		sta	VDC_3	;18
-		sta	VDC_3	;17
-		sta	VDC_3	;16
-		sta	VDC_3	;15
-		sta	VDC_3	;14
-		sta	VDC_3	;13
-		sta	VDC_3	;12
-		sta	VDC_3	;11
-
-		sta	VDC_3	;10
-		sta	VDC_3	;9
-		sta	VDC_3	;8
-		sta	VDC_3	;7
-		sta	VDC_3	;6
-		sta	VDC_3	;5
-		sta	VDC_3	;4
-		sta	VDC_3	;3
-		sta	VDC_3	;2
-		sta	VDC_3	;1
-
-;right CH2 CH3
-		st0	#$01
-		lda	<polyLineRightAddr
-		ora	#$08
-		sta	VDC_2
-		lda	<polyLineRightAddr+1
-		sta	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineRightMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineRightMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork6
-		and	<polyLineRightData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork7
-		and	<polyLineRightData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;loop jump
-		jmp	.loop0_0
-
-.jpCount0Pg_1:
-;count 0 then
-;put line same address
-		ldx	edgeRight, y
-		lda	polyLineRightDatas, x
-		ldx	edgeLeft, y
-		and	polyLineLeftDatas, x
-
-		sta	<polyLineMask0
-		eor	#$FF
-		sta	<polyLineMask1
-
-;CH0 CH1
-		lda	VDC_2
-		and	<polyLineMask1
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineMask1
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork4
-		and	<polyLineMask0
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork5
-		and	<polyLineMask0
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;CH2 CH3
-		pla
-		ora	#$08
-		ldx	<polyLineLeftAddr+1
-		st0	#$00
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$01
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineMask1
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineMask1
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork6
-		and	<polyLineMask0
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork7
-		and	<polyLineMask0
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;loop jump
-		jmp	.loop0_0
-
-;--------
-.centerVDC_01_0Addr:
-		dw	.centerVDC_01_0 +3*30	;-1
-		dw	.centerVDC_01_0 +3*30	;0
-
-		dw	.centerVDC_01_0 +3*29	;1
-		dw	.centerVDC_01_0 +3*28	;2
-		dw	.centerVDC_01_0 +3*27	;3
-		dw	.centerVDC_01_0 +3*26	;4
-		dw	.centerVDC_01_0 +3*25	;5
-		dw	.centerVDC_01_0 +3*24	;6
-		dw	.centerVDC_01_0 +3*23	;7
-		dw	.centerVDC_01_0 +3*22	;8
-		dw	.centerVDC_01_0 +3*21	;9
-
-		dw	.centerVDC_01_0 +3*20	;10
-		dw	.centerVDC_01_0 +3*19	;11
-		dw	.centerVDC_01_0 +3*18	;12
-		dw	.centerVDC_01_0 +3*17	;13
-		dw	.centerVDC_01_0 +3*16	;14
-		dw	.centerVDC_01_0 +3*15	;15
-		dw	.centerVDC_01_0 +3*14	;16
-		dw	.centerVDC_01_0 +3*13	;17
-		dw	.centerVDC_01_0 +3*12	;18
-		dw	.centerVDC_01_0 +3*11	;19
-
-		dw	.centerVDC_01_0 +3*10	;20
-		dw	.centerVDC_01_0 +3*9	;21
-		dw	.centerVDC_01_0 +3*8	;22
-		dw	.centerVDC_01_0 +3*7	;23
-		dw	.centerVDC_01_0 +3*6	;24
-		dw	.centerVDC_01_0 +3*5	;25
-		dw	.centerVDC_01_0 +3*4	;26
-		dw	.centerVDC_01_0 +3*3	;27
-		dw	.centerVDC_01_0 +3*2	;28
-		dw	.centerVDC_01_0 +3*1	;29
-
-		dw	.centerVDC_01_0 +3*0	;30
-
-;--------
-.centerVDC_02_0Addr:
-		dw	.centerVDC_02_0 +3*30	;-1
-		dw	.centerVDC_02_0 +3*30	;0
-
-		dw	.centerVDC_02_0 +3*29	;1
-		dw	.centerVDC_02_0 +3*28	;2
-		dw	.centerVDC_02_0 +3*27	;3
-		dw	.centerVDC_02_0 +3*26	;4
-		dw	.centerVDC_02_0 +3*25	;5
-		dw	.centerVDC_02_0 +3*24	;6
-		dw	.centerVDC_02_0 +3*23	;7
-		dw	.centerVDC_02_0 +3*22	;8
-		dw	.centerVDC_02_0 +3*21	;9
-
-		dw	.centerVDC_02_0 +3*20	;10
-		dw	.centerVDC_02_0 +3*19	;11
-		dw	.centerVDC_02_0 +3*18	;12
-		dw	.centerVDC_02_0 +3*17	;13
-		dw	.centerVDC_02_0 +3*16	;14
-		dw	.centerVDC_02_0 +3*15	;15
-		dw	.centerVDC_02_0 +3*14	;16
-		dw	.centerVDC_02_0 +3*13	;17
-		dw	.centerVDC_02_0 +3*12	;18
-		dw	.centerVDC_02_0 +3*11	;19
-
-		dw	.centerVDC_02_0 +3*10	;20
-		dw	.centerVDC_02_0 +3*9	;21
-		dw	.centerVDC_02_0 +3*8	;22
-		dw	.centerVDC_02_0 +3*7	;23
-		dw	.centerVDC_02_0 +3*6	;24
-		dw	.centerVDC_02_0 +3*5	;25
-		dw	.centerVDC_02_0 +3*4	;26
-		dw	.centerVDC_02_0 +3*3	;27
-		dw	.centerVDC_02_0 +3*2	;28
-		dw	.centerVDC_02_0 +3*1	;29
-
-		dw	.centerVDC_02_0 +3*0	;30
-
-;--------
-.centerVDC_01_1Addr:
-		dw	.centerVDC_01_1 +3*30	;-1
-		dw	.centerVDC_01_1 +3*30	;0
-
-		dw	.centerVDC_01_1 +3*29	;1
-		dw	.centerVDC_01_1 +3*28	;2
-		dw	.centerVDC_01_1 +3*27	;3
-		dw	.centerVDC_01_1 +3*26	;4
-		dw	.centerVDC_01_1 +3*25	;5
-		dw	.centerVDC_01_1 +3*24	;6
-		dw	.centerVDC_01_1 +3*23	;7
-		dw	.centerVDC_01_1 +3*22	;8
-		dw	.centerVDC_01_1 +3*21	;9
-
-		dw	.centerVDC_01_1 +3*20	;10
-		dw	.centerVDC_01_1 +3*19	;11
-		dw	.centerVDC_01_1 +3*18	;12
-		dw	.centerVDC_01_1 +3*17	;13
-		dw	.centerVDC_01_1 +3*16	;14
-		dw	.centerVDC_01_1 +3*15	;15
-		dw	.centerVDC_01_1 +3*14	;16
-		dw	.centerVDC_01_1 +3*13	;17
-		dw	.centerVDC_01_1 +3*12	;18
-		dw	.centerVDC_01_1 +3*11	;19
-
-		dw	.centerVDC_01_1 +3*10	;20
-		dw	.centerVDC_01_1 +3*9	;21
-		dw	.centerVDC_01_1 +3*8	;22
-		dw	.centerVDC_01_1 +3*7	;23
-		dw	.centerVDC_01_1 +3*6	;24
-		dw	.centerVDC_01_1 +3*5	;25
-		dw	.centerVDC_01_1 +3*4	;26
-		dw	.centerVDC_01_1 +3*3	;27
-		dw	.centerVDC_01_1 +3*2	;28
-		dw	.centerVDC_01_1 +3*1	;29
-
-		dw	.centerVDC_01_1 +3*0	;30
-
-;--------
-.centerVDC_02_1Addr:
-		dw	.centerVDC_02_1 +3*30	;-1
-		dw	.centerVDC_02_1 +3*30	;0
-
-		dw	.centerVDC_02_1 +3*29	;1
-		dw	.centerVDC_02_1 +3*28	;2
-		dw	.centerVDC_02_1 +3*27	;3
-		dw	.centerVDC_02_1 +3*26	;4
-		dw	.centerVDC_02_1 +3*25	;5
-		dw	.centerVDC_02_1 +3*24	;6
-		dw	.centerVDC_02_1 +3*23	;7
-		dw	.centerVDC_02_1 +3*22	;8
-		dw	.centerVDC_02_1 +3*21	;9
-
-		dw	.centerVDC_02_1 +3*20	;10
-		dw	.centerVDC_02_1 +3*19	;11
-		dw	.centerVDC_02_1 +3*18	;12
-		dw	.centerVDC_02_1 +3*17	;13
-		dw	.centerVDC_02_1 +3*16	;14
-		dw	.centerVDC_02_1 +3*15	;15
-		dw	.centerVDC_02_1 +3*14	;16
-		dw	.centerVDC_02_1 +3*13	;17
-		dw	.centerVDC_02_1 +3*12	;18
-		dw	.centerVDC_02_1 +3*11	;19
-
-		dw	.centerVDC_02_1 +3*10	;20
-		dw	.centerVDC_02_1 +3*9	;21
-		dw	.centerVDC_02_1 +3*8	;22
-		dw	.centerVDC_02_1 +3*7	;23
-		dw	.centerVDC_02_1 +3*6	;24
-		dw	.centerVDC_02_1 +3*5	;25
-		dw	.centerVDC_02_1 +3*4	;26
-		dw	.centerVDC_02_1 +3*3	;27
-		dw	.centerVDC_02_1 +3*2	;28
-		dw	.centerVDC_02_1 +3*1	;29
-
-		dw	.centerVDC_02_1 +3*0	;30
-
-
-;----------------------------
-putPolyLineProc1:
-;put horizontal line
-		tya
-		and	#$01
-		beq	.loopStart_0
-		jmp	.loopStart_1
-
-.jpRts_0:
-		rts
-
-.jpSwap_0:
-;swap left and right
-		beq	.jp0_0
-		ldx	edgeRight, y
-		sta	edgeRight, y
-		txa
-		sta	edgeLeft, y
-		bra	.jp0_0
-
-.jpCount0_0:
-		jmp	.jpCount0Pg_0
-
-;loop
-.loop0_0:
-		iny
-
-.loopStart_0:
-		cpy	<maxEdgeY
-		bcs	.jpRts_0
-
-;compare left and right values
-		lda	edgeLeft, y
-		cmp	edgeRight, y
-		bcs	.jpSwap_0
-
-;calculation left counts
-.jp0_0:
-		lsr	a
-		lsr	a
-		lsr	a
-		sta	<polyLineCount
-
-;calculation left vram address
-		tax
-
-		lda	polyLineAddrConvXHigh, x
-		ora	polyLineAddrConvYHigh1, y
-		sta	<polyLineLeftAddr+1
-
-		lda	polyLineAddrConvXLow, x
-		ora	polyLineAddrConvYLow, y
-		pha
-
-;set left address
-		ldx	<polyLineLeftAddr+1
-		st0	#$00
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$01
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$02
-
-;put left data
-		ldx	edgeLeft, y
-
-		lda	polyLineLeftDatas, x
-		sta	<polyLineLeftData
-		eor	#$FF
-		sta	<polyLineLeftMask
-
-;calculation counts
-		lda	edgeRight, y
-		lsr	a
-		lsr	a
-		lsr	a
-		tax
-		sec
-		sbc	<polyLineCount
-		beq	.jpCount0_0
-
-;center jump index
-		asl	a
-		sta	<polyLineJumpIndex
-
-;right address
-		lda	polyLineAddrConvXLow, x
-		ora	polyLineAddrConvYLow, y
-		sta	<polyLineRightAddr
-
-		lda	polyLineAddrConvXHigh, x
-		ora	polyLineAddrConvYHigh1, y
-		sta	<polyLineRightAddr+1
-
-;put right data
-		ldx	edgeRight, y
-
-		lda	polyLineRightDatas, x
-		sta	<polyLineRightData
-		eor	#$FF
-		sta	<polyLineRightMask
-
-;put line process
-;left CH0 CH1
-		lda	VDC_2
-		and	<polyLineLeftMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineLeftMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork0
-		and	<polyLineLeftData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork1
-		and	<polyLineLeftData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;center CH0 CH1
-		lda	<polyLineColorDataWork0
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork1
-
-		ldx	<polyLineJumpIndex
-
-		jmp	[.centerVDC_01_0Addr, x]
-
-.centerVDC_01_0:
-		sta	VDC_3	;30
-		sta	VDC_3	;29
-		sta	VDC_3	;28
-		sta	VDC_3	;27
-		sta	VDC_3	;26
-		sta	VDC_3	;25
-		sta	VDC_3	;24
-		sta	VDC_3	;23
-		sta	VDC_3	;22
-		sta	VDC_3	;21
-
-		sta	VDC_3	;20
-		sta	VDC_3	;19
-		sta	VDC_3	;18
-		sta	VDC_3	;17
-		sta	VDC_3	;16
-		sta	VDC_3	;15
-		sta	VDC_3	;14
-		sta	VDC_3	;13
-		sta	VDC_3	;12
-		sta	VDC_3	;11
-
-		sta	VDC_3	;10
-		sta	VDC_3	;9
-		sta	VDC_3	;8
-		sta	VDC_3	;7
-		sta	VDC_3	;6
-		sta	VDC_3	;5
-		sta	VDC_3	;4
-		sta	VDC_3	;3
-		sta	VDC_3	;2
-		sta	VDC_3	;1
-
-;right CH0 CH1
-		st0	#$01
-		lda	<polyLineRightAddr
-		sta	VDC_2
-		lda	<polyLineRightAddr+1
-		sta	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineRightMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineRightMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork0
-		and	<polyLineRightData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork1
-		and	<polyLineRightData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;left CH2 CH3
-		pla
-		ora	#$08
-
-		ldx	<polyLineLeftAddr+1
-
-		st0	#$00
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$01
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineLeftMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineLeftMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork2
-		and	<polyLineLeftData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork3
-		and	<polyLineLeftData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;center CH2 CH3
-		lda	<polyLineColorDataWork2
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork3
-
-		ldx	<polyLineJumpIndex
-
-		jmp	[.centerVDC_02_0Addr, x]
-
-.centerVDC_02_0:
-		sta	VDC_3	;30
-		sta	VDC_3	;29
-		sta	VDC_3	;28
-		sta	VDC_3	;27
-		sta	VDC_3	;26
-		sta	VDC_3	;25
-		sta	VDC_3	;24
-		sta	VDC_3	;23
-		sta	VDC_3	;22
-		sta	VDC_3	;21
-
-		sta	VDC_3	;20
-		sta	VDC_3	;19
-		sta	VDC_3	;18
-		sta	VDC_3	;17
-		sta	VDC_3	;16
-		sta	VDC_3	;15
-		sta	VDC_3	;14
-		sta	VDC_3	;13
-		sta	VDC_3	;12
-		sta	VDC_3	;11
-
-		sta	VDC_3	;10
-		sta	VDC_3	;9
-		sta	VDC_3	;8
-		sta	VDC_3	;7
-		sta	VDC_3	;6
-		sta	VDC_3	;5
-		sta	VDC_3	;4
-		sta	VDC_3	;3
-		sta	VDC_3	;2
-		sta	VDC_3	;1
-
-;right CH2 CH3
-		st0	#$01
-		lda	<polyLineRightAddr
-		ora	#$08
-		sta	VDC_2
-		lda	<polyLineRightAddr+1
-		sta	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineRightMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineRightMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork2
-		and	<polyLineRightData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork3
-		and	<polyLineRightData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;loop jump
-		jmp	.loop0_1
-
-.jpCount0Pg_0:
-;count 0 then
-;put line same address
-		ldx	edgeRight, y
-		lda	polyLineRightDatas, x
-		ldx	edgeLeft, y
-		and	polyLineLeftDatas, x
-
-		sta	<polyLineMask0
-		eor	#$FF
-		sta	<polyLineMask1
-
-;CH0 CH1
-		lda	VDC_2
-		and	<polyLineMask1
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineMask1
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork0
-		and	<polyLineMask0
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork1
-		and	<polyLineMask0
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;CH2 CH3
-		pla
-		ora	#$08
-		ldx	<polyLineLeftAddr+1
-		st0	#$00
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$01
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineMask1
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineMask1
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork2
-		and	<polyLineMask0
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork3
-		and	<polyLineMask0
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;loop jump
-		jmp	.loop0_1
-
-;----------------
-.jpRts_1:
-		rts
-
-.jpSwap_1:
-;swap left and right
-		beq	.jp0_1
-		ldx	edgeRight, y
-		sta	edgeRight, y
-		txa
-		sta	edgeLeft, y
-		bra	.jp0_1
-
-.jpCount0_1:
-		jmp	.jpCount0Pg_1
-
-;loop
-.loop0_1:
-		iny
-
-.loopStart_1:
-		cpy	<maxEdgeY
-		bcs	.jpRts_1
-
-;compare left and right values
-		lda	edgeLeft, y
-		cmp	edgeRight, y
-		bcs	.jpSwap_1
-
-;calculation left counts
-.jp0_1:
-		lsr	a
-		lsr	a
-		lsr	a
-		sta	<polyLineCount
-
-;calculation left vram address
-		tax
-
-		lda	polyLineAddrConvXHigh, x
-		ora	polyLineAddrConvYHigh1, y
-		sta	<polyLineLeftAddr+1
-
-		lda	polyLineAddrConvXLow, x
-		ora	polyLineAddrConvYLow, y
-		pha
-
-;set left address
-		ldx	<polyLineLeftAddr+1
-		st0	#$00
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$01
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$02
-
-;put left data
-		ldx	edgeLeft, y
-
-		lda	polyLineLeftDatas, x
-		sta	<polyLineLeftData
-		eor	#$FF
-		sta	<polyLineLeftMask
-
-;calculation counts
-		lda	edgeRight, y
-		lsr	a
-		lsr	a
-		lsr	a
-		tax
-		sec
-		sbc	<polyLineCount
-		beq	.jpCount0_1
-
-;center jump index
-		asl	a
-		sta	<polyLineJumpIndex
-
-;right address
-		lda	polyLineAddrConvXLow, x
-		ora	polyLineAddrConvYLow, y
-		sta	<polyLineRightAddr
-
-		lda	polyLineAddrConvXHigh, x
-		ora	polyLineAddrConvYHigh1, y
-		sta	<polyLineRightAddr+1
-
-;put right data
-		ldx	edgeRight, y
-
-		lda	polyLineRightDatas, x
-		sta	<polyLineRightData
-		eor	#$FF
-		sta	<polyLineRightMask
-
-;put line process
-;left CH0 CH1
-		lda	VDC_2
-		and	<polyLineLeftMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineLeftMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork4
-		and	<polyLineLeftData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork5
-		and	<polyLineLeftData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;center CH0 CH1
-		lda	<polyLineColorDataWork4
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork5
-
-		ldx	<polyLineJumpIndex
-
-		jmp	[.centerVDC_01_1Addr, x]
-
-.centerVDC_01_1:
-		sta	VDC_3	;30
-		sta	VDC_3	;29
-		sta	VDC_3	;28
-		sta	VDC_3	;27
-		sta	VDC_3	;26
-		sta	VDC_3	;25
-		sta	VDC_3	;24
-		sta	VDC_3	;23
-		sta	VDC_3	;22
-		sta	VDC_3	;21
-
-		sta	VDC_3	;20
-		sta	VDC_3	;19
-		sta	VDC_3	;18
-		sta	VDC_3	;17
-		sta	VDC_3	;16
-		sta	VDC_3	;15
-		sta	VDC_3	;14
-		sta	VDC_3	;13
-		sta	VDC_3	;12
-		sta	VDC_3	;11
-
-		sta	VDC_3	;10
-		sta	VDC_3	;9
-		sta	VDC_3	;8
-		sta	VDC_3	;7
-		sta	VDC_3	;6
-		sta	VDC_3	;5
-		sta	VDC_3	;4
-		sta	VDC_3	;3
-		sta	VDC_3	;2
-		sta	VDC_3	;1
-
-;right CH0 CH1
-		st0	#$01
-		lda	<polyLineRightAddr
-		sta	VDC_2
-		lda	<polyLineRightAddr+1
-		sta	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineRightMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineRightMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork4
-		and	<polyLineRightData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork5
-		and	<polyLineRightData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;left CH2 CH3
-		pla
-		ora	#$08
-
-		ldx	<polyLineLeftAddr+1
-
-		st0	#$00
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$01
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineLeftMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineLeftMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork6
-		and	<polyLineLeftData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork7
-		and	<polyLineLeftData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;center CH2 CH3
-		lda	<polyLineColorDataWork6
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork7
-
-		ldx	<polyLineJumpIndex
-
-		jmp	[.centerVDC_02_1Addr, x]
-
-.centerVDC_02_1:
-		sta	VDC_3	;30
-		sta	VDC_3	;29
-		sta	VDC_3	;28
-		sta	VDC_3	;27
-		sta	VDC_3	;26
-		sta	VDC_3	;25
-		sta	VDC_3	;24
-		sta	VDC_3	;23
-		sta	VDC_3	;22
-		sta	VDC_3	;21
-
-		sta	VDC_3	;20
-		sta	VDC_3	;19
-		sta	VDC_3	;18
-		sta	VDC_3	;17
-		sta	VDC_3	;16
-		sta	VDC_3	;15
-		sta	VDC_3	;14
-		sta	VDC_3	;13
-		sta	VDC_3	;12
-		sta	VDC_3	;11
-
-		sta	VDC_3	;10
-		sta	VDC_3	;9
-		sta	VDC_3	;8
-		sta	VDC_3	;7
-		sta	VDC_3	;6
-		sta	VDC_3	;5
-		sta	VDC_3	;4
-		sta	VDC_3	;3
-		sta	VDC_3	;2
-		sta	VDC_3	;1
-
-;right CH2 CH3
-		st0	#$01
-		lda	<polyLineRightAddr
-		ora	#$08
-		sta	VDC_2
-		lda	<polyLineRightAddr+1
-		sta	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineRightMask
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineRightMask
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork6
-		and	<polyLineRightData
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork7
-		and	<polyLineRightData
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;loop jump
-		jmp	.loop0_0
-
-.jpCount0Pg_1:
-;count 0 then
-;put line same address
-		ldx	edgeRight, y
-		lda	polyLineRightDatas, x
-		ldx	edgeLeft, y
-		and	polyLineLeftDatas, x
-
-		sta	<polyLineMask0
-		eor	#$FF
-		sta	<polyLineMask1
-
-;CH0 CH1
-		lda	VDC_2
-		and	<polyLineMask1
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineMask1
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork4
-		and	<polyLineMask0
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork5
-		and	<polyLineMask0
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;CH2 CH3
-		pla
-		ora	#$08
-		ldx	<polyLineLeftAddr+1
-		st0	#$00
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$01
-		sta	VDC_2
-		stx	VDC_3
-
-		st0	#$02
-
-		lda	VDC_2
-		and	<polyLineMask1
-		sta	<polyLineDataLow
-
-		lda	VDC_3
-		and	<polyLineMask1
-		sta	<polyLineDataHigh
-
-		lda	<polyLineColorDataWork6
-		and	<polyLineMask0
-		ora	<polyLineDataLow
-		sta	VDC_2
-
-		lda	<polyLineColorDataWork7
-		and	<polyLineMask0
-		ora	<polyLineDataHigh
-		sta	VDC_3
-
-;loop jump
-		jmp	.loop0_0
-
-;--------
-.centerVDC_01_0Addr:
-		dw	.centerVDC_01_0 +3*30	;-1
-		dw	.centerVDC_01_0 +3*30	;0
-
-		dw	.centerVDC_01_0 +3*29	;1
-		dw	.centerVDC_01_0 +3*28	;2
-		dw	.centerVDC_01_0 +3*27	;3
-		dw	.centerVDC_01_0 +3*26	;4
-		dw	.centerVDC_01_0 +3*25	;5
-		dw	.centerVDC_01_0 +3*24	;6
-		dw	.centerVDC_01_0 +3*23	;7
-		dw	.centerVDC_01_0 +3*22	;8
-		dw	.centerVDC_01_0 +3*21	;9
-
-		dw	.centerVDC_01_0 +3*20	;10
-		dw	.centerVDC_01_0 +3*19	;11
-		dw	.centerVDC_01_0 +3*18	;12
-		dw	.centerVDC_01_0 +3*17	;13
-		dw	.centerVDC_01_0 +3*16	;14
-		dw	.centerVDC_01_0 +3*15	;15
-		dw	.centerVDC_01_0 +3*14	;16
-		dw	.centerVDC_01_0 +3*13	;17
-		dw	.centerVDC_01_0 +3*12	;18
-		dw	.centerVDC_01_0 +3*11	;19
-
-		dw	.centerVDC_01_0 +3*10	;20
-		dw	.centerVDC_01_0 +3*9	;21
-		dw	.centerVDC_01_0 +3*8	;22
-		dw	.centerVDC_01_0 +3*7	;23
-		dw	.centerVDC_01_0 +3*6	;24
-		dw	.centerVDC_01_0 +3*5	;25
-		dw	.centerVDC_01_0 +3*4	;26
-		dw	.centerVDC_01_0 +3*3	;27
-		dw	.centerVDC_01_0 +3*2	;28
-		dw	.centerVDC_01_0 +3*1	;29
-
-		dw	.centerVDC_01_0 +3*0	;30
-
-;--------
-.centerVDC_02_0Addr:
-		dw	.centerVDC_02_0 +3*30	;-1
-		dw	.centerVDC_02_0 +3*30	;0
-
-		dw	.centerVDC_02_0 +3*29	;1
-		dw	.centerVDC_02_0 +3*28	;2
-		dw	.centerVDC_02_0 +3*27	;3
-		dw	.centerVDC_02_0 +3*26	;4
-		dw	.centerVDC_02_0 +3*25	;5
-		dw	.centerVDC_02_0 +3*24	;6
-		dw	.centerVDC_02_0 +3*23	;7
-		dw	.centerVDC_02_0 +3*22	;8
-		dw	.centerVDC_02_0 +3*21	;9
-
-		dw	.centerVDC_02_0 +3*20	;10
-		dw	.centerVDC_02_0 +3*19	;11
-		dw	.centerVDC_02_0 +3*18	;12
-		dw	.centerVDC_02_0 +3*17	;13
-		dw	.centerVDC_02_0 +3*16	;14
-		dw	.centerVDC_02_0 +3*15	;15
-		dw	.centerVDC_02_0 +3*14	;16
-		dw	.centerVDC_02_0 +3*13	;17
-		dw	.centerVDC_02_0 +3*12	;18
-		dw	.centerVDC_02_0 +3*11	;19
-
-		dw	.centerVDC_02_0 +3*10	;20
-		dw	.centerVDC_02_0 +3*9	;21
-		dw	.centerVDC_02_0 +3*8	;22
-		dw	.centerVDC_02_0 +3*7	;23
-		dw	.centerVDC_02_0 +3*6	;24
-		dw	.centerVDC_02_0 +3*5	;25
-		dw	.centerVDC_02_0 +3*4	;26
-		dw	.centerVDC_02_0 +3*3	;27
-		dw	.centerVDC_02_0 +3*2	;28
-		dw	.centerVDC_02_0 +3*1	;29
-
-		dw	.centerVDC_02_0 +3*0	;30
-
-;--------
-.centerVDC_01_1Addr:
-		dw	.centerVDC_01_1 +3*30	;-1
-		dw	.centerVDC_01_1 +3*30	;0
-
-		dw	.centerVDC_01_1 +3*29	;1
-		dw	.centerVDC_01_1 +3*28	;2
-		dw	.centerVDC_01_1 +3*27	;3
-		dw	.centerVDC_01_1 +3*26	;4
-		dw	.centerVDC_01_1 +3*25	;5
-		dw	.centerVDC_01_1 +3*24	;6
-		dw	.centerVDC_01_1 +3*23	;7
-		dw	.centerVDC_01_1 +3*22	;8
-		dw	.centerVDC_01_1 +3*21	;9
-
-		dw	.centerVDC_01_1 +3*20	;10
-		dw	.centerVDC_01_1 +3*19	;11
-		dw	.centerVDC_01_1 +3*18	;12
-		dw	.centerVDC_01_1 +3*17	;13
-		dw	.centerVDC_01_1 +3*16	;14
-		dw	.centerVDC_01_1 +3*15	;15
-		dw	.centerVDC_01_1 +3*14	;16
-		dw	.centerVDC_01_1 +3*13	;17
-		dw	.centerVDC_01_1 +3*12	;18
-		dw	.centerVDC_01_1 +3*11	;19
-
-		dw	.centerVDC_01_1 +3*10	;20
-		dw	.centerVDC_01_1 +3*9	;21
-		dw	.centerVDC_01_1 +3*8	;22
-		dw	.centerVDC_01_1 +3*7	;23
-		dw	.centerVDC_01_1 +3*6	;24
-		dw	.centerVDC_01_1 +3*5	;25
-		dw	.centerVDC_01_1 +3*4	;26
-		dw	.centerVDC_01_1 +3*3	;27
-		dw	.centerVDC_01_1 +3*2	;28
-		dw	.centerVDC_01_1 +3*1	;29
-
-		dw	.centerVDC_01_1 +3*0	;30
-
-;--------
-.centerVDC_02_1Addr:
-		dw	.centerVDC_02_1 +3*30	;-1
-		dw	.centerVDC_02_1 +3*30	;0
-
-		dw	.centerVDC_02_1 +3*29	;1
-		dw	.centerVDC_02_1 +3*28	;2
-		dw	.centerVDC_02_1 +3*27	;3
-		dw	.centerVDC_02_1 +3*26	;4
-		dw	.centerVDC_02_1 +3*25	;5
-		dw	.centerVDC_02_1 +3*24	;6
-		dw	.centerVDC_02_1 +3*23	;7
-		dw	.centerVDC_02_1 +3*22	;8
-		dw	.centerVDC_02_1 +3*21	;9
-
-		dw	.centerVDC_02_1 +3*20	;10
-		dw	.centerVDC_02_1 +3*19	;11
-		dw	.centerVDC_02_1 +3*18	;12
-		dw	.centerVDC_02_1 +3*17	;13
-		dw	.centerVDC_02_1 +3*16	;14
-		dw	.centerVDC_02_1 +3*15	;15
-		dw	.centerVDC_02_1 +3*14	;16
-		dw	.centerVDC_02_1 +3*13	;17
-		dw	.centerVDC_02_1 +3*12	;18
-		dw	.centerVDC_02_1 +3*11	;19
-
-		dw	.centerVDC_02_1 +3*10	;20
-		dw	.centerVDC_02_1 +3*9	;21
-		dw	.centerVDC_02_1 +3*8	;22
-		dw	.centerVDC_02_1 +3*7	;23
-		dw	.centerVDC_02_1 +3*6	;24
-		dw	.centerVDC_02_1 +3*5	;25
-		dw	.centerVDC_02_1 +3*4	;26
-		dw	.centerVDC_02_1 +3*3	;27
-		dw	.centerVDC_02_1 +3*2	;28
-		dw	.centerVDC_02_1 +3*1	;29
-
-		dw	.centerVDC_02_1 +3*0	;30
-
-
-;----------------------------
-_rsqrt32:
-;mul16a(very rough value) = 1 / sqrt(sqr32a) * 16384
-		phx
-
-		clx
-		lda	<sqr32a+3
-
-.loop0:
-		bmi	.jp00
-
-		inx
-
-		asl	<sqr32a
-		rol	<sqr32a+1
-		rol	<sqr32a+2
-		rol	a
-
-		bra	.loop0
-
-.jp00:
-		stx	<work1a
-
-		tax
-		mov	<sqr32a+1, <sqr32a
-		mov	<sqr32a+2, <sqr32a+1
-		txa
-		asl	a
-		sta	<sqr32a+2
-
-		sec
-		lda	#31 + 127
-		sbc	<work1a
-		lsr	a
-		sta	<sqr32a+3
-		ror	<sqr32a+2
-
-		lsr	<sqr32a+3
-		ror	<sqr32a+2
-		ror	<sqr32a+1
-		ror	<sqr32a
-
-		sec
-		lda	#$DF
-		sbc	<sqr32a
-		sta	<sqr32a
-
-		lda	#$59
-		sbc	<sqr32a+1
-		sta	<sqr32a+1
-
-		lda	#$37
-		sbc	<sqr32a+2
-		sta	<sqr32a+2
-
-		lda	#$5F
-		sbc	<sqr32a+3
-		sta	<sqr32a+3
-
-		lda	<sqr32a+2
-		asl	a
-		rol	<sqr32a+3
-
-		sec
-		lda	#136
-		sbc	<sqr32a+3
-		tax
-
-		lda	<sqr32a+2
-		ora	#$80
-
-		cpx	#0
-.loop1:
-		beq	.jp01
-
-		lsr	a
-		ror	<sqr32a+1
-		ror	<sqr32a
-
-		dex
-		bra	.loop1
-
-.jp01:
-		plx
-		rts
-
-
-;----------------------------
-clearBufferSub:
-			IFDEF CLEAR_SIZE_1KW
-		INCBIN	"clear_1kw.dat"		;  2K
-			ELSE
-		INCBIN	"clear_2kw.dat"		;  3K
-			ENDIF
-		rts
-
-
-;////////////////////////////
 		.bank	EDGE_FUNC_L_0_1_BANK
 		INCLUDE	"poly_edgeL0_1.asm"	;  8K
 
@@ -9411,14 +7328,31 @@ clearBufferSub:
 
 
 ;////////////////////////////
+		.bank	CLEAR_FUNC_BANK
+		.org	$4000
+
+clearBufferSub:
+		INCBIN	"clear.dat"		;  8K
+
+
+;////////////////////////////
 		.bank	MUL_DATA_BANK
 		INCBIN	"mul.dat"		;128K
 
 
 ;////////////////////////////
 		.bank	DIV_DATA_BANK
-		IFDEF SCREEN_Z192
+			IFDEF SCREEN_Z192
 		INCBIN	"div_z192.dat"		; 64K
-		ELSE
+
+			ELSE
+
+			IFDEF SCREEN_Z220
+		INCBIN	"div_z220.dat"		; 64K
+
+			ELSE
+
 		INCBIN	"div_z128.dat"		; 64K
-		ENDIF
+			ENDIF
+
+			ENDIF

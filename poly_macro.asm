@@ -903,7 +903,7 @@ st012		.macro
 bbs		.macro
 ;
 .bbs\@
-		.db	$8F + (\1) * $10
+		.db	$8F + \1 * $10
 		.db	#LOW(\2)
 		.db	\3 - (.bbs\@ + 3)
 		.endm
@@ -913,7 +913,7 @@ bbs		.macro
 bbr		.macro
 ;
 .bbr\@
-		.db	$0F + (\1) * $10
+		.db	$0F + \1 * $10
 		.db	#LOW(\2)
 		.db	\3 - (.bbr\@ + 3)
 		.endm
@@ -922,7 +922,7 @@ bbr		.macro
 ;----------------------------
 smb		.macro
 ;
-		.db	$87 + (\1) * $10
+		.db	$87 + \1 * $10
 		.db	#LOW(\2)
 		.endm
 
@@ -930,22 +930,11 @@ smb		.macro
 ;----------------------------
 rmb		.macro
 ;
-		.db	$07 + (\1) * $10
+		.db	$07 + \1 * $10
 		.db	#LOW(\2)
 		.endm
 
 
-		IFDEF	ENABLE_SHADING
-;----------------------------
-MODEL_DATA	.macro
-;
-				.dw	\1	;POLYGON_DATA ADDRESS
-				.db	\2	;POLYGON_DATA COUNTS(1 to 32)
-				.dw	\3	;VERTEX_DATA ADDRESS
-				.db	\4	;VERTEX_DATA COUNTS(1 to 42)
-				.dw	\5	;POLYGON VECTOR_DATA ADDRESS
-		.endm
-		ELSE
 ;----------------------------
 MODEL_DATA	.macro
 ;
@@ -954,12 +943,11 @@ MODEL_DATA	.macro
 				.dw	\3	;VERTEX_DATA ADDRESS
 				.db	\4	;VERTEX_DATA COUNTS(1 to 42)
 		.endm
-		ENDIF
 
 
 ;----------------------------
 POLYGON_DATA	.macro
-;attribute: circle($80 = circlre) + even line skip($40 = skip) + shading($20 = shading) + front clip($04 = cancel) + back check($02 = cancel) + back draw($01 = not draw : front side = counterclockwise)
+;attribute: circle($80 = circlre) + even line skip($40 = skip) + front clip($04 = cancel) + back draw($01 = not draw : front side = counterclockwise)
 ;front color(0 to 127)
 ;back color(0 to 127) or circle radius(1 to 8192) low byte
 ;vertex count: count(3 to 4) or circle radius(1 to 8192) high byte
@@ -968,12 +956,12 @@ POLYGON_DATA	.macro
 ;vertex index 2,
 ;vertex index 3
 		.if	(\# = 4)
-			.db	\1, \2, #LOW(\3), #HIGH(\3), (\4)*6, 0, 0, 0
+			.db	\1, \2, #LOW(\3), #HIGH(\3), \4*6, 0, 0, 0
 		else
 			.if	(\# = 6)
-				.db	\1, \2, \3, 3, (\4)*6, (\5)*6, (\6)*6, 0
+				.db	\1, \2, \3, 3, \4*6, \5*6, \6*6, 0
 			.else
-				.db	\1, \2, \3, 4, (\4)*6, (\5)*6, (\6)*6, (\7)*6
+				.db	\1, \2, \3, 4, \4*6, \5*6, \6*6, \7*6
 			.endif
 		.endif
 		.endm
@@ -981,13 +969,6 @@ POLYGON_DATA	.macro
 
 ;----------------------------
 VERTEX_DATA	.macro
-;
-				.dw	\1, \2, \3	;X, Y, Z
-		.endm
-
-
-;----------------------------
-VECTOR_DATA	.macro
 ;
 				.dw	\1, \2, \3	;X, Y, Z
 		.endm

@@ -24,11 +24,8 @@ tiiRts			.ds	1
 transform2DWork0	.ds	256
 vertexDataTemp		.equ	transform2DWork0
 vertexDataTemp0		.equ	transform2DWork0
-vertexDataWork		.equ	transform2DWork0
-vertexDataWork0		.equ	transform2DWork0
 transform2DWork1	.ds	256
 vertexDataTemp1		.equ	transform2DWork1
-vertexDataWork1		.equ	transform2DWork1
 
 ;---------------------
 clip2D0			.ds	(8+1)*4
@@ -36,6 +33,17 @@ clip2D1			.ds	(8+1)*4
 
 ;---------------------
 backCheckWork		.ds	3*4
+
+;---------------------
+polyLineColorWork_H_P0	.ds	1
+polyLineColorWork_H_P1	.ds	1
+polyLineColorWork_H_P2	.ds	1
+polyLineColorWork_H_P3	.ds	1
+
+polyLineColorWork_L_P0	.ds	1
+polyLineColorWork_L_P1	.ds	1
+polyLineColorWork_L_P2	.ds	1
+polyLineColorWork_L_P3	.ds	1
 
 ;---------------------
 polygonColorP0		.ds	128

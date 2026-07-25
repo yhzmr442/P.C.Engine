@@ -35,11 +35,33 @@ work8a			equ	work4a
 work8b			equ	work4c
 
 ;---------------------
-vertexCount		.ds	1
+padLast			.ds	1	;bit7 6 5 4 3 2 1 0
+padNow			.ds	1	;   L D R U r S 2 1
+padState		.ds	1
+padState2		.ds	1
 
 ;---------------------
-vertexRotationSin	.ds	2
-vertexRotationCos	.ds	2
+vsyncFlag		.ds	1
+vsyncFlagTemp		.ds	1
+vdpStatus		.ds	1
+vdcR05			.ds	2
+drawingNo		.ds	1
+
+;---------------------
+irqDisableReg		.ds	1
+
+;---------------------
+vertexCount		.ds	1
+vertex0Addr		.ds	2
+
+;---------------------
+clip2D0Count		.ds	1
+clip2D1Count		.ds	1
+clip2DFlag		.ds	1
+clip2DCheckFlag		.ds	1
+
+;---------------------
+systemConfig		.ds	1
 
 ;---------------------
 ;---------------------
@@ -71,10 +93,6 @@ polyLineColorDataWork0	.ds	1
 polyLineColorDataWork1	.ds	1
 polyLineColorDataWork2	.ds	1
 polyLineColorDataWork3	.ds	1
-polyLineColorDataWork4	.ds	1
-polyLineColorDataWork5	.ds	1
-polyLineColorDataWork6	.ds	1
-polyLineColorDataWork7	.ds	1
 polyLineDataLow		.ds	1
 polyLineDataHigh	.ds	1
 polyLineLeftAddr	.ds	2
@@ -85,8 +103,6 @@ polyLineRightData	.ds	1
 polyLineRightMask	.ds	1
 polyLineMask0		equ	polyLineLeftMask
 polyLineMask1		equ	polyLineRightMask
-lightVectorWork		.ds	4
-lightVectorColorWork	.ds	1
 
 ;---------------------
 			.org	shareAreaTop
@@ -171,53 +187,11 @@ temp5			.ds	1
 tempw2			equ	temp4
 
 ;---------------------
-			.org	shareAreaTop
-matrix0			.ds	2
-vertex0			.equ	matrix0
-
-matrix1			.ds	2
-vertex1			.equ	matrix1
-
-matrix2			.ds	2
-vertex2			.equ	matrix2
-
-matrixTemp		.ds	4
-
-;---------------------
 			.org	shareAreaBottom
 ;---------------------
 ;share area end
 ;---------------------
 ;---------------------
-dmaCount		.ds	1
-
-;---------------------
-padLast			.ds	1	;bit7 6 5 4 3 2 1 0
-padNow			.ds	1	;   L D R U r S 2 1
-padState		.ds	1
-padState2		.ds	1
-
-;---------------------
-vsyncFlag		.ds	1
-vsyncFlagTemp		.ds	1
-vdpStatus		.ds	1
-vdcR05			.ds	2
-drawingNo		.ds	1
-
-;---------------------
-irqDisableReg		.ds	1
-
-;---------------------
-vertex0Addr		.ds	2
-
-;---------------------
-clip2D0Count		.ds	1
-clip2D1Count		.ds	1
-clip2DFlag		.ds	1
-clip2DCheckFlag		.ds	1
-
-;---------------------
-systemConfig		.ds	1
 
 ;---------------------
 minEdgeY		.ds	1
@@ -241,6 +215,9 @@ rotationY		.ds	1
 rotationZ		.ds	1
 
 rotationSelect		.ds	1
+
+vertexRotationSin	.ds	2
+vertexRotationCos	.ds	2
 
 ;---------------------
 eyeTranslationX		.ds	2
@@ -271,19 +248,6 @@ setModelFrontColor	.ds	1
 setModelBackColor	.ds	1
 setModelAttr		.ds	1
 model2DClipIndexWork	.ds	1
-
-		IFDEF	ENABLE_SHADING
-;---------------------
-modelVectorAddrWork	.ds	2
-
-lightVectorX		.ds	2
-lightVectorY		.ds	2
-lightVectorZ		.ds	2
-
-lightVectorRotX		.ds	2
-lightVectorRotY		.ds	2
-lightVectorRotZ		.ds	2
-		ENDIF
 
 ;---------------------
 satBufferAddr		.ds	2
